@@ -1,3 +1,3 @@
 # autochrome
-Alternative &amp; Independent Version of claude-in-chrome
 
+Alternative &amp; Independent Version of claude-in-chrome

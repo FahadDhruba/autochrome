@@ -8,18 +8,18 @@ Status: **Approved, in progress.** Progress is tracked in [CHECKLIST.md](CHECKLI
 
 ## Decisions
 
-| Topic | Decision |
-|---|---|
-| Product | Side panel agent **and** external bridge |
+| Topic        | Decision                                                                               |
+| ------------ | -------------------------------------------------------------------------------------- |
+| Product      | Side panel agent **and** external bridge                                               |
 | AI providers | Multiple: Anthropic, OpenAI, Gemini, OpenAI-compatible (Ollama, LM Studio, OpenRouter) |
-| Bridge | MCP server (stdio) **and** WebSocket/HTTP API |
-| Page control | Hybrid: accessibility tree + element IDs first, screenshots + x/y clicks as fallback |
-| Safety | Selectable modes: Ask every action / Per-site (default) / Auto |
-| Stack | TypeScript, React, Vite (WXT), Manifest V3, Node bridge, pnpm monorepo |
-| Distribution | Open source on GitHub, MIT license |
-| Browsers | Chrome first; Edge/Brave expected to work, untested |
-| v1 extras | Multi-tab tasks, debug tools (console/network) |
-| v2 (later) | Workflow record/replay, scheduled tasks |
+| Bridge       | MCP server (stdio) **and** WebSocket/HTTP API                                          |
+| Page control | Hybrid: accessibility tree + element IDs first, screenshots + x/y clicks as fallback   |
+| Safety       | Selectable modes: Ask every action / Per-site (default) / Auto                         |
+| Stack        | TypeScript, React, Vite (WXT), Manifest V3, Node bridge, pnpm monorepo                 |
+| Distribution | Open source on GitHub, MIT license                                                     |
+| Browsers     | Chrome first; Edge/Brave expected to work, untested                                    |
+| v1 extras    | Multi-tab tasks, debug tools (console/network)                                         |
+| v2 (later)   | Workflow record/replay, scheduled tasks                                                |
 
 ## Architecture
 
@@ -73,16 +73,16 @@ resistance); bridge accepts only local connections with the pairing token.
 
 ## Milestones (one PR each)
 
-| # | Deliverable | Usable result |
-|---|---|---|
-| M0 | Monorepo, lint/typecheck/test, CI | Builds |
-| M1 | Extension tool executor + accessibility tree reader + tab group | Tools run from a debug page |
-| M2 | Bridge + MCP + WebSocket API | Claude Code can control Chrome |
-| M3 | Side panel chat + Anthropic provider | In-browser agent works |
-| M4 | OpenAI, Gemini, OpenAI-compatible providers | Provider switching |
-| M5 | Safety modes + per-site permissions + risky-action checks | Safe on signed-in sites |
-| M6 | Multi-tab tasks + console/network tools | Full v1 feature set |
-| M7 | README, setup guide, demo GIF, tagged release | Ready to open source |
+| #   | Deliverable                                                     | Usable result                  |
+| --- | --------------------------------------------------------------- | ------------------------------ |
+| M0  | Monorepo, lint/typecheck/test, CI                               | Builds                         |
+| M1  | Extension tool executor + accessibility tree reader + tab group | Tools run from a debug page    |
+| M2  | Bridge + MCP + WebSocket API                                    | Claude Code can control Chrome |
+| M3  | Side panel chat + Anthropic provider                            | In-browser agent works         |
+| M4  | OpenAI, Gemini, OpenAI-compatible providers                     | Provider switching             |
+| M5  | Safety modes + per-site permissions + risky-action checks       | Safe on signed-in sites        |
+| M6  | Multi-tab tasks + console/network tools                         | Full v1 feature set            |
+| M7  | README, setup guide, demo GIF, tagged release                   | Ready to open source           |
 
 Bridge (M2) comes before chat (M3) so it's useful early and tools can be tested through Claude Code.
 

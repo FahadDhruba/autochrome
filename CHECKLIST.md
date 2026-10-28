@@ -2,22 +2,25 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M0 — Scaffold
+**Current:** M1 — Tool executor
 
 ## Planning
+
 - [x] Requirements gathered
 - [x] PLAN.md written
 - [x] Plan approved
 
 ## M0 — Scaffold
-- [ ] pnpm monorepo (`shared`, `extension`, `bridge`)
-- [ ] TypeScript, ESLint, Prettier
-- [ ] Vitest set up
-- [ ] WXT extension loads in Chrome (empty side panel)
-- [ ] GitHub Actions CI: lint, typecheck, test, build
-- [ ] MIT LICENSE
+
+- [x] pnpm monorepo (`shared`, `extension`, `bridge`)
+- [x] TypeScript, ESLint, Prettier
+- [x] Vitest set up
+- [x] WXT extension loads in Chrome (empty side panel)
+- [x] GitHub Actions CI: lint, typecheck, test, build
+- [x] MIT LICENSE
 
 ## M1 — Tool executor
+
 - [ ] Shared tool schemas + protocol types
 - [ ] Accessibility tree snapshot with element IDs (`read_page`)
 - [ ] `find`, `get_text`, `screenshot`
@@ -28,6 +31,7 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [ ] Playwright e2e against local fixture pages
 
 ## M2 — Bridge
+
 - [ ] Node bridge package (`npx autochrome-bridge`)
 - [ ] WebSocket link extension ↔ bridge, pairing token, localhost only
 - [ ] Reconnect when the service worker restarts
@@ -36,6 +40,7 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [ ] Verified with Claude Code
 
 ## M3 — Side panel + Anthropic
+
 - [ ] Provider interface
 - [ ] Anthropic provider (tool use, streaming)
 - [ ] Agent loop in background worker
@@ -44,12 +49,14 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [ ] Chat history in local storage
 
 ## M4 — More providers
+
 - [ ] OpenAI
 - [ ] Gemini
 - [ ] OpenAI-compatible (Ollama, LM Studio, OpenRouter) with custom base URL
 - [ ] Per-chat provider/model switch
 
 ## M5 — Safety
+
 - [ ] Mode setting: Ask every / Per-site / Auto
 - [ ] Per-site permission store + approval UI
 - [ ] Risky-action detection (purchase, send, delete, password/payment)
@@ -58,12 +65,14 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [ ] Auto-mode warning
 
 ## M6 — Multi-tab + debug
+
 - [ ] Multi-tab tasks (work across tabs in one task)
 - [ ] Console log capture tool
 - [ ] Network request capture tool
 - [ ] JS eval tool (always asks)
 
 ## M7 — Release
+
 - [ ] README with setup for extension + bridge
 - [ ] MCP client config examples (Claude Code, Cursor)
 - [ ] Demo GIF
@@ -71,10 +80,13 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [ ] Tag v1.0.0 release
 
 ## v2 (later)
+
 - [ ] Workflow record/replay
 - [ ] Scheduled tasks
 
 ## Session log
-| Date | Session work |
-|---|---|
-| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written |
+
+| Date       | Session work                                                           |
+| ---------- | ---------------------------------------------------------------------- |
+| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written     |
+| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI) |
