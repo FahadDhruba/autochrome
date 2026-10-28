@@ -8,3 +8,8 @@
 # Commits
 
 - Commit as `fahaddhruba <dhruba.fahad2004@gmail.com>`. No Claude co-author or session trailers in commits or PRs.
+
+# Continuity
+
+- Read PLAN.md and CHECKLIST.md at the start of every session.
+- Tick CHECKLIST.md items and add a session log row in the same PR as the work.
