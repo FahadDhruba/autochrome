@@ -139,10 +139,8 @@ test('asks for an API key first and sends the model chosen in Settings', async (
   await panel.getByLabel('API key').fill('test-key');
   await anthropic.getByRole('button', { name: 'Save' }).click();
   await expect(anthropic.getByRole('button', { name: 'Saved' })).toBeVisible();
-  await expect(panel.getByLabel('Model').locator('option', { hasText: 'Mock model' })).toHaveCount(
-    1,
-  );
-  await panel.getByLabel('Model').selectOption('mock-model');
+  await expect(panel.locator('#settings-models option[value="mock-model"]')).toHaveCount(1);
+  await panel.getByLabel('Model').fill('mock-model');
   await anthropic.getByRole('button', { name: 'Save' }).click();
   await expect(anthropic.getByRole('button', { name: 'Saved' })).toBeVisible();
   await expect(panel.getByRole('region', { name: 'Bridge settings' })).toBeVisible();

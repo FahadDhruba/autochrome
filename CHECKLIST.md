@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M4 — More providers
+**Current:** M5 — Safety
 
 ## Planning
 
@@ -50,10 +50,10 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M4 — More providers
 
-- [ ] OpenAI
-- [ ] Gemini
-- [ ] OpenAI-compatible (Ollama, LM Studio, OpenRouter) with custom base URL
-- [ ] Per-chat provider/model switch
+- [x] OpenAI
+- [x] Gemini
+- [x] OpenAI-compatible (Ollama, LM Studio, OpenRouter) with custom base URL
+- [x] Per-chat provider/model switch
 
 ## M5 — Safety
 
@@ -86,10 +86,11 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## Session log
 
-| Date       | Session work                                                                                                                                    |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written                                                                              |
-| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)                                                                          |
-| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e)                                                                 |
-| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                       |
-| 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key) |
+| Date       | Session work                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written                                                                                                                                                             |
+| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)                                                                                                                                                         |
+| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e)                                                                                                                                                |
+| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                                                                                                      |
+| 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key)                                                                                |
+| 2026-10-28 | M4 OpenAI, Gemini and OpenAI-compatible providers + per-chat provider/model picker built and verified with mock servers (unit + e2e); real provider APIs not exercised (no keys), docs checked only via search and SDK typings |

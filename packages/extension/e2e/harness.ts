@@ -6,6 +6,7 @@ import path from 'node:path';
 import { chromium, test as base, type BrowserContext, type Page } from '@playwright/test';
 import type { ToolName, ToolResult } from '@autochrome/shared';
 import { MockAnthropic } from './mockAnthropic';
+import { MockGemini, MockOpenAi } from './mockProviders';
 
 const extensionPath = path.resolve(import.meta.dirname, '../.output/chrome-mv3');
 const fixturesPath = path.resolve(import.meta.dirname, 'fixtures');
@@ -34,6 +35,10 @@ type Fixtures = {
   extensionId: string;
   /** Local Anthropic API stand-in; the extension is already pointed at it with a fake key. */
   mockAnthropic: MockAnthropic;
+  /** Local OpenAI-style server; not configured in the extension until a test points a provider at it. */
+  mockOpenAi: MockOpenAi;
+  /** Local Gemini-style server; not configured in the extension until a test points it there. */
+  mockGemini: MockGemini;
   /** Opens the side panel UI as a normal tab (Playwright cannot drive the real side panel). */
   openSidePanel: () => Promise<Page>;
   /** The extension's debug page; tools run from here exactly as the debugger UI does. */
@@ -83,6 +88,20 @@ export const test = base.extend<Fixtures>({
         chrome.storage.local.set({ 'anthropic.apiKey': 'test-key', 'anthropic.baseUrl': baseUrl }),
       mock.baseUrl,
     );
+    await use(mock);
+    await mock.stop();
+  },
+
+  mockOpenAi: async ({}, use) => {
+    const mock = new MockOpenAi();
+    await mock.start();
+    await use(mock);
+    await mock.stop();
+  },
+
+  mockGemini: async ({}, use) => {
+    const mock = new MockGemini();
+    await mock.start();
     await use(mock);
     await mock.stop();
   },

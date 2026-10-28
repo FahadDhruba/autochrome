@@ -1,11 +1,13 @@
 import type { ToolResult } from '@autochrome/shared';
-import type { Usage } from '../providers/types';
+import type { ProviderId, Usage } from '../providers/types';
 
 export const CHAT_PORT_NAME = 'autochrome:chat';
 export const MAX_STEPS = 50;
 
 /** Side panel to background. */
-export type PanelMessage = { type: 'send'; chatId: string; text: string } | { type: 'stop' };
+export type PanelMessage =
+  | { type: 'send'; chatId: string; text: string; providerId: ProviderId; model: string }
+  | { type: 'stop' };
 
 /** Background to side panel. */
 export type AgentEvent =

@@ -66,6 +66,22 @@ function setup(
 }
 
 describe('runAgent', () => {
+  it('keeps provider signatures on stored text and tool calls', async () => {
+    const { run, messages } = setup([
+      [
+        { type: 'text_delta', text: 'hi', signature: 'sigA' },
+        { type: 'tool_call', id: 'c1', name: 'tabs_list', input: {}, signature: 'sigB' },
+        { type: 'done', stopReason: 'tool_use' },
+      ],
+      finalTurn,
+    ]);
+    await runAgent(run);
+    expect(messages[1]?.parts).toEqual([
+      { type: 'text', text: 'hi', signature: 'sigA' },
+      { type: 'tool_call', id: 'c1', name: 'tabs_list', input: {}, signature: 'sigB' },
+    ]);
+  });
+
   it('runs a tool round trip and finishes with summed usage', async () => {
     const { run, events, messages, execute, requests } = setup([toolTurn('c1', 'c2'), finalTurn]);
     await runAgent(run);

@@ -1,13 +1,12 @@
 import { describeTools, type ToolCall } from '@autochrome/shared';
 import { executeTool } from '../executor';
 import { loadChat, saveChat, titleFor, type Chat } from '../history';
-import { createAnthropicProvider } from '../providers/anthropic';
-import { loadProviderSettings } from '../settings';
+import { providers } from '../providers';
+import type { ProviderId } from '../providers/types';
+import { isProviderId, loadProviderSettings } from '../settings';
 import { runAgent } from './loop';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
 import { buildSystemPrompt } from './system-prompt';
-
-const provider = createAnthropicProvider();
 
 async function currentTab() {
   const [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
@@ -16,7 +15,9 @@ async function currentTab() {
 
 function isPanelMessage(message: unknown): message is PanelMessage {
   const type = (message as { type?: unknown } | null)?.type;
-  return type === 'send' || type === 'stop';
+  if (type === 'stop') return true;
+  const send = message as Partial<Extract<PanelMessage, { type: 'send' }>>;
+  return type === 'send' && isProviderId(send.providerId) && typeof send.model === 'string';
 }
 
 /** Handles one side panel connection: one task at a time, aborted when the panel goes away. */
@@ -30,10 +31,13 @@ function handlePort(port: Browser.runtime.Port): void {
     }
   };
 
-  const start = async (chatId: string, text: string) => {
-    const settings = await loadProviderSettings();
+  const start = async (chatId: string, text: string, providerId: ProviderId, model: string) => {
+    const { provider } = providers[providerId];
+    const settings = await loadProviderSettings(providerId);
     const existing = await loadChat(chatId);
     const chat: Chat = existing ?? { id: chatId, title: '', updatedAt: 0, messages: [] };
+    chat.providerId = providerId;
+    chat.model = model;
     chat.messages.push({ role: 'user', parts: [{ type: 'text', text }] });
     chat.title ||= titleFor(chat.messages);
     const persist = () => saveChat({ ...chat, updatedAt: Date.now() });
@@ -42,7 +46,7 @@ function handlePort(port: Browser.runtime.Port): void {
     await runAgent({
       provider,
       settings,
-      model: settings.model,
+      model,
       system: buildSystemPrompt(new Date(), await currentTab()),
       tools: describeTools().map(({ name, description, inputSchema }) => ({
         name,
@@ -67,7 +71,7 @@ function handlePort(port: Browser.runtime.Port): void {
     if (controller) return emit({ type: 'error', message: 'A task is already running.' });
 
     controller = new AbortController();
-    start(message.chatId, message.text)
+    start(message.chatId, message.text, message.providerId, message.model)
       .catch((error: unknown) =>
         emit({ type: 'error', message: error instanceof Error ? error.message : String(error) }),
       )

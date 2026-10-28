@@ -1,10 +1,18 @@
-import type { ChatMessage, Usage } from './providers/types';
+import type { ChatMessage, ProviderId, Usage } from './providers/types';
 
 const INDEX_KEY = 'chat:index';
 const TITLE_LENGTH = 60;
 
 export type ChatSummary = { id: string; title: string; updatedAt: number };
-export type Chat = ChatSummary & { messages: ChatMessage[]; usage?: Usage };
+/** `providerId` and `model` are missing on chats saved before M4; they were Anthropic chats. */
+export type Chat = ChatSummary & {
+  messages: ChatMessage[];
+  usage?: Usage;
+  providerId?: ProviderId;
+  model?: string;
+};
+
+export type ChatTarget = { providerId: ProviderId; model: string };
 
 const chatKey = (id: string) => `chat:${id}`;
 
@@ -36,4 +44,10 @@ export async function deleteChat(id: string): Promise<void> {
   const index = (await listChats()).filter((entry) => entry.id !== id);
   await browser.storage.local.set({ [INDEX_KEY]: index });
   await browser.storage.local.remove(chatKey(id));
+}
+
+/** Changes the provider/model of a saved chat without touching its order in the history. */
+export async function saveChatTarget(id: string, target: ChatTarget): Promise<void> {
+  const chat = await loadChat(id);
+  if (chat) await browser.storage.local.set({ [chatKey(id)]: { ...chat, ...target } });
 }

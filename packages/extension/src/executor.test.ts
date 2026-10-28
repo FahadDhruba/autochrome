@@ -35,6 +35,14 @@ describe('executeTool', () => {
     expect(tab_switch).not.toHaveBeenCalled();
   });
 
+  it('reports unparseable JSON arguments with the raw text', async () => {
+    const result = await executeTool({ id: '4', name: 'click', input: '{"ref":' }, fakeHandlers());
+    expect(result.ok).toBe(false);
+    expect(JSON.stringify(result.content)).toContain(
+      'Invalid JSON arguments for click: {\\"ref\\":',
+    );
+  });
+
   it('reports refine failures', async () => {
     const result = await executeTool({ id: '3', name: 'click', input: {} }, fakeHandlers());
     expect(result.ok).toBe(false);

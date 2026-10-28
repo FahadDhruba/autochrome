@@ -355,3 +355,32 @@ a {
 .dot-bad-token {
   background: #d93025;
 }
+
+.picker {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px 0;
+}
+
+.picker select {
+  flex: 0 1 auto;
+  max-width: 55%;
+  min-width: 0;
+}
+
+.picker input {
+  flex: 1;
+  min-width: 0;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}

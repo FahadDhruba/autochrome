@@ -26,7 +26,7 @@ One adapter on the **Chat Completions** API (`POST {baseUrl}/chat/completions`, 
 Translation:
 
 - System prompt → first `system` message. Tools → `{ type: 'function', function: { name,
-  description, parameters } }`.
+description, parameters } }`.
 - Assistant `tool_call` parts → `tool_calls` (arguments as JSON string); `tool_result` →
   `role: 'tool'` messages with the text content. **Images in tool results**: tool messages are
   text-only, so after the tool messages add one `user` message with `image_url` parts
@@ -50,7 +50,7 @@ key in `x-goog-api-key` header. Base URL overridable (for tests).
 - System → `systemInstruction`. Tools → one `{ functionDeclarations: [...] }` using
   `parametersJsonSchema` (accepts our JSON Schema as is).
 - Roles `user`/`model`. Assistant text → `text` parts, `tool_call` → `functionCall { id?, name,
-  args }`; `tool_result` → `functionResponse { id?, name, response: { output | error } }` (look
+args }`; `tool_result` → `functionResponse { id?, name, response: { output | error } }` (look
   up the name from the matching call in history), followed by `inlineData` parts for any images,
   in the same `user` turn.
 - **Thought signatures**: Gemini returns `thoughtSignature` on parts (notably `functionCall`) and
@@ -88,8 +88,8 @@ error message when it has one.
 - Chat records store `providerId` and `model`. New chats take the default provider and its
   saved model. Old chats without these fields read as Anthropic + saved Anthropic model.
 - The chat view has a compact picker above the composer: provider select (ready providers only)
-  + model input with datalist. Changing it applies to the next message of that chat and is saved
-  on the chat. Disabled while a task runs.
+  - model input with datalist. Changing it applies to the next message of that chat and is saved
+    on the chat. Disabled while a task runs.
 - The session reads the chat's provider/model for each run; settings for keys/base URLs still come
   from storage.
 - Empty state when no provider is ready (replaces the Anthropic-only one).

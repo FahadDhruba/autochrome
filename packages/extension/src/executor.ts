@@ -16,6 +16,10 @@ export async function executeTool(
     if (!Object.hasOwn(toolDefinitions, call.name)) {
       return failure(call.id, `Unknown tool "${call.name}".`);
     }
+    if (typeof call.input === 'string') {
+      // A model that streamed unparseable JSON arguments; the raw text helps it correct itself.
+      return failure(call.id, `Invalid JSON arguments for ${call.name}: ${call.input}`);
+    }
     const parsed = toolDefinitions[call.name].input.safeParse(call.input ?? {});
     if (!parsed.success) {
       return failure(call.id, `Invalid input for ${call.name}:\n${z.prettifyError(parsed.error)}`);

@@ -75,10 +75,11 @@ export async function runAgent(run: AgentRun): Promise<void> {
       signal,
     })) {
       if (event.type === 'text_delta') {
-        const last = parts.at(-1);
-        if (last?.type === 'text') last.text += event.text;
-        else parts.push({ type: 'text', text: event.text });
-        emit(event);
+        let text = parts.at(-1);
+        if (text?.type !== 'text') parts.push((text = { type: 'text', text: '' }));
+        text.text += event.text;
+        if (event.signature) text.signature = event.signature;
+        if (event.text) emit(event);
       } else if (event.type === 'tool_call') {
         parts.push(event);
       } else if (event.type === 'done') {

@@ -10,8 +10,8 @@ type View = 'chat' | 'settings';
 export default function App() {
   const [view, setView] = useState<View>('chat');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const chat = useChat();
   const settings = useProviderSettings();
+  const chat = useChat(settings);
 
   const show = (next: View) => {
     setView(next);
@@ -60,11 +60,7 @@ export default function App() {
         {view === 'settings' ? (
           <SettingsView />
         ) : settings ? (
-          <ChatView
-            chat={chat}
-            hasApiKey={settings.apiKey !== ''}
-            onOpenSettings={() => show('settings')}
-          />
+          <ChatView chat={chat} providers={settings} onOpenSettings={() => show('settings')} />
         ) : null}
       </main>
     </div>

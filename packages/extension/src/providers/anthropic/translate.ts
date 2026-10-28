@@ -24,6 +24,8 @@ function toResultContent(content: ToolContent[]): ResultContent {
   return blocks.length > 0 ? blocks : [{ type: 'text', text: EMPTY_RESULT }];
 }
 
+const isObject = (value: unknown): value is object => typeof value === 'object' && value !== null;
+
 function toBlock(part: Part): ContentBlock[] {
   switch (part.type) {
     case 'text':
@@ -36,7 +38,14 @@ function toBlock(part: Part): ContentBlock[] {
         },
       ];
     case 'tool_call':
-      return [{ type: 'tool_use', id: part.id, name: part.name, input: part.input ?? {} }];
+      return [
+        {
+          type: 'tool_use',
+          id: part.id,
+          name: part.name,
+          input: isObject(part.input) ? part.input : {},
+        },
+      ];
     case 'tool_result':
       return [
         {

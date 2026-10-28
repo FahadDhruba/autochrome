@@ -1,85 +1,174 @@
 import { useEffect, useState } from 'react';
-import { createAnthropicProvider, DEFAULT_MODEL, STATIC_MODELS } from '@/src/providers/anthropic';
-import type { ModelOption, ProviderSettings } from '@/src/providers/types';
-import { loadProviderSettings, saveProviderSettings } from '@/src/settings';
+import { COMPATIBLE_PRESETS, PROVIDER_IDS, providers } from '@/src/providers';
+import type { ProviderId, ProviderSettings } from '@/src/providers/types';
+import {
+  loadAllProviderSettings,
+  loadDefaultProvider,
+  saveDefaultProvider,
+  saveProviderSettings,
+  type AllProviderSettings,
+} from '@/src/settings';
 import BridgeSettings from './BridgeSettings';
+import { useModelOptions } from './useModelOptions';
 
-const provider = createAnthropicProvider();
+const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
+  anthropic: 'sk-ant-…',
+  openai: 'sk-…',
+  gemini: 'AIza…',
+  compatible: 'Optional',
+};
+
+const CUSTOM = 'custom';
+const emptySettings: ProviderSettings = { apiKey: '', baseUrl: '', model: '' };
 
 export default function SettingsView() {
-  const [settings, setSettings] = useState<ProviderSettings>({
-    apiKey: '',
-    baseUrl: '',
-    model: DEFAULT_MODEL,
-  });
-  const [models, setModels] = useState<ModelOption[]>(STATIC_MODELS);
-  const [saved, setSaved] = useState(false);
-
-  const refreshModels = (current: ProviderSettings) => {
-    if (current.apiKey) void provider.listModels(current).then(setModels);
-  };
+  const [drafts, setDrafts] = useState<AllProviderSettings>();
+  const [saved, setSaved] = useState<AllProviderSettings>();
+  const [selected, setSelected] = useState<ProviderId>('anthropic');
+  const [defaultProvider, setDefaultProvider] = useState<ProviderId>('anthropic');
+  const [justSaved, setJustSaved] = useState(false);
+  const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
-    void loadProviderSettings().then((loaded) => {
-      setSettings(loaded);
-      refreshModels(loaded);
+    void Promise.all([loadAllProviderSettings(), loadDefaultProvider()]).then(([all, current]) => {
+      setDrafts(all);
+      setSaved(all);
+      setSelected(current);
+      setDefaultProvider(current);
     });
   }, []);
 
+  const info = providers[selected];
+  const draft = drafts?.[selected];
+  // Suggestions follow what is saved, not every keystroke.
+  const models = useModelOptions(selected, saved?.[selected] ?? emptySettings);
+  if (!drafts || !draft) return null;
+
   const change = (patch: Partial<ProviderSettings>) => {
-    setSettings((current) => ({ ...current, ...patch }));
-    setSaved(false);
+    setDrafts({ ...drafts, [selected]: { ...draft, ...patch } });
+    setJustSaved(false);
   };
 
   const save = async () => {
-    await saveProviderSettings(settings);
-    setSaved(true);
-    refreshModels(settings);
+    await saveProviderSettings(selected, draft);
+    setSaved({ ...saved!, [selected]: draft });
+    setJustSaved(true);
   };
 
-  // A saved model that the list does not contain (yet) must stay selectable.
-  const options = models.some((m) => m.id === settings.model)
-    ? models
-    : [{ id: settings.model, label: settings.model }, ...models];
+  const compatible = selected === 'compatible';
+  const preset = COMPATIBLE_PRESETS.find((p) => p.baseUrl === draft.baseUrl)?.baseUrl ?? CUSTOM;
+  const keyVisible = info.needsKey || showKey || draft.apiKey !== '';
+
+  const baseUrlField = (
+    <label>
+      Base URL
+      <input
+        type="url"
+        value={draft.baseUrl}
+        placeholder={info.defaultBaseUrl || 'http://localhost:11434/v1'}
+        onChange={(e) => change({ baseUrl: e.target.value })}
+      />
+    </label>
+  );
 
   return (
     <div className="settings">
-      <section aria-label="Anthropic settings">
-        <h2>Anthropic</h2>
-        <label>
-          API key
-          <input
-            type="password"
-            value={settings.apiKey}
-            autoComplete="off"
-            placeholder="sk-ant-…"
-            onChange={(e) => change({ apiKey: e.target.value })}
-          />
-        </label>
-        <p className="muted">Stored on this device and sent only to the Anthropic API.</p>
+      <label>
+        Provider
+        <select
+          value={selected}
+          onChange={(e) => {
+            setSelected(e.target.value as ProviderId);
+            setJustSaved(false);
+            setShowKey(false);
+          }}
+        >
+          {PROVIDER_IDS.map((id) => (
+            <option key={id} value={id}>
+              {providers[id].label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <section aria-label={`${info.label} settings`}>
+        <h2>{info.label}</h2>
+        {compatible && (
+          <>
+            <label>
+              Server
+              <select
+                value={preset}
+                onChange={(e) =>
+                  change({ baseUrl: e.target.value === CUSTOM ? '' : e.target.value })
+                }
+              >
+                {COMPATIBLE_PRESETS.map((p) => (
+                  <option key={p.baseUrl} value={p.baseUrl}>
+                    {p.label}
+                  </option>
+                ))}
+                <option value={CUSTOM}>Custom</option>
+              </select>
+            </label>
+            {baseUrlField}
+          </>
+        )}
+        {keyVisible ? (
+          <label>
+            {info.needsKey ? 'API key' : 'API key (optional)'}
+            <input
+              type="password"
+              value={draft.apiKey}
+              autoComplete="off"
+              placeholder={KEY_PLACEHOLDERS[selected]}
+              onChange={(e) => change({ apiKey: e.target.value })}
+            />
+          </label>
+        ) : (
+          <button className="link" onClick={() => setShowKey(true)}>
+            Add an API key
+          </button>
+        )}
+        <p className="muted">
+          {compatible
+            ? 'Stored on this device and sent only to the server above.'
+            : `Stored on this device and sent only to the ${info.label} API.`}
+        </p>
         <label>
           Model
-          <select value={settings.model} onChange={(e) => change({ model: e.target.value })}>
-            {options.map((model) => (
+          <input
+            list="settings-models"
+            value={draft.model}
+            placeholder="Model name"
+            spellCheck={false}
+            onChange={(e) => change({ model: e.target.value })}
+          />
+          <datalist id="settings-models">
+            {models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.label}
               </option>
             ))}
-          </select>
+          </datalist>
         </label>
-        <details>
-          <summary>Advanced</summary>
-          <label>
-            Base URL
-            <input
-              type="url"
-              value={settings.baseUrl}
-              placeholder="https://api.anthropic.com"
-              onChange={(e) => change({ baseUrl: e.target.value })}
-            />
-          </label>
-        </details>
-        <button onClick={() => void save()}>{saved ? 'Saved' : 'Save'}</button>
+        {!compatible && (
+          <details>
+            <summary>Advanced</summary>
+            {baseUrlField}
+          </details>
+        )}
+        <div className="button-row">
+          <button onClick={() => void save()}>{justSaved ? 'Saved' : 'Save'}</button>
+          <button
+            className="secondary"
+            disabled={defaultProvider === selected}
+            onClick={() => {
+              void saveDefaultProvider(selected).then(() => setDefaultProvider(selected));
+            }}
+          >
+            {defaultProvider === selected ? 'Default provider' : 'Use as default'}
+          </button>
+        </div>
       </section>
       <BridgeSettings />
       <p>

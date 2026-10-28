@@ -1,19 +1,25 @@
 import type { useChat } from './useChat';
 import Composer from './Composer';
 import MessageList from './MessageList';
+import ModelPicker from './ModelPicker';
+import type { ProviderState } from './useProviderSettings';
 
 type Props = {
   chat: ReturnType<typeof useChat>;
-  hasApiKey: boolean;
+  providers: ProviderState;
   onOpenSettings: () => void;
 };
 
-export default function ChatView({ chat, hasApiKey, onOpenSettings }: Props) {
-  if (!hasApiKey && chat.messages.length === 0) {
+export default function ChatView({ chat, providers, onOpenSettings }: Props) {
+  const { target } = chat;
+  if (providers.ready.length === 0 && chat.messages.length === 0) {
     return (
       <div className="empty" data-testid="empty-state">
-        <h2>Add your API key</h2>
-        <p>autochrome needs an Anthropic API key to run tasks in your browser.</p>
+        <h2>Set up a provider</h2>
+        <p>
+          autochrome needs an API key (Anthropic, OpenAI or Gemini) or an OpenAI-compatible server
+          such as Ollama to run tasks in your browser.
+        </p>
         <button onClick={onOpenSettings}>Open settings</button>
       </div>
     );
@@ -32,6 +38,14 @@ export default function ChatView({ chat, hasApiKey, onOpenSettings }: Props) {
           running={chat.running}
           error={chat.error}
           usage={chat.usage}
+        />
+      )}
+      {target && (
+        <ModelPicker
+          target={target}
+          state={providers}
+          disabled={chat.running}
+          onChange={chat.changeTarget}
         />
       )}
       <Composer running={chat.running} onSend={chat.send} onStop={chat.stop} />
