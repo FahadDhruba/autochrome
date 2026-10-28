@@ -11,3 +11,46 @@ h1 {
   font-size: 1.25rem;
   margin: 0 0 8px;
 }
+
+h2 {
+  font-size: 1rem;
+  margin: 24px 0 8px;
+}
+
+section label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+section input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9aa0a6;
+}
+
+.dot-connected {
+  background: #1e8e3e;
+}
+
+.dot-waiting,
+.dot-connecting {
+  background: #f9ab00;
+}
+
+.dot-bad-token {
+  background: #d93025;
+}

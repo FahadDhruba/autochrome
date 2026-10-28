@@ -62,7 +62,7 @@ zod-validated messages, versioned with `PROTOCOL_VERSION`:
 ## Extension side
 
 - `src/bridge.ts` in the background: connects to `ws://127.0.0.1:<port>/extension` when a token is
-  saved. Reconnect with backoff 1 s → 30 s max. Send `ping` every 20 s (keeps the MV3 worker
+  saved. Reconnect with backoff 1 s → 5 s max (the hub also holds calls up to 30 s while the extension connects). Send `ping` every 20 s (keeps the MV3 worker
   alive). A `chrome.alarms` alarm every 30 s reconnects if the worker was restarted.
 - Incoming `call` → `executeTool` → `result`.
 - Settings in `chrome.storage.local`: `bridge.token`, `bridge.port`. Background exposes status to

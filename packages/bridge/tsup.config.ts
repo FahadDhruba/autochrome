@@ -6,5 +6,6 @@ export default defineConfig({
   target: 'node22',
   platform: 'node',
   clean: true,
-  noExternal: ['@autochrome/shared'],
+  // Workspace and schema code is bundled; `ws` and the MCP SDK stay real dependencies.
+  noExternal: ['@autochrome/shared', 'zod'],
 });

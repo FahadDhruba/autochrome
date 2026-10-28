@@ -1,4 +1,5 @@
-export const PROTOCOL_VERSION = 1;
+export { PROTOCOL_VERSION } from './version';
 
+export * from './bridge';
 export * from './protocol';
 export * from './tools';

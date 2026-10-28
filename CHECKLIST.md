@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M2 — Bridge
+**Current:** M3 — Side panel + Anthropic
 
 ## Planning
 
@@ -32,12 +32,12 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M2 — Bridge
 
-- [ ] Node bridge package (`npx autochrome-bridge`)
-- [ ] WebSocket link extension ↔ bridge, pairing token, localhost only
-- [ ] Reconnect when the service worker restarts
-- [ ] MCP server (stdio) exposing all tools
-- [ ] WebSocket/HTTP API for scripts
-- [ ] Verified with Claude Code
+- [x] Node bridge package (`npx autochrome-bridge`)
+- [x] WebSocket link extension ↔ bridge, pairing token, localhost only
+- [x] Reconnect when the service worker restarts
+- [x] MCP server (stdio) exposing all tools
+- [x] WebSocket/HTTP API for scripts
+- [x] Verified with Claude Code
 
 ## M3 — Side panel + Anthropic
 
@@ -91,3 +91,4 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 | 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written              |
 | 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)          |
 | 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e) |
+| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)       |
