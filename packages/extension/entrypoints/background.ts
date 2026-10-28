@@ -1,4 +1,5 @@
 import { isExecuteMessage } from '@autochrome/shared';
+import { startChatSessions } from '@/src/agent/session';
 import { bridge, startBridge } from '@/src/bridge';
 import { isBridgeStatusRequest } from '@/src/bridgeSettings';
 import { watchDebuggerDetach } from '@/src/debugger';
@@ -11,6 +12,7 @@ export default defineBackground(() => {
 
   watchDebuggerDetach();
   startBridge();
+  startChatSessions();
 
   browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (isBridgeStatusRequest(message)) {

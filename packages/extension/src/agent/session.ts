@@ -1,0 +1,85 @@
+import { describeTools, type ToolCall } from '@autochrome/shared';
+import { executeTool } from '../executor';
+import { loadChat, saveChat, titleFor, type Chat } from '../history';
+import { createAnthropicProvider } from '../providers/anthropic';
+import { loadProviderSettings } from '../settings';
+import { runAgent } from './loop';
+import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
+import { buildSystemPrompt } from './system-prompt';
+
+const provider = createAnthropicProvider();
+
+async function currentTab() {
+  const [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
+  return tab?.url ? { title: tab.title ?? '', url: tab.url } : undefined;
+}
+
+function isPanelMessage(message: unknown): message is PanelMessage {
+  const type = (message as { type?: unknown } | null)?.type;
+  return type === 'send' || type === 'stop';
+}
+
+/** Handles one side panel connection: one task at a time, aborted when the panel goes away. */
+function handlePort(port: Browser.runtime.Port): void {
+  let controller: AbortController | undefined;
+  const emit = (event: AgentEvent) => {
+    try {
+      port.postMessage(event);
+    } catch {
+      // The panel is gone; the disconnect handler aborts the run.
+    }
+  };
+
+  const start = async (chatId: string, text: string) => {
+    const settings = await loadProviderSettings();
+    const existing = await loadChat(chatId);
+    const chat: Chat = existing ?? { id: chatId, title: '', updatedAt: 0, messages: [] };
+    chat.messages.push({ role: 'user', parts: [{ type: 'text', text }] });
+    chat.title ||= titleFor(chat.messages);
+    const persist = () => saveChat({ ...chat, updatedAt: Date.now() });
+    await persist();
+
+    await runAgent({
+      provider,
+      settings,
+      model: settings.model,
+      system: buildSystemPrompt(new Date(), await currentTab()),
+      tools: describeTools().map(({ name, description, inputSchema }) => ({
+        name,
+        description,
+        inputSchema,
+      })),
+      messages: chat.messages,
+      execute: (call: ToolCall) => executeTool(call),
+      emit: (event) => {
+        if (event.type === 'done') chat.usage = event.usage;
+        emit(event);
+      },
+      onMessage: persist,
+      signal: controller!.signal,
+    });
+    await persist();
+  };
+
+  port.onMessage.addListener((message: unknown) => {
+    if (!isPanelMessage(message)) return;
+    if (message.type === 'stop') return controller?.abort();
+    if (controller) return emit({ type: 'error', message: 'A task is already running.' });
+
+    controller = new AbortController();
+    start(message.chatId, message.text)
+      .catch((error: unknown) =>
+        emit({ type: 'error', message: error instanceof Error ? error.message : String(error) }),
+      )
+      .finally(() => {
+        controller = undefined;
+      });
+  });
+  port.onDisconnect.addListener(() => controller?.abort());
+}
+
+export function startChatSessions(): void {
+  browser.runtime.onConnect.addListener((port) => {
+    if (port.name === CHAT_PORT_NAME) handlePort(port);
+  });
+}

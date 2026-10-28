@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M3 — Side panel + Anthropic
+**Current:** M4 — More providers
 
 ## Planning
 
@@ -41,12 +41,12 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M3 — Side panel + Anthropic
 
-- [ ] Provider interface
-- [ ] Anthropic provider (tool use, streaming)
-- [ ] Agent loop in background worker
-- [ ] React chat UI: messages, tool call display, stop button
-- [ ] Settings: API keys, model picker
-- [ ] Chat history in local storage
+- [x] Provider interface
+- [x] Anthropic provider (tool use, streaming)
+- [x] Agent loop in background worker
+- [x] React chat UI: messages, tool call display, stop button
+- [x] Settings: API keys, model picker
+- [x] Chat history in local storage
 
 ## M4 — More providers
 
@@ -86,9 +86,10 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## Session log
 
-| Date       | Session work                                                                    |
-| ---------- | ------------------------------------------------------------------------------- |
-| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written              |
-| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)          |
-| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e) |
-| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)       |
+| Date       | Session work                                                                                                                                    |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written                                                                              |
+| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)                                                                          |
+| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e)                                                                 |
+| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                       |
+| 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key) |

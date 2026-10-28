@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { chromium, test as base, type BrowserContext, type Page } from '@playwright/test';
 import type { ToolName, ToolResult } from '@autochrome/shared';
+import { MockAnthropic } from './mockAnthropic';
 
 const extensionPath = path.resolve(import.meta.dirname, '../.output/chrome-mv3');
 const fixturesPath = path.resolve(import.meta.dirname, 'fixtures');
@@ -30,6 +31,11 @@ type Fixtures = {
   context: BrowserContext;
   /** Base URL of the local fixture server. */
   baseUrl: string;
+  extensionId: string;
+  /** Local Anthropic API stand-in; the extension is already pointed at it with a fake key. */
+  mockAnthropic: MockAnthropic;
+  /** Opens the side panel UI as a normal tab (Playwright cannot drive the real side panel). */
+  openSidePanel: () => Promise<Page>;
   /** The extension's debug page; tools run from here exactly as the debugger UI does. */
   debugPage: Page;
   callTool: CallTool;
@@ -58,12 +64,36 @@ export const test = base.extend<Fixtures>({
     server.close();
   },
 
-  debugPage: async ({ context }, use) => {
+  extensionId: async ({ context }, use) => {
     const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-    const extensionId = new URL(worker.url()).host;
+    await use(new URL(worker.url()).host);
+  },
+
+  debugPage: async ({ context, extensionId }, use) => {
     const page = await context.newPage();
     await page.goto(`chrome-extension://${extensionId}/debug.html`);
     await use(page);
+  },
+
+  mockAnthropic: async ({ debugPage }, use) => {
+    const mock = new MockAnthropic();
+    await mock.start();
+    await debugPage.evaluate(
+      (baseUrl) =>
+        chrome.storage.local.set({ 'anthropic.apiKey': 'test-key', 'anthropic.baseUrl': baseUrl }),
+      mock.baseUrl,
+    );
+    await use(mock);
+    await mock.stop();
+  },
+
+  openSidePanel: async ({ context, extensionId }, use) => {
+    await use(async () => {
+      const page = await context.newPage();
+      await page.setViewportSize({ width: 400, height: 700 });
+      await page.goto(`chrome-extension://${extensionId}/sidepanel.html`);
+      return page;
+    });
   },
 
   callTool: async ({ debugPage }, use) => {

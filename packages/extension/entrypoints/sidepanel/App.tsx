@@ -1,15 +1,72 @@
-import { PROTOCOL_VERSION } from '@autochrome/shared';
-import BridgeSettings from './BridgeSettings';
+import { useState } from 'react';
+import ChatDrawer from './ChatDrawer';
+import ChatView from './ChatView';
+import SettingsView from './SettingsView';
+import { useChat } from './useChat';
+import { useProviderSettings } from './useProviderSettings';
+
+type View = 'chat' | 'settings';
 
 export default function App() {
+  const [view, setView] = useState<View>('chat');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const chat = useChat();
+  const settings = useProviderSettings();
+
+  const show = (next: View) => {
+    setView(next);
+    setDrawerOpen(false);
+  };
+
   return (
-    <main>
-      <h1>autochrome</h1>
-      <p>Protocol v{PROTOCOL_VERSION}</p>
-      <a href={browser.runtime.getURL('/debug.html')} target="_blank" rel="noreferrer">
-        Open tool debugger
-      </a>
-      <BridgeSettings />
-    </main>
+    <div className="app">
+      <header>
+        <h1>autochrome</h1>
+        <div className="header-actions">
+          <button
+            className="link"
+            disabled={chat.running}
+            onClick={() => setDrawerOpen(!drawerOpen)}
+          >
+            Chats
+          </button>
+          <button
+            className="link"
+            disabled={chat.running}
+            onClick={() => {
+              chat.newChat();
+              show('chat');
+            }}
+          >
+            New chat
+          </button>
+          <button className="link" onClick={() => show(view === 'chat' ? 'settings' : 'chat')}>
+            {view === 'chat' ? 'Settings' : 'Back to chat'}
+          </button>
+        </div>
+      </header>
+      {drawerOpen && (
+        <ChatDrawer
+          activeId={chat.chatId}
+          revision={chat.revision}
+          onClose={() => setDrawerOpen(false)}
+          onOpen={(id) => {
+            void chat.openChat(id);
+            show('chat');
+          }}
+        />
+      )}
+      <main>
+        {view === 'settings' ? (
+          <SettingsView />
+        ) : settings ? (
+          <ChatView
+            chat={chat}
+            hasApiKey={settings.apiKey !== ''}
+            onOpenSettings={() => show('settings')}
+          />
+        ) : null}
+      </main>
+    </div>
   );
 }
