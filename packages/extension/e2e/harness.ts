@@ -16,7 +16,7 @@ async function serveFixtures(): Promise<Server> {
   const server = createServer(async (req, res) => {
     try {
       const name = path.basename(new URL(req.url ?? '/', 'http://x').pathname);
-      res.setHeader('content-type', 'text/html');
+      res.setHeader('content-type', name.endsWith('.json') ? 'application/json' : 'text/html');
       res.end(await readFile(path.join(fixturesPath, name)));
     } catch {
       res.statusCode = 404;

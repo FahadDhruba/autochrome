@@ -17,6 +17,8 @@ export type ApprovalRequest = {
   site?: string;
   /** Why the action is risky. Risky actions can only be allowed once. */
   risk?: string;
+  /** The full text being approved, such as the code `js_eval` will run. */
+  detail?: string;
   tabTitle: string;
 };
 

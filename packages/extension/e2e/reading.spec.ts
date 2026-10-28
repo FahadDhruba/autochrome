@@ -47,7 +47,7 @@ test('find matches role, name and value case-insensitively', async ({ callText, 
   await page.fill('#email', 'Grace@Example.com');
 
   expect(await callText('find', { query: 'SUBMIT' })).toMatch(
-    /^<page_content [^\n]*>\n\[e\d+\] button "Submit"\n<\/page_content>$/,
+    /^\[tab \d+ · Form fixture · [^\n]*\]\n<page_content [^\n]*>\n\[e\d+\] button "Submit"\n<\/page_content>$/,
   );
   expect(await callText('find', { query: 'grace@example' })).toMatch(/textbox "Email"/);
   expect(await callText('find', { query: 'checkbox' })).toMatch(/checkbox "Subscribe"/);
@@ -77,7 +77,12 @@ test('screenshot width equals innerWidth and is a JPEG', async ({ callTool, open
   const page = await openFixture('form.html');
   const result = await callTool('screenshot');
   expect(result.ok).toBe(true);
-  const image = result.content[0];
+  // The first item is the [tab …] context line.
+  expect(result.content[0]).toMatchObject({
+    type: 'text',
+    text: expect.stringMatching(/^\[tab \d+ · /),
+  });
+  const image = result.content.find((item) => item.type === 'image');
   if (image?.type !== 'image') throw new Error('expected an image');
   expect(image.mimeType).toBe('image/jpeg');
 

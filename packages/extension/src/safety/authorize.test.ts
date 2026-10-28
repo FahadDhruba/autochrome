@@ -88,3 +88,47 @@ describe('authorize', () => {
     expect(await pending).toBe('The user denied this action.');
   });
 });
+
+describe('authorize js_eval', () => {
+  const evalCall: ToolCall = { id: '1', name: 'js_eval', input: { code: 'document.title = "x"' } };
+
+  function setupAuto(choice: ApprovalChoice, source: 'agent' | 'bridge' | 'debug' = 'agent') {
+    const approvals = new ApprovalQueue();
+    const shown: ApprovalRequest[] = [];
+    approvals.setPresenter({
+      present: (request) => {
+        shown.push(request);
+        approvals.answer(request.id, choice);
+      },
+      dismiss: () => {},
+    });
+    const addSite = vi.fn(async () => {});
+    const autoEnv: GateEnv = { ...env(), loadSafety: async () => ({ mode: 'auto', sites: [] }) };
+    const run = () => authorize(evalCall, source, undefined, { env: autoEnv, approvals, addSite });
+    return { run, shown, addSite };
+  }
+
+  it.each(['agent', 'bridge'] as const)('still asks in auto mode for %s calls', async (source) => {
+    const { run, shown } = setupAuto('once', source);
+    expect(await run()).toBeUndefined();
+    expect(shown).toHaveLength(1);
+    expect(shown[0]).toMatchObject({ tool: 'js_eval', detail: 'document.title = "x"', source });
+  });
+
+  it('refuses in auto mode when the user denies', async () => {
+    const { run } = setupAuto('deny');
+    expect(await run()).toBe('The user denied this action.');
+  });
+
+  it('never remembers the site', async () => {
+    const { run, addSite } = setupAuto('site');
+    expect(await run()).toBeUndefined();
+    expect(addSite).not.toHaveBeenCalled();
+  });
+
+  it('does not ask for the debug page', async () => {
+    const { run, shown } = setupAuto('deny', 'debug');
+    expect(await run()).toBeUndefined();
+    expect(shown).toHaveLength(0);
+  });
+});

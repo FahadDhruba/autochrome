@@ -99,7 +99,16 @@ test('runs the chat flow against an OpenAI-compatible server', async ({
     function: { name: expect.any(String) },
   });
   const history = second!.body.messages as OpenAiMessage[];
-  expect(history.map((m) => m.role)).toEqual(['system', 'user', 'assistant', 'tool', 'tool']);
+  // The trailing user message is the tab state note.
+  expect(history.map((m) => m.role)).toEqual([
+    'system',
+    'user',
+    'assistant',
+    'tool',
+    'tool',
+    'user',
+  ]);
+  expect(history.at(-1)!.content).toContain('Tab state');
   expect(history[2]!.tool_calls!.map((c) => c.id)).toEqual(['call_open', 'call_read']);
   expect(JSON.parse(history[2]!.tool_calls![0]!.function.arguments)).toEqual({
     url: `${baseUrl}/form.html`,

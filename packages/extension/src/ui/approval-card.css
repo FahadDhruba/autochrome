@@ -39,6 +39,19 @@
   color: var(--warn);
 }
 
+.approval-code {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  max-height: 200px;
+  overflow: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .approval-facts {
   display: grid;
   grid-template-columns: auto 1fr;

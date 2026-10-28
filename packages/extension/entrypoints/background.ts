@@ -2,7 +2,7 @@ import { isExecuteMessage } from '@autochrome/shared';
 import { startChatSessions } from '@/src/agent/session';
 import { bridge, startBridge } from '@/src/bridge';
 import { isBridgeStatusRequest } from '@/src/bridgeSettings';
-import { watchDebuggerDetach } from '@/src/debugger';
+import { watchDebugger } from '@/src/debugger';
 import { executeTool } from '@/src/executor';
 import { handleApprovalMessage, isExtensionPage, startApprovalUi } from '@/src/safety/approvalUi';
 
@@ -11,7 +11,7 @@ export default defineBackground(() => {
     console.error('autochrome: failed to set side panel behavior', error);
   });
 
-  watchDebuggerDetach();
+  watchDebugger();
   startBridge();
   startApprovalUi();
   startChatSessions();

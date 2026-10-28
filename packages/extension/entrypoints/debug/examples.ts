@@ -18,4 +18,8 @@ export const examples: Record<ToolName, object> = {
   scroll: { direction: 'down', amount: 600 },
   form_input: { ref: 'e1', value: 'hello' },
   wait: { ms: 1000 },
+  console_logs: { level: 'error' },
+  network_requests: { status: 'failed' },
+  network_response: { requestId: '1' },
+  js_eval: { code: 'document.title' },
 };

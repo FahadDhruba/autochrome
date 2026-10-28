@@ -7,14 +7,23 @@ import {
 } from '@autochrome/shared';
 import { z } from 'zod';
 import { authorize } from './safety/authorize';
-import { gateEnv, pageSite } from './safety/env';
+import { gateEnv, pageSite, tabContext } from './safety/env';
 import type { ToolSource } from './safety/types';
 import { wrapPageContent } from './safety/wrap';
+import { TAB_CONTEXT_TOOLS, withTabContext } from './tabContext';
 import { toolHandlers } from './tools';
 import type { ToolHandlers } from './tools/types';
 
 /** Tools whose text comes from a web page and must be marked as untrusted. */
-const PAGE_CONTENT_TOOLS = new Set<ToolName>(['read_page', 'find', 'get_text']);
+const PAGE_CONTENT_TOOLS = new Set<ToolName>([
+  'read_page',
+  'find',
+  'get_text',
+  'console_logs',
+  'network_requests',
+  'network_response',
+  'js_eval',
+]);
 
 export type ExecuteOptions = {
   source: ToolSource;
@@ -29,6 +38,8 @@ export type ExecuteOptions = {
   ) => Promise<string | undefined>;
   /** The site of the tab a page tool read. */
   pageSite?: (tabId: number | undefined) => Promise<string>;
+  /** The `[tab id · title · url]` line for the tab a tool acted on. */
+  tabContext?: (tabId: number | undefined) => Promise<string>;
 };
 
 function failure(id: string, message: string): ToolResult {
@@ -76,15 +87,17 @@ export async function executeTool(call: ToolCall, options: ExecuteOptions): Prom
     const handler = handlers[call.name] as (
       input: unknown,
     ) => ReturnType<ToolHandlers['tabs_list']>;
-    const content = await handler(parsed.data);
-    if (!PAGE_CONTENT_TOOLS.has(call.name)) return { id: call.id, ok: true, content };
-
+    let content = await handler(parsed.data);
     const tabId = (parsed.data as { tabId?: number }).tabId;
-    return {
-      id: call.id,
-      ok: true,
-      content: await wrapContent(content, tabId, options.pageSite ?? pageSite),
-    };
+    if (PAGE_CONTENT_TOOLS.has(call.name)) {
+      content = await wrapContent(content, tabId, options.pageSite ?? pageSite);
+    }
+    if (TAB_CONTEXT_TOOLS.has(call.name)) {
+      // The action already happened; a vanished tab only costs the context line.
+      const line = await (options.tabContext ?? tabContext)(tabId).catch(() => undefined);
+      if (line) content = withTabContext(content, line);
+    }
+    return { id: call.id, ok: true, content };
   } catch (error) {
     return failure(call.id, error instanceof Error ? error.message : String(error));
   }

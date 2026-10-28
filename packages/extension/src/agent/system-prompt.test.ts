@@ -12,4 +12,11 @@ describe('buildSystemPrompt', () => {
   it('says what to do when an action is denied', () => {
     expect(buildSystemPrompt(new Date())).toContain('If an action is denied, do not retry it');
   });
+
+  it('guides multi-tab work', () => {
+    const prompt = buildSystemPrompt(new Date());
+    expect(prompt).toContain('pass tabId explicitly');
+    expect(prompt).toContain('background: true');
+    expect(prompt).toContain('Close the tabs you opened');
+  });
 });

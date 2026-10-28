@@ -19,12 +19,25 @@ export type AgentRun = {
   /** History so far, ending with the new user message. The loop appends to it. */
   messages: ChatMessage[];
   execute: (call: ToolCall) => Promise<ToolResult>;
+  /** A short note on the current browser state, rebuilt before every model call. */
+  stateNote?: () => Promise<string | undefined>;
   emit: (event: AgentEvent) => void;
   /** Called after each message is appended, so the caller can persist progress. */
   onMessage?: () => void | Promise<void>;
   signal: AbortSignal;
   maxSteps?: number;
 };
+
+/**
+ * Adds the note as the last part of the final user message, flagged volatile so providers keep it
+ * out of cached prefixes. The stored history is not touched.
+ */
+function withStateNote(messages: ChatMessage[], note: string | undefined): ChatMessage[] {
+  const last = messages.at(-1);
+  if (!note || last?.role !== 'user') return messages;
+  const part: Part = { type: 'text', text: note, volatile: true };
+  return [...messages.slice(0, -1), { ...last, parts: [...last.parts, part] }];
+}
 
 const STOPPED_TEXT = 'Stopped.';
 const emptyUsage = (): Usage => ({ inputTokens: 0, outputTokens: 0, cacheReadTokens: 0 });
@@ -62,6 +75,7 @@ export async function runAgent(run: AgentRun): Promise<void> {
   for (let step = 0; step < (run.maxSteps ?? MAX_STEPS); step++) {
     if (signal.aborted) return finishWithNote(STOPPED_TEXT);
 
+    const note = await run.stateNote?.().catch(() => undefined);
     const parts: Part[] = [];
     let stopReason: string | undefined;
     let failure: string | undefined;
@@ -70,7 +84,7 @@ export async function runAgent(run: AgentRun): Promise<void> {
       settings: run.settings,
       model: run.model,
       system: run.system,
-      messages: pruneScreenshots(messages),
+      messages: withStateNote(pruneScreenshots(messages), note),
       tools: run.tools,
       signal,
     })) {

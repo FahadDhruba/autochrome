@@ -24,6 +24,11 @@ export default function ApprovalCard({ request, onAnswer }: Props) {
           <strong>Risky:</strong> {request.risk}
         </p>
       )}
+      {request.detail && (
+        <pre className="approval-code" data-testid="approval-code">
+          {request.detail}
+        </pre>
+      )}
       <dl className="approval-facts">
         {request.site && (
           <>

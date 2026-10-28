@@ -1,14 +1,55 @@
 import { browser } from 'wxt/browser';
+import { truncate } from './capture/limits';
+import { captureOf, startCapture, stopCapture, type TabCapture } from './capture/buffers';
 
 const PROTOCOL_VERSION = '1.3';
+const MAX_INSPECTED_CHARS = 500;
 const attached = new Set<number>();
 
-/** Call once from the background: forget tabs that closed or whose banner the user cancelled. */
-export function watchDebuggerDetach(): void {
+const INSPECT_FUNCTION = `function () {
+  try { return JSON.stringify(this); } catch { return String(this); }
+}`;
+
+/** Prints a console argument as JSON, so `console.log({ a: 1 })` reads as `{"a":1}`. */
+async function inspectObject(tabId: number, objectId: string): Promise<string | undefined> {
+  const send = (method: string, params: object) =>
+    browser.debugger.sendCommand({ tabId }, method, params);
+  try {
+    const { result } = (await send('Runtime.callFunctionOn', {
+      objectId,
+      functionDeclaration: INSPECT_FUNCTION,
+      returnByValue: true,
+    })) as { result: { value?: unknown } };
+    return typeof result.value === 'string'
+      ? truncate(result.value, MAX_INSPECTED_CHARS)
+      : undefined;
+  } finally {
+    await send('Runtime.releaseObject', { objectId }).catch(() => {});
+  }
+}
+
+const beginCapture = (tabId: number) =>
+  startCapture(tabId, (objectId) => inspectObject(tabId, objectId));
+
+const CAPTURE_DOMAINS = ['Runtime', 'Log', 'Network'];
+
+function forget(tabId: number): void {
+  attached.delete(tabId);
+  stopCapture(tabId);
+}
+
+/**
+ * Call once from the background: forget tabs that closed or whose banner the user cancelled, and
+ * route console and network events into the tab's capture buffers.
+ */
+export function watchDebugger(): void {
   browser.debugger.onDetach.addListener(({ tabId }) => {
-    if (tabId !== undefined) attached.delete(tabId);
+    if (tabId !== undefined) forget(tabId);
   });
-  browser.tabs.onRemoved.addListener((tabId) => attached.delete(tabId));
+  browser.tabs.onRemoved.addListener(forget);
+  browser.debugger.onEvent.addListener(({ tabId }, method, params) => {
+    if (tabId !== undefined) captureOf(tabId)?.handleEvent(method, params);
+  });
 }
 
 async function ensureAttached(tabId: number): Promise<void> {
@@ -20,6 +61,17 @@ async function ensureAttached(tabId: number): Promise<void> {
     if (!(error instanceof Error && error.message.includes('already attached'))) throw error;
   }
   attached.add(tabId);
+  // The buffer exists before the domains are enabled so no early event is lost.
+  beginCapture(tabId);
+  await Promise.all(
+    CAPTURE_DOMAINS.map((domain) => browser.debugger.sendCommand({ tabId }, `${domain}.enable`)),
+  );
+}
+
+/** The tab's console and network buffers, attaching the debugger first if needed. */
+export async function captureFor(tabId: number): Promise<TabCapture> {
+  await ensureAttached(tabId);
+  return beginCapture(tabId);
 }
 
 /** Send a CDP command, attaching to the tab on first use and re-attaching after a detach. */
@@ -29,7 +81,7 @@ export async function cdp<T = unknown>(tabId: number, method: string, params?: o
     return (await browser.debugger.sendCommand({ tabId }, method, params)) as T;
   } catch (error) {
     if (!(error instanceof Error && error.message.includes('not attached'))) throw error;
-    attached.delete(tabId);
+    forget(tabId);
     await ensureAttached(tabId);
     return (await browser.debugger.sendCommand({ tabId }, method, params)) as T;
   }

@@ -59,6 +59,17 @@ describe('MCP server', () => {
     expect(tools.every((t) => t.inputSchema.type === 'object')).toBe(true);
   });
 
+  it('lists the multi-tab and debug tools with their options', async () => {
+    const { tools } = await client.listTools();
+    const byName = new Map(tools.map((tool) => [tool.name, tool]));
+    for (const name of ['console_logs', 'network_requests', 'network_response', 'js_eval']) {
+      expect(byName.get(name)?.description, name).toBeTruthy();
+    }
+    expect(Object.keys(byName.get('tab_open')!.inputSchema.properties!)).toContain('background');
+    expect(Object.keys(byName.get('tabs_list')!.inputSchema.properties!)).toContain('agentOnly');
+    expect(byName.get('js_eval')!.description).toContain('always asked to approve');
+  });
+
   it('forwards a call through the hub to the extension', async () => {
     const result = await client.callTool({ name: 'find', arguments: { query: 'login' } });
     expect(result.isError).toBe(false);

@@ -14,13 +14,21 @@ function defineTool<N extends string, T extends z.ZodType>(name: N, description:
 export const toolDefinitions = {
   tabs_list: defineTool(
     'tabs_list',
-    'List all open tabs, one per line as "tabId · title · url". Marks the current tab and the tabs in the agent group. Use it first to see what is open.',
-    z.object({}),
+    'List open tabs, one per line as "tabId · title · url". Marks the current tab and the tabs in the agent group. Use it first to see what is open.',
+    z.object({
+      agentOnly: z.boolean().optional().describe('Only list the tabs in the agent group.'),
+    }),
   ),
   tab_open: defineTool(
     'tab_open',
-    'Open a new tab in the agent tab group and make it the current tab. Returns its tabId.',
-    z.object({ url: z.string().optional().describe('URL to load. Blank tab if omitted.') }),
+    'Open a new tab in the agent tab group and make it the current tab, unless background is true. Returns its tabId. Pass that tabId to later calls when working with more than one tab.',
+    z.object({
+      url: z.string().optional().describe('URL to load. Blank tab if omitted.'),
+      background: z
+        .boolean()
+        .default(false)
+        .describe('Open without switching to the tab or changing the current tab.'),
+    }),
   ),
   tab_switch: defineTool(
     'tab_switch',
@@ -117,6 +125,48 @@ export const toolDefinitions = {
       .refine((v) => v.ms !== undefined || v.text !== undefined, {
         message: 'Provide ms, text or both.',
       }),
+  ),
+  console_logs: defineTool(
+    'console_logs',
+    'Read the browser console of a tab: console.* calls, uncaught exceptions and browser warnings, newest last. Use it to debug a page the user is developing or to see what went wrong. Capture starts when autochrome first attaches to the tab, so earlier messages are missing; navigate to the same URL to capture from page start.',
+    z.object({
+      tabId,
+      level: z
+        .enum(['error', 'warning', 'info', 'log', 'debug'])
+        .optional()
+        .describe('Only this level.'),
+      pattern: z
+        .string()
+        .optional()
+        .describe('Only messages containing this text (case-insensitive).'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Newest N lines to return.'),
+      clear: z.boolean().optional().describe('Empty the buffer after reading.'),
+    }),
+  ),
+  network_requests: defineTool(
+    'network_requests',
+    'List the network requests a tab made, one per line as "[requestId] METHOD status url (type, size, ms)". Use it to check which requests failed or returned errors; pass a requestId to network_response to see the body. Capture starts when autochrome first attaches to the tab; navigate to the same URL to capture from page start.',
+    z.object({
+      tabId,
+      urlPattern: z.string().optional().describe('Only URLs containing this text.'),
+      method: z.string().optional().describe('Only this HTTP method, e.g. "POST".'),
+      status: z
+        .union([z.enum(['failed', '4xx', '5xx']), z.number().int().min(100).max(599)])
+        .optional()
+        .describe('"failed" (no response), "4xx", "5xx" or an exact status code.'),
+      limit: z.number().int().min(1).max(200).default(50).describe('Newest N requests to return.'),
+      clear: z.boolean().optional().describe('Empty the buffer after reading.'),
+    }),
+  ),
+  network_response: defineTool(
+    'network_response',
+    'Get the response headers and body of a request listed by network_requests. Text bodies only, truncated at 20,000 characters.',
+    z.object({ requestId: z.string(), tabId }),
+  ),
+  js_eval: defineTool(
+    'js_eval',
+    'Run JavaScript in the page and return the JSON result (or the exception). For debugging and inspecting page state, not for ordinary browsing. The user is always asked to approve the code first.',
+    z.object({ code: z.string().min(1), tabId }),
   ),
 };
 

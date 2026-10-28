@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { callPage } from '../content';
 import { findAgentGroupId } from '../tabGroup';
+import { formatTabContext } from '../tabContext';
 import { resolveTabId } from '../target';
 import type { GateEnv, TabInfo } from './gate';
 import { siteOf } from './origin';
@@ -28,4 +29,9 @@ export const gateEnv: GateEnv = {
 export async function pageSite(tabId: number | undefined): Promise<string> {
   const { url } = await tabInfo(tabId);
   return siteOf(url) ?? 'unknown';
+}
+
+/** The `[tab id · title · url]` line for the tab a tool just acted on. */
+export async function tabContext(tabId: number | undefined): Promise<string> {
+  return formatTabContext(await tabInfo(tabId));
 }

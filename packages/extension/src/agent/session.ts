@@ -7,12 +7,8 @@ import { isProviderId, loadProviderSettings } from '../settings';
 import { registerPanel } from '../safety/approvalUi';
 import { runAgent } from './loop';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
+import { loadTabState } from './tab-state';
 import { buildSystemPrompt } from './system-prompt';
-
-async function currentTab() {
-  const [tab] = await browser.tabs.query({ active: true, lastFocusedWindow: true });
-  return tab?.url ? { title: tab.title ?? '', url: tab.url } : undefined;
-}
 
 function isPanelMessage(message: unknown): message is PanelMessage {
   const type = (message as { type?: unknown } | null)?.type;
@@ -49,7 +45,7 @@ function handlePort(port: Browser.runtime.Port): void {
       provider,
       settings,
       model,
-      system: buildSystemPrompt(new Date(), await currentTab()),
+      system: buildSystemPrompt(new Date()),
       tools: describeTools().map(({ name, description, inputSchema }) => ({
         name,
         description,
@@ -62,6 +58,7 @@ function handlePort(port: Browser.runtime.Port): void {
         if (event.type === 'done') chat.usage = event.usage;
         emit(event);
       },
+      stateNote: loadTabState,
       onMessage: persist,
       signal: controller!.signal,
     });

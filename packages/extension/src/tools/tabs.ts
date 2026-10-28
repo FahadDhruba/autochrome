@@ -1,7 +1,7 @@
 import { browser } from 'wxt/browser';
 import { cdp } from '../debugger';
 import { loadPage, waitForLoad } from '../navigation';
-import { addToAgentGroup, findAgentGroupId } from '../tabGroup';
+import { addToAgentGroup, listTabs } from '../tabGroup';
 import { getCurrentTabId, resolveTabId, setCurrentTab } from '../target';
 import { text, type ToolHandlers } from './types';
 
@@ -34,35 +34,30 @@ export const tabHandlers: Pick<
   ToolHandlers,
   'tabs_list' | 'tab_open' | 'tab_switch' | 'tab_close' | 'navigate' | 'go_back' | 'go_forward'
 > = {
-  async tabs_list() {
-    const tabs = await browser.tabs.query({});
+  async tabs_list({ agentOnly }) {
     const current = getCurrentTabId();
-    const agentGroups = new Map<number, number | undefined>();
-    const lines = await Promise.all(
-      tabs.map(async (tab) => {
-        if (!agentGroups.has(tab.windowId)) {
-          agentGroups.set(tab.windowId, await findAgentGroupId(tab.windowId));
-        }
-        const marks = [
-          tab.id === current ? 'current' : '',
-          tab.groupId !== -1 && tab.groupId === agentGroups.get(tab.windowId) ? 'agent' : '',
-        ].filter(Boolean);
+    const lines = (await listTabs())
+      .filter((tab) => !agentOnly || tab.inAgentGroup)
+      .map((tab) => {
+        const marks = [tab.id === current ? 'current' : '', tab.inAgentGroup ? 'agent' : ''].filter(
+          Boolean,
+        );
         const suffix = marks.length ? ` [${marks.join(', ')}]` : '';
-        return `${tab.id} · ${tab.title ?? ''} · ${tab.url ?? ''}${suffix}`;
-      }),
-    );
+        return `${tab.id} · ${tab.title} · ${tab.url}${suffix}`;
+      });
     return text(lines.join('\n') || 'No tabs open.');
   },
 
-  async tab_open({ url }) {
+  async tab_open({ url, background }) {
     // Open straight at the URL: navigating a blank tab afterwards races with the blank page's own load.
-    const tab = await browser.tabs.create({ active: true, url });
+    const tab = await browser.tabs.create({ active: !background, url });
     const tabId = tab.id!;
     await addToAgentGroup(tabId);
-    setCurrentTab(tabId);
-    if (!url) return text(`Opened tab ${tabId}.`);
+    if (!background) setCurrentTab(tabId);
+    const where = background ? ' in the background' : '';
+    if (!url) return text(`Opened tab ${tabId}${where}.`);
     await waitForLoad(tabId);
-    return text(`Opened tab ${tabId}: ${await describeTab(tabId)}`);
+    return text(`Opened tab ${tabId}${where}: ${await describeTab(tabId)}`);
   },
 
   async tab_switch({ tabId }) {

@@ -61,3 +61,28 @@ test('navigate, go_back and go_forward', async ({ baseUrl, callText, openFixture
   expect(await callText('go_forward')).toContain('Next page');
   expect(page.url()).toBe(`${baseUrl}/next.html`);
 });
+
+test('tab_open with background keeps the current tab; tabs_list agentOnly hides other tabs', async ({
+  baseUrl,
+  callText,
+  openFixture,
+}) => {
+  await openFixture('form.html');
+  const opened = await callText('tab_open', { url: `${baseUrl}/next.html`, background: true });
+  expect(opened).toContain('in the background');
+  const backgroundId = Number(/Opened tab (\d+)/.exec(opened)?.[1]);
+
+  // Tools without a tabId still act on the tab that was current before.
+  expect(await callText('get_text')).toContain('Title: Form fixture');
+  const list = await callText('tabs_list');
+  expect(list).toContain(`${backgroundId} · Next page · ${baseUrl}/next.html [agent]`);
+  expect(list).toMatch(/Form fixture .*\[current, agent\]/);
+
+  const agentOnly = await callText('tabs_list', { agentOnly: true });
+  expect(agentOnly).toContain('Next page');
+  expect(agentOnly).toContain('Form fixture');
+  expect(agentOnly).not.toContain('debug.html');
+
+  const text = await callText('get_text', { tabId: backgroundId });
+  expect(text).toContain(`[tab ${backgroundId} · Next page · ${baseUrl}/next.html]`);
+});

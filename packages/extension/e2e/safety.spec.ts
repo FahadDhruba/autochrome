@@ -285,10 +285,12 @@ test('the debug page is never gated', async ({ baseUrl, callText, openFixture, s
 test('page content is wrapped as untrusted data', async ({ baseUrl, callText, openFixture }) => {
   await openFixture('checkout.html');
   const tree = await callText('read_page');
-  expect(tree.startsWith(`<page_content site="${baseUrl}">\n`)).toBe(true);
+  // The [tab …] line comes first, outside the untrusted block.
+  expect(tree).toMatch(/^\[tab \d+ · Checkout fixture · [^\n]*\]\n/);
+  expect(tree).toContain(`\n<page_content site="${baseUrl}">\n`);
   expect(tree.endsWith('\n</page_content>')).toBe(true);
   const found = await callText('find', { query: 'Place order' });
-  expect(found).toMatch(/^<page_content site=".*">\n.*Place order.*\n<\/page_content>$/s);
+  expect(found).toMatch(/\n<page_content site=".*">\n.*Place order.*\n<\/page_content>$/s);
 });
 
 test.describe('settings', () => {
@@ -371,6 +373,26 @@ test.describe('bridge', () => {
       ok: false,
       content: [{ type: 'text', text: 'The user denied this action.' }],
     });
+  });
+
+  test('js_eval from the bridge asks in auto mode and shows the code', async ({
+    context,
+    hub,
+    openFixture,
+    setSafety,
+  }) => {
+    await openFixture('checkout.html');
+    await setSafety({ mode: 'auto' });
+    const opened = context.waitForEvent('page', isApprovePage);
+    const call = hub.callTool('js_eval', { code: 'document.title' });
+
+    const popup = await opened;
+    await expect(popup.getByTestId('approval-code')).toHaveText('document.title');
+    await expect(popup.getByTestId('approval-risk')).toContainText('Runs JavaScript in the page');
+    await popup.getByRole('button', { name: 'Allow once' }).click();
+    const result = await call;
+    expect(result.ok).toBe(true);
+    expect(JSON.stringify(result.content)).toContain('Checkout fixture');
   });
 
   test('closing the popup without answering denies', async ({ context, hub, openFixture }) => {

@@ -10,8 +10,9 @@ import type { ApprovalRequest, ToolSource } from './types';
  * - free: never needs permission.
  * - read: reads a page.
  * - action: changes a page or the browser.
+ * - always_ask: runs arbitrary code; asks in every mode, including auto.
  */
-export type ToolGroup = 'free' | 'read' | 'action';
+export type ToolGroup = 'free' | 'read' | 'action' | 'always_ask';
 
 // Typed over every tool name, so a new tool cannot ship without being classified.
 export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
@@ -32,6 +33,14 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   tab_open: 'action',
   tab_switch: 'action',
   tab_close: 'action',
+  console_logs: 'read',
+  network_requests: 'read',
+  network_response: 'read',
+  js_eval: 'always_ask',
+};
+
+const ALWAYS_ASK_RISK: Partial<Record<ToolName, string>> = {
+  js_eval: 'Runs JavaScript in the page',
 };
 
 export type TabInfo = { id: number; url: string; title: string; inAgentGroup: boolean };
@@ -56,6 +65,7 @@ export type Decision = { mode: SafetyMode; group: ToolGroup; siteAllowed: boolea
 
 /** The permission table: whether an action runs straight away or needs the user's answer. */
 export function decide({ mode, group, siteAllowed, risky }: Decision): 'allow' | 'ask' {
+  if (group === 'always_ask') return 'ask';
   if (group === 'free' || mode === 'auto') return 'allow';
   if (risky) return 'ask';
   if (group === 'action' && mode === 'ask') return 'ask';
@@ -68,6 +78,7 @@ type Input = {
   ref?: string;
   x?: number;
   y?: number;
+  code?: string;
 };
 
 /** What the call acts on: the tab it targets, and the URL whose site gets checked. */
@@ -147,7 +158,7 @@ export async function checkPermission(
     if ('reason' in checked) return deny(checked.reason);
     site = checked.site;
   }
-  if (mode === 'auto') return ALLOW;
+  if (mode === 'auto' && group !== 'always_ask') return ALLOW;
 
   const describeTarget = describeTargetOf(call, input);
   let element: ElementDescription | undefined;
@@ -162,11 +173,13 @@ export async function checkPermission(
     }
   }
   const risk =
-    group !== 'action'
-      ? undefined
-      : uninspectable
-        ? 'Could not inspect the element this acts on'
-        : assessRisk(call, element);
+    group === 'always_ask'
+      ? ALWAYS_ASK_RISK[call.name]
+      : group !== 'action'
+        ? undefined
+        : uninspectable
+          ? 'Could not inspect the element this acts on'
+          : assessRisk(call, element);
 
   const decision = decide({
     mode,
@@ -185,6 +198,7 @@ export async function checkPermission(
       target: elementLabel(element),
       site,
       risk,
+      detail: call.name === 'js_eval' ? input.code : undefined,
       tabTitle: target.tab?.title ?? '',
     },
   };

@@ -67,18 +67,22 @@ function resultsFirst(blocks: ContentBlock[]): ContentBlock[] {
 export function toAnthropicMessages(messages: ChatMessage[]): Anthropic.MessageParam[] {
   const result = messages
     .map((message) => {
-      const blocks = message.parts.flatMap(toBlock);
+      const stable = message.parts.filter((part) => !(part.type === 'text' && part.volatile));
+      const volatile = message.parts.filter((part) => part.type === 'text' && part.volatile);
+      const blocks = stable.flatMap(toBlock);
       return {
         role: message.role,
-        content: message.role === 'user' ? resultsFirst(blocks) : blocks,
+        stable: message.role === 'user' ? resultsFirst(blocks) : blocks,
+        volatile: volatile.flatMap(toBlock),
       };
     })
-    .filter((message) => message.content.length > 0);
+    .filter((message) => message.stable.length + message.volatile.length > 0);
 
-  // Mark the end of the history so the whole prefix is cached for the next step.
-  const last = result.at(-1)?.content.at(-1);
+  // Mark the end of the stable history so the whole prefix is cached for the next step. Volatile
+  // blocks come after the mark: they differ every step and would otherwise break the cache hit.
+  const last = result.at(-1)?.stable.at(-1);
   if (last) (last as { cache_control?: typeof EPHEMERAL }).cache_control = EPHEMERAL;
-  return result;
+  return result.map(({ role, stable, volatile }) => ({ role, content: [...stable, ...volatile] }));
 }
 
 export function toAnthropicTools(tools: ProviderTool[]): Anthropic.Tool[] {

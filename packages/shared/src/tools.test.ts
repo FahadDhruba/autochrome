@@ -29,6 +29,25 @@ describe('toolDefinitions', () => {
     );
   });
 
+  it('defaults the multi-tab and debug options', () => {
+    expect(toolDefinitions.tab_open.input.parse({})).toEqual({ background: false });
+    expect(toolDefinitions.tab_open.input.parse({ background: true }).background).toBe(true);
+    expect(toolDefinitions.tabs_list.input.parse({ agentOnly: true })).toEqual({ agentOnly: true });
+    expect(toolDefinitions.console_logs.input.parse({})).toEqual({ limit: 50 });
+    expect(toolDefinitions.network_requests.input.parse({ status: '4xx' })).toMatchObject({
+      status: '4xx',
+      limit: 50,
+    });
+    expect(toolDefinitions.network_requests.input.parse({ status: 404 }).status).toBe(404);
+  });
+
+  it('rejects out-of-range debug options', () => {
+    expect(toolDefinitions.console_logs.input.safeParse({ limit: 201 }).success).toBe(false);
+    expect(toolDefinitions.console_logs.input.safeParse({ level: 'trace' }).success).toBe(false);
+    expect(toolDefinitions.network_requests.input.safeParse({ status: 'ok' }).success).toBe(false);
+    expect(toolDefinitions.js_eval.input.safeParse({ code: '' }).success).toBe(false);
+  });
+
   it('rejects invalid input', () => {
     expect(toolDefinitions.tab_switch.input.safeParse({}).success).toBe(false);
     expect(toolDefinitions.click.input.safeParse({ clickCount: 4 }).success).toBe(false);

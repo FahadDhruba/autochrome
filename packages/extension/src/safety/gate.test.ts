@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ElementDescription } from '../page/messages';
 import { checkPermission, decide, TOOL_GROUPS, type GateEnv, type TabInfo } from './gate';
 import type { SafetyMode } from './settings';
+import { canAllowSite } from './types';
 
 const SITE = 'https://shop.example.com';
 const OTHER = 'https://other.example.com';
@@ -59,6 +60,10 @@ const INPUTS: Record<ToolName, object> = {
   tab_open: { url: `${SITE}/` },
   tab_switch: { tabId: 1 },
   tab_close: { tabId: 1 },
+  console_logs: {},
+  network_requests: {},
+  network_response: { requestId: '1' },
+  js_eval: { code: '1 + 1' },
 };
 
 const call = (name: ToolName, input: object = INPUTS[name]): ToolCall => ({ id: '1', name, input });
@@ -77,6 +82,10 @@ describe('tool groups', () => {
 });
 
 describe('decide', () => {
+  it.each(['ask', 'per-site', 'auto'] as const)('always_ask asks in %s mode', (mode) => {
+    expect(decide({ mode, group: 'always_ask', siteAllowed: true, risky: false })).toBe('ask');
+  });
+
   it.each([
     // mode, group, siteAllowed, risky -> decision
     ['ask', 'free', false, false, 'allow'],
@@ -138,6 +147,9 @@ describe('checkPermission', () => {
       ['tab_open', 'ask', 'ask', 'allow'],
       ['tab_switch', 'ask', 'ask', 'allow'],
       ['tab_close', 'ask', 'ask', 'allow'],
+      ['console_logs', 'allow', 'ask', 'allow'],
+      ['network_requests', 'allow', 'ask', 'allow'],
+      ['network_response', 'allow', 'ask', 'allow'],
     ];
 
     it.each(TABLE)('%s', async (name, whenAsk, whenUnapproved, whenApproved) => {
@@ -150,8 +162,52 @@ describe('checkPermission', () => {
       expect(await verdict(name, 'ask')).toBe(whenUnapproved);
     });
 
-    it('covers every tool', () => {
-      expect(TABLE.map(([name]) => name).sort()).toEqual([...toolNames].sort());
+    it('covers every tool except js_eval, which has its own tests', () => {
+      expect(TABLE.map(([name]) => name).sort()).toEqual(
+        toolNames.filter((name) => name !== 'js_eval').sort(),
+      );
+    });
+  });
+
+  describe('js_eval', () => {
+    const code = 'document.cookie = "a=1"; fetch("/api/delete", { method: "POST" })';
+
+    it.each(MODES)('asks in %s mode, even on an allowed site', async (mode) => {
+      const result = await checkPermission(
+        call('js_eval', { code }),
+        'agent',
+        env(mode, { sites: [SITE] }),
+      );
+      expect(result).toMatchObject({
+        decision: 'ask',
+        request: {
+          tool: 'js_eval',
+          risk: 'Runs JavaScript in the page',
+          detail: code,
+          site: SITE,
+        },
+      });
+    });
+
+    it('asks for the bridge too, and cannot be allowed for the whole site', async () => {
+      const result = await checkPermission(
+        call('js_eval', { code }),
+        'bridge',
+        env('auto', { sites: [SITE] }),
+      );
+      expect(result).toMatchObject({ decision: 'ask', request: { source: 'bridge' } });
+      if (result.decision !== 'ask') throw new Error('expected a prompt');
+      expect(canAllowSite({ ...result.request, id: 'x' })).toBe(false);
+    });
+
+    it("is the debug page's own click, so it runs ungated", async () => {
+      expect(await verdict('js_eval', 'auto', {}, 'debug')).toBe('allow');
+      expect(await verdict('js_eval', 'ask', {}, 'debug')).toBe('allow');
+    });
+
+    it.each(MODES)('is still refused on chrome:// pages in %s mode', async (mode) => {
+      const chromeTab = tab({ url: 'chrome://settings/' });
+      expect(await verdict('js_eval', mode, { tab: chromeTab })).toBe('deny');
     });
   });
 

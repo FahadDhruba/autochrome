@@ -1,7 +1,13 @@
 import type { ToolContent } from '@autochrome/shared';
 
 export type Part =
-  | { type: 'text'; text: string; signature?: string }
+  | {
+      type: 'text';
+      text: string;
+      signature?: string;
+      /** Per-step context (such as the tab state) that must not become part of a cached prefix. */
+      volatile?: boolean;
+    }
   | { type: 'image'; data: string; mimeType: string }
   | { type: 'tool_call'; id: string; name: string; input: unknown; signature?: string }
   | { type: 'tool_result'; callId: string; content: ToolContent[]; isError: boolean };

@@ -101,3 +101,27 @@ describe('cache_control on tools and system', () => {
     ]);
   });
 });
+
+describe('volatile parts', () => {
+  const note = { type: 'text' as const, text: 'Tab state: 1', volatile: true };
+  const withNote = (messages: ChatMessage[]): ChatMessage[] => [
+    ...messages.slice(0, -1),
+    { ...messages.at(-1)!, parts: [...messages.at(-1)!.parts, note] },
+  ];
+
+  it('puts the note after the cache mark so the mark stays on the stable history', () => {
+    const blocks = toAnthropicMessages(withNote(history)).at(-1)!.content as {
+      type: string;
+      text?: string;
+      cache_control?: unknown;
+    }[];
+    expect(blocks.map((block) => block.type)).toEqual(['tool_result', 'text', 'text']);
+    expect(blocks[1]).toMatchObject({ text: 'and be quick', cache_control: { type: 'ephemeral' } });
+    expect(blocks[2]).toEqual({ type: 'text', text: 'Tab state: 1' });
+  });
+
+  it('is the only content of a message that has nothing else', () => {
+    const messages = toAnthropicMessages([{ role: 'user', parts: [note] }]);
+    expect(messages).toEqual([{ role: 'user', content: [{ type: 'text', text: 'Tab state: 1' }] }]);
+  });
+});

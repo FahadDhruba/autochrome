@@ -21,3 +21,31 @@ export async function addToAgentGroup(tabId: number): Promise<void> {
   });
   await browser.tabGroups.update(created, { title: GROUP_TITLE, color: 'cyan' });
 }
+
+export type TabEntry = {
+  id: number;
+  title: string;
+  url: string;
+  inAgentGroup: boolean;
+};
+
+/** Every open tab, with whether it is in its window's agent group. */
+export async function listTabs(): Promise<TabEntry[]> {
+  const tabs = await browser.tabs.query({});
+  const groups = new Map<number, number | undefined>();
+  for (const { windowId } of tabs) {
+    if (!groups.has(windowId)) groups.set(windowId, await findAgentGroupId(windowId));
+  }
+  return tabs.flatMap((tab) =>
+    tab.id === undefined
+      ? []
+      : [
+          {
+            id: tab.id,
+            title: tab.title ?? '',
+            url: tab.url ?? '',
+            inAgentGroup: tab.groupId !== -1 && tab.groupId === groups.get(tab.windowId),
+          },
+        ],
+  );
+}

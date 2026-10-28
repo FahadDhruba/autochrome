@@ -169,3 +169,89 @@ describe('executeTool page content', () => {
     expect(lookup).toHaveBeenCalledWith(7);
   });
 });
+
+describe('executeTool tab context', () => {
+  const line = '[tab 7 · Docs · https://example.com/docs]';
+  const withLine = (overrides: Partial<ToolHandlers> = {}): ExecuteOptions => ({
+    ...debug(overrides),
+    tabContext: async () => line,
+  });
+
+  it('starts page and input results with the tab line, ahead of the wrapped page content', async () => {
+    const result = await executeTool(
+      { id: '1', name: 'get_text', input: { tabId: 7 } },
+      withLine({ get_text: async () => [{ type: 'text', text: 'hello' }] }),
+    );
+    expect(result.content).toEqual([
+      {
+        type: 'text',
+        text: `${line}\n<page_content site="https://example.com">\nhello\n</page_content>`,
+      },
+    ]);
+
+    const clicked = await executeTool(
+      { id: '2', name: 'click', input: { ref: 'e1' } },
+      withLine({ click: async () => [{ type: 'text', text: 'Clicked.' }] }),
+    );
+    expect(clicked.content).toEqual([{ type: 'text', text: `${line}\nClicked.` }]);
+  });
+
+  it('puts the line in its own item before a screenshot', async () => {
+    const image = { type: 'image' as const, data: 'AAAA', mimeType: 'image/jpeg' };
+    const shot = await executeTool(
+      { id: '1', name: 'screenshot', input: {} },
+      withLine({ screenshot: async () => [image] }),
+    );
+    expect(shot.content).toEqual([{ type: 'text', text: line }, image]);
+  });
+
+  it('asks for the line of the tab the call targeted', async () => {
+    const tabContext = vi.fn(async () => line);
+    await executeTool(
+      { id: '1', name: 'scroll', input: { direction: 'down', tabId: 9 } },
+      { ...withLine({ scroll: async () => [] }), tabContext },
+    );
+    expect(tabContext).toHaveBeenCalledWith(9);
+  });
+
+  it('is not added to tab management tools', async () => {
+    for (const name of ['tabs_list', 'tab_open', 'tab_close'] as const) {
+      const input = name === 'tab_close' ? { tabId: 1 } : {};
+      const result = await executeTool(
+        { id: '1', name, input },
+        withLine({ [name]: async () => [{ type: 'text', text: 'ok' }] }),
+      );
+      expect(result.content).toEqual([{ type: 'text', text: 'ok' }]);
+    }
+  });
+
+  it('does not fail the call when the tab is gone', async () => {
+    const result = await executeTool(
+      { id: '1', name: 'key', input: { keys: 'Enter' } },
+      {
+        ...debug({ key: async () => [{ type: 'text', text: 'Pressed.' }] }),
+        tabContext: async () => {
+          throw new Error('No tab with id');
+        },
+      },
+    );
+    expect(result).toEqual({ id: '1', ok: true, content: [{ type: 'text', text: 'Pressed.' }] });
+  });
+
+  it.each(['console_logs', 'network_requests', 'js_eval'] as const)(
+    'marks %s output as untrusted page content',
+    async (name) => {
+      const input = name === 'js_eval' ? { code: '1' } : {};
+      const result = await executeTool(
+        { id: '1', name, input },
+        withLine({ [name]: async () => [{ type: 'text', text: 'from the page' }] }),
+      );
+      expect(result.content).toEqual([
+        {
+          type: 'text',
+          text: `${line}\n<page_content site="https://example.com">\nfrom the page\n</page_content>`,
+        },
+      ]);
+    },
+  );
+});

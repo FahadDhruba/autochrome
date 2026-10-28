@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Console fixture</title>
+  </head>
+  <body>
+    <h1>Console fixture</h1>
+    <script>
+      console.debug('debug-message');
+      console.log('log-message', { answer: 42 });
+      console.info('info-message');
+      console.warn('warn-message');
+      console.error('error-message');
+      fetch('/data.json');
+      fetch('/missing.json');
+      fetch('http://127.0.0.1:1/unreachable').catch(() => {});
+      setTimeout(() => {
+        throw new Error('uncaught-boom');
+      }, 0);
+    </script>
+  </body>
+</html>

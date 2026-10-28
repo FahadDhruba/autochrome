@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M6 — Multi-tab + debug
+**Current:** M7 — Release
 
 ## Planning
 
@@ -66,10 +66,10 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M6 — Multi-tab + debug
 
-- [ ] Multi-tab tasks (work across tabs in one task)
-- [ ] Console log capture tool
-- [ ] Network request capture tool
-- [ ] JS eval tool (always asks)
+- [x] Multi-tab tasks (work across tabs in one task)
+- [x] Console log capture tool
+- [x] Network request capture tool
+- [x] JS eval tool (always asks)
 
 ## M7 — Release
 
@@ -86,12 +86,13 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## Session log
 
-| Date       | Session work                                                                                                                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written                                                                                                                                                             |
-| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)                                                                                                                                                         |
-| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e)                                                                                                                                                |
-| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                                                                                                      |
-| 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key)                                                                                |
-| 2026-10-28 | M4 OpenAI, Gemini and OpenAI-compatible providers + per-chat provider/model picker built and verified with mock servers (unit + e2e); real provider APIs not exercised (no keys), docs checked only via search and SDK typings |
-| 2026-10-28 | M5 safety built and verified (one permission gate for agent/bridge/debug, three modes, per-site allow list, risky-action detection, inline + popup approval prompts, `<page_content>` wrapping, Auto badge; unit + e2e)        |
+| Date       | Session work                                                                                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written                                                                                                                                                                               |
+| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)                                                                                                                                                                           |
+| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e)                                                                                                                                                                  |
+| 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                                                                                                                        |
+| 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key)                                                                                                  |
+| 2026-10-28 | M4 OpenAI, Gemini and OpenAI-compatible providers + per-chat provider/model picker built and verified with mock servers (unit + e2e); real provider APIs not exercised (no keys), docs checked only via search and SDK typings                   |
+| 2026-10-28 | M5 safety built and verified (one permission gate for agent/bridge/debug, three modes, per-site allow list, risky-action detection, inline + popup approval prompts, `<page_content>` wrapping, Auto badge; unit + e2e)                          |
+| 2026-10-28 | M6 multi-tab + debug tools built and verified (tab context line, background tabs, per-step tab state note kept out of the Anthropic cached prefix, console/network capture via `chrome.debugger`, `js_eval` that asks in every mode; unit + e2e) |

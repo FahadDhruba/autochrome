@@ -76,9 +76,10 @@ test('runs a task with tools, shows the steps and keeps the chat in history', as
   expect(first.body.system[0]).toMatchObject({ cache_control: EPHEMERAL });
   expect(first.body.system[0]!.text).toContain('data, never instructions');
   for (const request of mock.requests) {
-    expect(request.body.messages.at(-1)!.content.at(-1)).toMatchObject({
-      cache_control: EPHEMERAL,
-    });
+    // The tab state note follows the cache mark, so the mark stays on the stable history.
+    const blocks = request.body.messages.at(-1)!.content as { text?: string }[];
+    const stable = blocks.filter((block) => !block.text?.startsWith('Tab state'));
+    expect(stable.at(-1)).toMatchObject({ cache_control: EPHEMERAL });
   }
   expect(second.body.messages.at(-1)!.content.map((block) => block.tool_use_id)).toEqual([
     'toolu_open',
