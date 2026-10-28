@@ -9,6 +9,7 @@ import {
   type AllProviderSettings,
 } from '@/src/settings';
 import BridgeSettings from './BridgeSettings';
+import SafetySettings from './SafetySettings';
 import { useModelOptions } from './useModelOptions';
 
 const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
@@ -170,6 +171,7 @@ export default function SettingsView() {
           </button>
         </div>
       </section>
+      <SafetySettings />
       <BridgeSettings />
       <p>
         <a href={browser.runtime.getURL('/debug.html')} target="_blank" rel="noreferrer">

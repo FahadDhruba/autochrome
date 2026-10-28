@@ -70,7 +70,7 @@ class BridgeConnection {
         this.setStatus('connected');
         this.pingTimer = setInterval(() => this.send({ type: 'ping' }), PING_INTERVAL_MS);
       } else if (message?.type === 'call') {
-        void executeTool(message.call).then((result: ToolResult) =>
+        void executeTool(message.call, { source: 'bridge' }).then((result: ToolResult) =>
           this.send({ type: 'result', result }),
         );
       }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import type { ChatMessage, Part, Usage } from '@/src/providers/types';
 import ToolCard from './ToolCard';
 
@@ -21,15 +21,22 @@ function formatUsage(usage: Usage): string {
   return parts.join(' · ');
 }
 
-type Props = { messages: ChatMessage[]; running: boolean; error?: string; usage?: Usage };
+type Props = {
+  messages: ChatMessage[];
+  running: boolean;
+  error?: string;
+  usage?: Usage;
+  /** Shown after the last message, e.g. an approval prompt. */
+  children?: ReactNode;
+};
 
-export default function MessageList({ messages, running, error, usage }: Props) {
+export default function MessageList({ messages, running, error, usage, children }: Props) {
   const results = resultsById(messages);
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     end.current?.scrollIntoView?.({ block: 'end' });
-  }, [messages, error]);
+  }, [messages, error, children]);
 
   return (
     <div className="messages" role="log" aria-live="polite">
@@ -53,7 +60,8 @@ export default function MessageList({ messages, running, error, usage }: Props) 
           return null;
         }),
       )}
-      {running && <div className="working">Working…</div>}
+      {running && !children && <div className="working">Working…</div>}
+      {children}
       {error && (
         <div className="error-banner" role="alert">
           {error}

@@ -1,0 +1,7 @@
+main {
+  padding: 16px;
+}
+
+.gone {
+  color: var(--muted);
+}

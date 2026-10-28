@@ -1,3 +1,4 @@
+import ApprovalCard from '@/src/ui/ApprovalCard';
 import type { useChat } from './useChat';
 import Composer from './Composer';
 import MessageList from './MessageList';
@@ -12,6 +13,9 @@ type Props = {
 
 export default function ChatView({ chat, providers, onOpenSettings }: Props) {
   const { target } = chat;
+  const approval = chat.approval && (
+    <ApprovalCard request={chat.approval} onAnswer={chat.answerApproval} />
+  );
   if (providers.ready.length === 0 && chat.messages.length === 0) {
     return (
       <div className="empty" data-testid="empty-state">
@@ -21,6 +25,7 @@ export default function ChatView({ chat, providers, onOpenSettings }: Props) {
           such as Ollama to run tasks in your browser.
         </p>
         <button onClick={onOpenSettings}>Open settings</button>
+        {approval}
       </div>
     );
   }
@@ -31,6 +36,7 @@ export default function ChatView({ chat, providers, onOpenSettings }: Props) {
         <div className="empty">
           <h2>What should I do?</h2>
           <p>Describe a task. I will work in your tabs and show each step.</p>
+          {approval}
         </div>
       ) : (
         <MessageList
@@ -38,7 +44,9 @@ export default function ChatView({ chat, providers, onOpenSettings }: Props) {
           running={chat.running}
           error={chat.error}
           usage={chat.usage}
-        />
+        >
+          {approval}
+        </MessageList>
       )}
       {target && (
         <ModelPicker

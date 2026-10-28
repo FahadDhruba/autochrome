@@ -145,7 +145,7 @@ function labelText(label: Element): string {
 }
 
 /** Accessible name, in precedence order: aria-labelledby, aria-label, <label>, alt, title, … */
-function nameOf(el: Element, role: string): string {
+export function nameOf(el: Element, role: string): string {
   const labelledBy = el.getAttribute('aria-labelledby');
   if (labelledBy) {
     const root = el.getRootNode() as Document | ShadowRoot;

@@ -1,46 +1,3 @@
-:root {
-  color-scheme: light dark;
-  --bg: #ffffff;
-  --surface: #f3f4f6;
-  --border: #d9dce1;
-  --text: #1f2328;
-  --muted: #6b7280;
-  --accent: #2563eb;
-  --accent-text: #ffffff;
-  --user-bg: #dbeafe;
-  --danger: #c5221f;
-  --danger-bg: #fdecea;
-  --ok: #1e8e3e;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #16181d;
-    --surface: #222630;
-    --border: #353a46;
-    --text: #e6e8eb;
-    --muted: #9aa3b2;
-    --accent: #5b8def;
-    --accent-text: #0b1020;
-    --user-bg: #23365e;
-    --danger: #ff8a80;
-    --danger-bg: #3a1f1f;
-    --ok: #5bd778;
-  }
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  font-size: 14px;
-  background: var(--bg);
-  color: var(--text);
-}
-
 .app {
   display: flex;
   flex-direction: column;
@@ -78,26 +35,6 @@ main {
   flex-direction: column;
 }
 
-button {
-  font: inherit;
-  padding: 6px 12px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--accent);
-  color: var(--accent-text);
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-button.danger {
-  background: var(--danger);
-  color: var(--bg);
-}
-
 button.link {
   background: none;
   color: var(--accent);
@@ -117,11 +54,6 @@ textarea {
 
 a {
   color: var(--accent);
-}
-
-.muted {
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .empty {
@@ -379,8 +311,62 @@ a {
   flex-wrap: wrap;
 }
 
-button.secondary {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
+.badge-auto {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.settings .radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.settings .radio-option input {
+  display: inline-block;
+  width: auto;
+  margin-top: 2px;
+}
+
+.option-description {
+  display: block;
+}
+
+.warning {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.warning p {
+  margin: 0 0 8px;
+}
+
+.settings h3 {
+  font-size: 0.875rem;
+  margin: 16px 0 8px;
+}
+
+.site-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.site-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-wrap: anywhere;
 }

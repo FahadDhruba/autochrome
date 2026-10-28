@@ -29,6 +29,8 @@ const geminiResponse = (request: ProviderRequest, name: string): string => {
   );
 };
 
+test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
+
 test('runs the chat flow against an OpenAI-compatible server', async ({
   baseUrl,
   context,

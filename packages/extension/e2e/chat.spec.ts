@@ -11,6 +11,8 @@ function resultText(request: RecordedRequest, toolUseId: string): string {
   return content?.map((item) => item.text ?? '').join('\n') ?? '';
 }
 
+test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
+
 test('runs a task with tools, shows the steps and keeps the chat in history', async ({
   baseUrl,
   context,

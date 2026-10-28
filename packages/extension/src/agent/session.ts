@@ -4,6 +4,7 @@ import { loadChat, saveChat, titleFor, type Chat } from '../history';
 import { providers } from '../providers';
 import type { ProviderId } from '../providers/types';
 import { isProviderId, loadProviderSettings } from '../settings';
+import { registerPanel } from '../safety/approvalUi';
 import { runAgent } from './loop';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
 import { buildSystemPrompt } from './system-prompt';
@@ -22,6 +23,7 @@ function isPanelMessage(message: unknown): message is PanelMessage {
 
 /** Handles one side panel connection: one task at a time, aborted when the panel goes away. */
 function handlePort(port: Browser.runtime.Port): void {
+  registerPanel(port);
   let controller: AbortController | undefined;
   const emit = (event: AgentEvent) => {
     try {
@@ -54,7 +56,8 @@ function handlePort(port: Browser.runtime.Port): void {
         inputSchema,
       })),
       messages: chat.messages,
-      execute: (call: ToolCall) => executeTool(call),
+      execute: (call: ToolCall) =>
+        executeTool(call, { source: 'agent', signal: controller!.signal }),
       emit: (event) => {
         if (event.type === 'done') chat.usage = event.usage;
         emit(event);

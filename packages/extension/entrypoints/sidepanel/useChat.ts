@@ -3,6 +3,8 @@ import { applyEvent } from '@/src/agent/apply-event';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from '@/src/agent/protocol';
 import { loadChat, saveChatTarget, type ChatTarget } from '@/src/history';
 import type { ChatMessage, Usage } from '@/src/providers/types';
+import { isApprovalEvent, type ApprovalAnswer, type ApprovalEvent } from '@/src/safety/messages';
+import type { ApprovalChoice, ApprovalRequest } from '@/src/safety/types';
 import type { ProviderState } from './useProviderSettings';
 
 const newChatId = (): string => crypto.randomUUID();
@@ -24,6 +26,7 @@ export function useChat(providers: ProviderState | undefined) {
   const [revision, setRevision] = useState(0);
   // Set when the user picks a provider/model or opens a saved chat; otherwise the defaults apply.
   const [chosen, setChosen] = useState<ChatTarget>();
+  const [approval, setApproval] = useState<ApprovalRequest>();
   const port = useRef<Browser.runtime.Port>(undefined);
   const runningRef = useRef(false);
 
@@ -34,8 +37,11 @@ export function useChat(providers: ProviderState | undefined) {
 
   const connect = useCallback(() => {
     const next = browser.runtime.connect({ name: CHAT_PORT_NAME });
-    next.onMessage.addListener((event: AgentEvent) => {
-      if (event.type === 'done') {
+    next.onMessage.addListener((event: AgentEvent | ApprovalEvent) => {
+      if (isApprovalEvent(event)) {
+        if (event.type === 'approval_request') setApproval(event.request);
+        else setApproval((current) => (current?.id === event.id ? undefined : current));
+      } else if (event.type === 'done') {
         setUsage(event.usage);
         setRunningNow(false);
         setRevision((n) => n + 1);
@@ -58,7 +64,11 @@ export function useChat(providers: ProviderState | undefined) {
     return next;
   }, []);
 
-  useEffect(() => () => port.current?.disconnect(), []);
+  // Connect right away, so approval prompts reach the panel even before the first task.
+  useEffect(() => {
+    const own = connect();
+    return () => own.disconnect();
+  }, [connect]);
 
   const post = (message: PanelMessage) => (port.current ?? connect()).postMessage(message);
 
@@ -79,6 +89,17 @@ export function useChat(providers: ProviderState | undefined) {
   };
 
   const stop = () => post({ type: 'stop' });
+
+  const answerApproval = (choice: ApprovalChoice) => {
+    if (!approval) return;
+    const message: ApprovalAnswer = {
+      type: 'autochrome:approval-answer',
+      id: approval.id,
+      choice,
+    };
+    void browser.runtime.sendMessage(message);
+    setApproval(undefined);
+  };
 
   const reset = (
     id: string,
@@ -112,6 +133,8 @@ export function useChat(providers: ProviderState | undefined) {
     usage,
     revision,
     target,
+    approval,
+    answerApproval,
     changeTarget,
     send,
     stop,

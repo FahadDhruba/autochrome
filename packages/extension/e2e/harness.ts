@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { chromium, test as base, type BrowserContext, type Page } from '@playwright/test';
 import type { ToolName, ToolResult } from '@autochrome/shared';
+import type { SafetyMode } from '../src/safety/settings';
 import { MockAnthropic } from './mockAnthropic';
 import { MockGemini, MockOpenAi } from './mockProviders';
 
@@ -46,6 +47,8 @@ type Fixtures = {
   callTool: CallTool;
   /** Like callTool, but throws on failure and returns the first text item. */
   callText: (name: ToolName, input?: object) => Promise<string>;
+  /** Saves safety settings. Without it a fresh profile is in per-site mode with no allowed sites. */
+  setSafety: (settings: { mode?: SafetyMode; sites?: string[] }) => Promise<void>;
   /** Open a fixture in an agent tab and return the Playwright handle for it. */
   openFixture: (file: string) => Promise<Page>;
 };
@@ -133,6 +136,23 @@ export const test = base.extend<Fixtures>({
       }
       return first.text;
     });
+  },
+
+  setSafety: async ({ debugPage }, use) => {
+    await use(({ mode, sites }) =>
+      debugPage.evaluate(
+        (settings) =>
+          chrome.storage.local.set(
+            Object.fromEntries(
+              [
+                ['safety.mode', settings.mode],
+                ['safety.sites', settings.sites],
+              ].filter(([, value]) => value !== undefined),
+            ),
+          ),
+        { mode, sites },
+      ),
+    );
   },
 
   openFixture: async ({ context, baseUrl, callText }, use) => {

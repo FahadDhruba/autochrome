@@ -4,6 +4,7 @@ import ChatView from './ChatView';
 import SettingsView from './SettingsView';
 import { useChat } from './useChat';
 import { useProviderSettings } from './useProviderSettings';
+import { useSafety } from './useSafety';
 
 type View = 'chat' | 'settings';
 
@@ -12,6 +13,9 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const settings = useProviderSettings();
   const chat = useChat(settings);
+  const safety = useSafety();
+  // A waiting approval prompt must not stay hidden behind Settings.
+  const activeView = chat.approval ? 'chat' : view;
 
   const show = (next: View) => {
     setView(next);
@@ -21,7 +25,18 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>autochrome</h1>
+        <h1>
+          autochrome
+          {safety?.mode === 'auto' && (
+            <span
+              className="badge-auto"
+              title="The AI can act on any site without asking"
+              data-testid="auto-badge"
+            >
+              Auto
+            </span>
+          )}
+        </h1>
         <div className="header-actions">
           <button
             className="link"
@@ -40,8 +55,11 @@ export default function App() {
           >
             New chat
           </button>
-          <button className="link" onClick={() => show(view === 'chat' ? 'settings' : 'chat')}>
-            {view === 'chat' ? 'Settings' : 'Back to chat'}
+          <button
+            className="link"
+            onClick={() => show(activeView === 'chat' ? 'settings' : 'chat')}
+          >
+            {activeView === 'chat' ? 'Settings' : 'Back to chat'}
           </button>
         </div>
       </header>
@@ -57,7 +75,7 @@ export default function App() {
         />
       )}
       <main>
-        {view === 'settings' ? (
+        {activeView === 'settings' ? (
           <SettingsView />
         ) : settings ? (
           <ChatView chat={chat} providers={settings} onOpenSettings={() => show('settings')} />

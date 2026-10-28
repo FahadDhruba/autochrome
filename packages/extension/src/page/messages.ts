@@ -1,5 +1,24 @@
 export type Point = { x: number; y: number };
 
+/** What the safety checks need to know about an element; see `describe`. */
+export type ElementDescription = {
+  tag: string;
+  /** Empty when the element has no role. */
+  role: string;
+  name: string;
+  ariaLabel: string;
+  inputType: string;
+  autocomplete: string;
+  /** The element's `id` and `name` attributes. */
+  fieldId: string;
+  inForm: boolean;
+  formHasPassword: boolean;
+  formHasPayment: boolean;
+};
+
+/** A ref, a viewport point, or neither (the focused element). */
+export type DescribeTarget = { ref?: string; point?: Point };
+
 export type PageRequests = {
   read: { filter: 'all' | 'interactive' };
   find: { query: string };
@@ -7,6 +26,7 @@ export type PageRequests = {
   locate: { ref: string; focus?: boolean };
   set_value: { ref: string; value: string | boolean };
   has_text: { text: string };
+  describe: DescribeTarget;
 };
 
 export type PageResults = {
@@ -16,6 +36,7 @@ export type PageResults = {
   locate: Point;
   set_value: string;
   has_text: boolean;
+  describe: ElementDescription | undefined;
 };
 
 export type PageOp = keyof PageRequests;

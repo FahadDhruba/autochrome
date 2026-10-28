@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M5 — Safety
+**Current:** M6 — Multi-tab + debug
 
 ## Planning
 
@@ -57,12 +57,12 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M5 — Safety
 
-- [ ] Mode setting: Ask every / Per-site / Auto
-- [ ] Per-site permission store + approval UI
-- [ ] Risky-action detection (purchase, send, delete, password/payment)
-- [ ] Bridge requests go through the same checks
-- [ ] Prompt-injection guard in system prompt and tool results
-- [ ] Auto-mode warning
+- [x] Mode setting: Ask every / Per-site / Auto
+- [x] Per-site permission store + approval UI
+- [x] Risky-action detection (purchase, send, delete, password/payment)
+- [x] Bridge requests go through the same checks
+- [x] Prompt-injection guard in system prompt and tool results
+- [x] Auto-mode warning
 
 ## M6 — Multi-tab + debug
 
@@ -94,3 +94,4 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 | 2026-10-28 | M2 bridge built and verified (hub, MCP, HTTP/WS API, extension link, e2e)                                                                                                                                                      |
 | 2026-10-28 | M3 side panel chat + Anthropic provider built and verified with a mock Anthropic server (unit + e2e); real Anthropic API not exercised (no key)                                                                                |
 | 2026-10-28 | M4 OpenAI, Gemini and OpenAI-compatible providers + per-chat provider/model picker built and verified with mock servers (unit + e2e); real provider APIs not exercised (no keys), docs checked only via search and SDK typings |
+| 2026-10-28 | M5 safety built and verified (one permission gate for agent/bridge/debug, three modes, per-site allow list, risky-action detection, inline + popup approval prompts, `<page_content>` wrapping, Auto badge; unit + e2e)        |

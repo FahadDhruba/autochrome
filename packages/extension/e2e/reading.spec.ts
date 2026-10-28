@@ -46,10 +46,12 @@ test('find matches role, name and value case-insensitively', async ({ callText, 
   const page = await openFixture('form.html');
   await page.fill('#email', 'Grace@Example.com');
 
-  expect(await callText('find', { query: 'SUBMIT' })).toMatch(/^\[e\d+\] button "Submit"$/);
+  expect(await callText('find', { query: 'SUBMIT' })).toMatch(
+    /^<page_content [^\n]*>\n\[e\d+\] button "Submit"\n<\/page_content>$/,
+  );
   expect(await callText('find', { query: 'grace@example' })).toMatch(/textbox "Email"/);
   expect(await callText('find', { query: 'checkbox' })).toMatch(/checkbox "Subscribe"/);
-  expect(await callText('find', { query: 'zzz' })).toBe('No elements match "zzz".');
+  expect(await callText('find', { query: 'zzz' })).toContain('No elements match "zzz".');
 });
 
 test('find refs stay valid alongside read_page refs', async ({ callText, openFixture }) => {
