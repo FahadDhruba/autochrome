@@ -2,12 +2,12 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** Plan awaiting approval
+**Current:** M0 — Scaffold
 
 ## Planning
 - [x] Requirements gathered
 - [x] PLAN.md written
-- [ ] Plan approved
+- [x] Plan approved
 
 ## M0 — Scaffold
 - [ ] pnpm monorepo (`shared`, `extension`, `bridge`)

@@ -4,7 +4,7 @@ Open-source Chrome extension that lets AI control your real browser, like Claude
 It works two ways: an in-browser **side panel chat agent**, and a **bridge** so outside tools
 (Claude Code, Cursor, scripts) can drive Chrome.
 
-Status: **Planned, awaiting approval.** Progress is tracked in [CHECKLIST.md](CHECKLIST.md).
+Status: **Approved, in progress.** Progress is tracked in [CHECKLIST.md](CHECKLIST.md).
 
 ## Decisions
 
@@ -94,4 +94,5 @@ Bridge (M2) comes before chat (M3) so it's useful early and tools can be tested 
 ## Workflow
 
 Per milestone: plan in plan mode (Opus) → user approves → `executor` agent (Sonnet) builds →
-PR. Update CHECKLIST.md in the same PR.
+`reviewer` agent (Opus) checks it is as intended, up to standard and working → fix until PASS → PR.
+Update CHECKLIST.md in the same PR.
