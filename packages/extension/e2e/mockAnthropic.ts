@@ -91,6 +91,8 @@ export class MockAnthropic {
   readonly requests: RecordedRequest[] = [];
   /** Number of streaming requests whose connection was closed by the client. */
   aborted = 0;
+  /** Pause before each reply, so a scripted run (the demo GIF) looks like a model thinking. */
+  delayMs = 0;
   private script: ReplyScript[] = [];
   private server: Server | undefined;
 
@@ -153,6 +155,7 @@ export class MockAnthropic {
       );
     }
     const reply = typeof entry === 'function' ? entry(recorded) : entry;
+    if (this.delayMs > 0) await new Promise((resolve) => setTimeout(resolve, this.delayMs));
 
     res.writeHead(200, {
       ...CORS,

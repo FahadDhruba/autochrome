@@ -14,7 +14,10 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
-    "test:e2e": "pnpm --filter @autochrome/extension test:e2e"
+    "test:e2e": "pnpm --filter @autochrome/extension test:e2e",
+    "docs:tools": "pnpm --filter @autochrome/scripts docs:tools",
+    "icons": "pnpm --filter @autochrome/scripts icons",
+    "demo": "pnpm --filter @autochrome/scripts demo"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

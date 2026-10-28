@@ -20,7 +20,7 @@ Requires Node 22 or newer and the autochrome extension.
 **Claude Code**
 
 ```sh
-claude mcp add autochrome -- npx autochrome-bridge
+claude mcp add autochrome -- npx -y autochrome-bridge
 ```
 
 **Cursor** (`~/.cursor/mcp.json`) and other MCP clients:
@@ -28,10 +28,37 @@ claude mcp add autochrome -- npx autochrome-bridge
 ```json
 {
   "mcpServers": {
-    "autochrome": { "command": "npx", "args": ["autochrome-bridge"] }
+    "autochrome": { "command": "npx", "args": ["-y", "autochrome-bridge"] }
   }
 }
 ```
+
+## Tools
+
+All 21 tools are exposed over MCP and the HTTP/WebSocket API: tabs (`tabs_list`, `tab_open`,
+`tab_switch`, `tab_close`, `navigate`, `go_back`, `go_forward`), reading (`read_page`, `find`,
+`get_text`, `screenshot`), acting (`click`, `type`, `key`, `scroll`, `form_input`, `wait`) and
+debugging (`console_logs`, `network_requests`, `network_response`, `js_eval`). Use `GET /v1/tools`
+for the exact descriptions and input schemas. Tabs the agent opens go in their own tab group; pass
+the `tabId` that `tab_open` returns to work across several tabs.
+
+## Approvals
+
+Bridge calls go through the same safety checks as the side panel agent, using the mode chosen in
+the extension's Settings → Safety (default: per-site). A call that needs approval waits until you
+answer:
+
+- If the side panel is open, the prompt appears in the chat, labelled "From an external tool".
+  Otherwise a small popup window opens.
+- Choose Allow once, Allow on this site (not offered for risky actions) or Deny. No answer within
+  2 minutes counts as a denial.
+- A denial comes back as a normal failed result (`ok: false`, "The user denied this action."), so
+  the client can adapt instead of hanging.
+- `js_eval` asks every time, in every mode. Risky clicks and form entries (purchases, sending,
+  deleting, password and card fields) ask even on allowed sites, except in Auto mode.
+
+Because a waiting approval keeps the call open, set a long enough timeout in your client. The HTTP
+API gives up on a call after 120 seconds.
 
 ## Pair the extension
 

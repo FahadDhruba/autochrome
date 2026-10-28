@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Meetup signup</title>
+    <style>
+      body {
+        font:
+          16px/1.5 system-ui,
+          sans-serif;
+        margin: 0;
+        background: #f4f6fb;
+        color: #1b2233;
+      }
+      header {
+        background: #2f4fd8;
+        color: #fff;
+        padding: 18px 32px;
+        font-weight: 600;
+        font-size: 18px;
+      }
+      main {
+        max-width: 440px;
+        margin: 32px auto;
+        background: #fff;
+        padding: 28px 32px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(20, 30, 70, 0.1);
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 4px;
+      }
+      p.sub {
+        margin: 0 0 20px;
+        color: #5a6480;
+      }
+      label {
+        display: block;
+        margin-bottom: 14px;
+        font-weight: 500;
+        font-size: 14px;
+      }
+      input[type='text'],
+      input[type='email'],
+      select {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        margin-top: 4px;
+        padding: 9px 10px;
+        font: inherit;
+        border: 1px solid #c3cadb;
+        border-radius: 6px;
+      }
+      label.check {
+        font-weight: 400;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      button {
+        background: #2f4fd8;
+        color: #fff;
+        border: 0;
+        border-radius: 6px;
+        padding: 10px 20px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      #done {
+        margin-top: 18px;
+        padding: 12px 14px;
+        background: #e4f6ea;
+        color: #14532d;
+        border-radius: 6px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Berlin Frontend Meetup</header>
+    <main>
+      <h1>Reserve your seat</h1>
+      <p class="sub">Thursday, 18:30. Free, limited to 60 people.</p>
+      <form id="form">
+        <label>Name <input id="name" name="name" type="text" /></label>
+        <label>Email <input id="email" name="email" type="email" /></label>
+        <label>
+          Ticket
+          <select id="ticket" name="ticket">
+            <option value="">Choose a ticket</option>
+            <option value="in-person">In person</option>
+            <option value="online">Online</option>
+          </select>
+        </label>
+        <label class="check"
+          ><input id="news" name="news" type="checkbox" /> Email me about future events</label
+        >
+        <button type="submit">Submit</button>
+      </form>
+      <div id="done" role="status"></div>
+    </main>
+    <script>
+      document.getElementById('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        const done = document.getElementById('done');
+        done.textContent = `Seat reserved for ${data.get('name')} (${data.get('ticket')}). See you Thursday!`;
+        done.style.display = 'block';
+      });
+    </script>
+  </body>
+</html>

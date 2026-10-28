@@ -1,6 +1,27 @@
 {
   "name": "autochrome-bridge",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "MCP server and local HTTP/WebSocket bridge that lets AI tools control Chrome through the autochrome extension.",
+  "license": "MIT",
+  "author": "fahaddhruba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FahadDhruba/autochrome.git",
+    "directory": "packages/bridge"
+  },
+  "homepage": "https://github.com/FahadDhruba/autochrome#readme",
+  "bugs": {
+    "url": "https://github.com/FahadDhruba/autochrome/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "chrome",
+    "browser-automation",
+    "claude-code",
+    "cursor",
+    "ai-agent"
+  ],
   "private": true,
   "type": "module",
   "bin": {
@@ -21,12 +42,12 @@
     "tsup": "^9.0.0",
     "zod": "^4.6.7"
   },
-  "files": [
-    "dist"
-  ],
   "engines": {
     "node": ">=22"
   },
-  "description": "MCP server and local HTTP/WebSocket bridge that lets AI tools control Chrome through the autochrome extension.",
-  "license": "MIT"
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }

@@ -20,6 +20,13 @@ jobs:
       - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm docs:tools --check
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - run: pnpm --filter @autochrome/extension zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: autochrome-extension-zip
+          path: packages/extension/.output/*.zip
+          if-no-files-found: error
