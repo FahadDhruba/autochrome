@@ -27,24 +27,24 @@ Every tool taking `tabId` treats it as optional. Default target tab: the executo
 normal window if its URL is http(s) or file; else error
 `No target tab. Use tab_open or tab_switch first.` Extension pages are never a default target.
 
-| Tool | Input | Result |
-|---|---|---|
-| `tabs_list` | — | text: one line per tab `tabId · title · url`, marking current and agent-group tabs |
-| `tab_open` | `url?` | opens tab in agent group, makes it current; text with tabId |
-| `tab_switch` | `tabId` | makes it current, activates it, adds it to agent group |
-| `tab_close` | `tabId` | closes it |
-| `navigate` | `url`, `tabId?` | loads URL, waits for load (timeout 30s); text with final URL + title |
-| `go_back` / `go_forward` | `tabId?` | history nav, waits for load |
-| `read_page` | `tabId?`, `filter: 'all' \| 'interactive'` (default `interactive`) | text tree, see below |
-| `find` | `query`, `tabId?` | matching elements (case-insensitive on role/name/value), same line format, max 20 |
-| `get_text` | `tabId?` | page title, URL and readable `innerText`, collapsed whitespace, max 20,000 chars |
-| `screenshot` | `tabId?` | JPEG (quality 80) of the viewport; image pixel size == viewport CSS size so x/y from it can be passed to `click` |
-| `click` | `ref` or `x`+`y`, `button?` (left/right/middle), `clickCount?` (1–3) | text confirmation |
-| `type` | `text`, `ref?` | focuses `ref` if given, inserts text at focus |
-| `key` | `keys` e.g. `Enter`, `Control+a`, `Shift+Tab` | dispatches press(es) |
-| `scroll` | `direction` (up/down/left/right), `amount?` (px, default 600), `ref?` or `x`+`y` | text confirmation |
-| `form_input` | `ref`, `value` (string \| boolean) | sets value of input/textarea/select/checkbox/radio, fires `input` + `change` |
-| `wait` | `ms?` (≤10,000) and/or `text?` + `timeoutMs?` (≤30,000) | resolves after delay or when text appears in the page |
+| Tool                     | Input                                                                            | Result                                                                                                           |
+| ------------------------ | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `tabs_list`              | —                                                                                | text: one line per tab `tabId · title · url`, marking current and agent-group tabs                               |
+| `tab_open`               | `url?`                                                                           | opens tab in agent group, makes it current; text with tabId                                                      |
+| `tab_switch`             | `tabId`                                                                          | makes it current, activates it, adds it to agent group                                                           |
+| `tab_close`              | `tabId`                                                                          | closes it                                                                                                        |
+| `navigate`               | `url`, `tabId?`                                                                  | loads URL, waits for load (timeout 30s); text with final URL + title                                             |
+| `go_back` / `go_forward` | `tabId?`                                                                         | history nav, waits for load                                                                                      |
+| `read_page`              | `tabId?`, `filter: 'all' \| 'interactive'` (default `interactive`)               | text tree, see below                                                                                             |
+| `find`                   | `query`, `tabId?`                                                                | matching elements (case-insensitive on role/name/value), same line format, max 20                                |
+| `get_text`               | `tabId?`                                                                         | page title, URL and readable `innerText`, collapsed whitespace, max 20,000 chars                                 |
+| `screenshot`             | `tabId?`                                                                         | JPEG (quality 80) of the viewport; image pixel size == viewport CSS size so x/y from it can be passed to `click` |
+| `click`                  | `ref` or `x`+`y`, `button?` (left/right/middle), `clickCount?` (1–3)             | text confirmation                                                                                                |
+| `type`                   | `text`, `ref?`                                                                   | focuses `ref` if given, inserts text at focus                                                                    |
+| `key`                    | `keys` e.g. `Enter`, `Control+a`, `Shift+Tab`                                    | dispatches press(es)                                                                                             |
+| `scroll`                 | `direction` (up/down/left/right), `amount?` (px, default 600), `ref?` or `x`+`y` | text confirmation                                                                                                |
+| `form_input`             | `ref`, `value` (string \| boolean)                                               | sets value of input/textarea/select/checkbox/radio, fires `input` + `change`                                     |
+| `wait`                   | `ms?` (≤10,000) and/or `text?` + `timeoutMs?` (≤30,000)                          | resolves after delay or when text appears in the page                                                            |
 
 ## Page reading (content script)
 

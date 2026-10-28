@@ -1,0 +1,21 @@
+import type { ToolName } from './tools';
+
+export type ToolCall = { id: string; name: ToolName; input: unknown };
+
+/** Same shape as MCP content; `data` is base64 without a `data:` prefix. */
+export type ToolContent =
+  { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string };
+
+/** On failure `ok` is false and `content` holds one text item with the error message. */
+export type ToolResult = { id: string; ok: boolean; content: ToolContent[] };
+
+/** Runtime message sent to the background worker; it responds with a `ToolResult`. */
+export type ExecuteMessage = { type: 'autochrome:execute'; call: ToolCall };
+
+export function isExecuteMessage(message: unknown): message is ExecuteMessage {
+  return (
+    typeof message === 'object' &&
+    message !== null &&
+    (message as { type?: unknown }).type === 'autochrome:execute'
+  );
+}

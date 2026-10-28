@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "pnpm --filter @autochrome/extension test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

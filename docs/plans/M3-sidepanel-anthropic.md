@@ -18,7 +18,9 @@ interface Provider {
   id: 'anthropic';
   listModels(settings): Promise<{ id: string; label: string }[]>;
   stream(req: {
-    model: string; system: string; messages: ChatMessage[];
+    model: string;
+    system: string;
+    messages: ChatMessage[];
     tools: { name: string; description: string; inputSchema: object }[];
     signal: AbortSignal;
   }): AsyncIterable<ProviderEvent>;
@@ -26,8 +28,11 @@ interface Provider {
 type ProviderEvent =
   | { type: 'text_delta'; text: string }
   | { type: 'tool_call'; id: string; name: string; input: unknown }
-  | { type: 'done'; stopReason: 'end' | 'tool_use' | 'max_tokens' | 'other';
-      usage?: { inputTokens: number; outputTokens: number; cacheReadTokens?: number } }
+  | {
+      type: 'done';
+      stopReason: 'end' | 'tool_use' | 'max_tokens' | 'other';
+      usage?: { inputTokens: number; outputTokens: number; cacheReadTokens?: number };
+    }
   | { type: 'error'; message: string };
 ```
 

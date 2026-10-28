@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** M1 — Tool executor
+**Current:** M2 — Bridge
 
 ## Planning
 
@@ -21,14 +21,14 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## M1 — Tool executor
 
-- [ ] Shared tool schemas + protocol types
-- [ ] Accessibility tree snapshot with element IDs (`read_page`)
-- [ ] `find`, `get_text`, `screenshot`
-- [ ] Tab tools: list, open, switch, close, navigate, back/forward
-- [ ] Input via `chrome.debugger`: click (ID / x,y), type, keys, scroll, form fill, wait
-- [ ] Agent tab group
-- [ ] Debug page to run tools manually
-- [ ] Playwright e2e against local fixture pages
+- [x] Shared tool schemas + protocol types
+- [x] Accessibility tree snapshot with element IDs (`read_page`)
+- [x] `find`, `get_text`, `screenshot`
+- [x] Tab tools: list, open, switch, close, navigate, back/forward
+- [x] Input via `chrome.debugger`: click (ID / x,y), type, keys, scroll, form fill, wait
+- [x] Agent tab group
+- [x] Debug page to run tools manually
+- [x] Playwright e2e against local fixture pages
 
 ## M2 — Bridge
 
@@ -86,7 +86,8 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 
 ## Session log
 
-| Date       | Session work                                                           |
-| ---------- | ---------------------------------------------------------------------- |
-| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written     |
-| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI) |
+| Date       | Session work                                                                    |
+| ---------- | ------------------------------------------------------------------------------- |
+| 2026-10-28 | Opus/Sonnet setup; requirements gathered; plan + checklist written              |
+| 2026-10-28 | M0 scaffold built and verified (monorepo, tooling, WXT side panel, CI)          |
+| 2026-10-28 | M1 tool executor built and verified (17 tools, content script, debug page, e2e) |

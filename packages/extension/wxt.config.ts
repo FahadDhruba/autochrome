@@ -5,7 +5,8 @@ export default defineConfig({
   manifest: {
     name: 'autochrome',
     description: 'Let AI control your real browser, from a side panel or an external bridge.',
-    permissions: ['sidePanel'],
+    permissions: ['sidePanel', 'tabs', 'tabGroups', 'scripting', 'debugger'],
+    host_permissions: ['<all_urls>'],
     action: { default_title: 'Open autochrome' },
   },
 });
