@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { applyEvent } from '@/src/agent/apply-event';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from '@/src/agent/protocol';
 import { loadChat, saveChatTarget, type ChatTarget } from '@/src/history';
+import { isWorkflowEvent, type WorkflowEvent } from '@/src/workflows/session';
 import type { ChatMessage, Usage } from '@/src/providers/types';
 import { isApprovalEvent, type ApprovalAnswer, type ApprovalEvent } from '@/src/safety/messages';
 import type { ApprovalChoice, ApprovalRequest } from '@/src/safety/types';
@@ -29,6 +30,7 @@ export function useChat(providers: ProviderState | undefined) {
   const [approval, setApproval] = useState<ApprovalRequest>();
   const port = useRef<Browser.runtime.Port>(undefined);
   const runningRef = useRef(false);
+  const workflowListener = useRef<(event: WorkflowEvent) => void>(undefined);
 
   const setRunningNow = (value: boolean) => {
     runningRef.current = value;
@@ -37,8 +39,10 @@ export function useChat(providers: ProviderState | undefined) {
 
   const connect = useCallback(() => {
     const next = browser.runtime.connect({ name: CHAT_PORT_NAME });
-    next.onMessage.addListener((event: AgentEvent | ApprovalEvent) => {
-      if (isApprovalEvent(event)) {
+    next.onMessage.addListener((event: AgentEvent | ApprovalEvent | WorkflowEvent) => {
+      if (isWorkflowEvent(event)) {
+        workflowListener.current?.(event);
+      } else if (isApprovalEvent(event)) {
         if (event.type === 'approval_request') setApproval(event.request);
         else setApproval((current) => (current?.id === event.id ? undefined : current));
       } else if (event.type === 'done') {
@@ -90,6 +94,14 @@ export function useChat(providers: ProviderState | undefined) {
 
   const stop = () => post({ type: 'stop' });
 
+  // Workflow runs share the chat's connection, so they use the same approval prompts.
+  const runWorkflow = (workflowId: string, variables: Record<string, string>) =>
+    post({ type: 'run_workflow', workflowId, variables });
+
+  const setWorkflowListener = useCallback((listener?: (event: WorkflowEvent) => void) => {
+    workflowListener.current = listener;
+  }, []);
+
   const answerApproval = (choice: ApprovalChoice) => {
     if (!approval) return;
     const message: ApprovalAnswer = {
@@ -138,6 +150,8 @@ export function useChat(providers: ProviderState | undefined) {
     changeTarget,
     send,
     stop,
+    runWorkflow,
+    setWorkflowListener,
     newChat,
     openChat,
   };

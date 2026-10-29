@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Login fixture</title>
+  </head>
+  <body>
+    <h1>Sign in</h1>
+    <form id="login">
+      <label>Email <input id="email" name="email" type="email" /></label>
+      <label>Password <input id="password" name="password" type="password" /></label>
+      <label
+        >Plan
+        <select id="plan" name="plan">
+          <option value="free">Free</option>
+          <option value="pro">Pro</option>
+        </select>
+      </label>
+      <label><input id="remember" name="remember" type="checkbox" /> Remember me</label>
+      <button id="signin" type="submit">Sign in</button>
+    </form>
+    <pre id="result"></pre>
+
+    <script>
+      document.getElementById('login').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const form = new FormData(event.target);
+        document.getElementById('result').textContent =
+          'signed in ' +
+          JSON.stringify({
+            email: form.get('email'),
+            password: form.get('password'),
+            plan: form.get('plan'),
+            remember: form.get('remember') === 'on',
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 import type { ToolName } from './tools';
+import type { TargetHint } from './workflow';
 
 export type ToolCall = { id: string; name: ToolName; input: unknown };
 
@@ -6,8 +7,12 @@ export type ToolCall = { id: string; name: ToolName; input: unknown };
 export type ToolContent =
   { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string };
 
-/** On failure `ok` is false and `content` holds one text item with the error message. */
-export type ToolResult = { id: string; ok: boolean; content: ToolContent[] };
+/**
+ * On failure `ok` is false and `content` holds one text item with the error message.
+ * `target` describes the element an action acted on, so a chat can later become a workflow; it is
+ * for the extension only and never reaches a model or the bridge.
+ */
+export type ToolResult = { id: string; ok: boolean; content: ToolContent[]; target?: TargetHint };
 
 /** Runtime message sent to the background worker; it responds with a `ToolResult`. */
 export type ExecuteMessage = { type: 'autochrome:execute'; call: ToolCall };

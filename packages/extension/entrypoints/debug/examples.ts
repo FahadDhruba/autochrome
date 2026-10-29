@@ -21,5 +21,7 @@ export const examples: Record<ToolName, object> = {
   console_logs: { level: 'error' },
   network_requests: { status: 'failed' },
   network_response: { requestId: '1' },
+  workflows_list: {},
+  workflow_run: { name: 'My workflow', variables: {} },
   js_eval: { code: 'document.title' },
 };

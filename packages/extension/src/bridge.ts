@@ -71,7 +71,8 @@ class BridgeConnection {
         this.pingTimer = setInterval(() => this.send({ type: 'ping' }), PING_INTERVAL_MS);
       } else if (message?.type === 'call') {
         void executeTool(message.call, { source: 'bridge' }).then((result: ToolResult) =>
-          this.send({ type: 'result', result }),
+          // The target hint is for saving chats as workflows, not for bridge clients.
+          this.send({ type: 'result', result: { ...result, target: undefined } }),
         );
       }
     };

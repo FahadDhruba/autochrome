@@ -9,7 +9,7 @@ import type { SafetyMode } from '../src/safety/settings';
 import { MockAnthropic } from './mockAnthropic';
 import { MockGemini, MockOpenAi } from './mockProviders';
 
-const extensionPath = path.resolve(import.meta.dirname, '../.output/chrome-mv3');
+const extensionPath = path.resolve(import.meta.dirname, '../.output-e2e/chrome-mv3-e2e');
 const fixturesPath = path.resolve(import.meta.dirname, 'fixtures');
 
 async function serveFixtures(): Promise<Server> {
@@ -175,4 +175,10 @@ export function refOf(tree: string, pattern: RegExp): string {
   const ref = line && /\[(e\d+)\]/.exec(line)?.[1];
   if (!ref) throw new Error(`No ref for ${pattern} in:\n${tree}`);
   return ref;
+}
+
+/** Opens the model chip's popover (provider select and model input) if it is closed. */
+export async function openModelChip(panel: Page): Promise<void> {
+  const chip = panel.getByTestId('model-chip');
+  if ((await chip.getAttribute('aria-expanded')) !== 'true') await chip.click();
 }

@@ -2,3 +2,4 @@ dist
 .output
 .wxt
 pnpm-lock.yaml
+.output-e2e

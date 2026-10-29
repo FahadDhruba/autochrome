@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.svg" alt="autochrome logo" width="96" height="96"></p>
+
 # autochrome
 
 An open-source Chrome extension that lets an AI control your real browser, from a side panel chat or from outside tools like Claude Code and Cursor.
@@ -50,6 +52,29 @@ Chrome shows a "started debugging this browser" banner while the agent works. Th
 
 API keys are stored in `chrome.storage.local` in your browser profile. They are sent only to the provider you configured, and never to the bridge. Chat history is stored locally too.
 
+## Workflows
+
+A workflow is a list of steps you can replay without the AI.
+
+- **Record** in the **Workflows** view, do the task yourself, then press **Stop**. Clicks, typed values, selects, checkboxes and Enter become steps. A password field becomes a `{{password}}` variable; the value you typed never leaves the page.
+- **Save as workflow** appears under a finished chat. Its successful actions become steps; reads such as `read_page` are dropped.
+- **Edit** a workflow to rename it, reorder or delete steps, change values, and select text in a value and press **Make variable** to ask for it on each run. **Export** and **Import** share workflows as JSON.
+- **Run** asks for the variables, opens a tab of its own and replays the steps. Each step finds its element again by role and name, then visible text, then CSS selector. If a step fails, the AI (your default provider) gets up to 8 tool calls to do just that step, and the run log offers **Update workflow with repaired step**. With no provider set up, the run stops at that step with a clear message and a screenshot.
+
+A replay goes through the same permission checks as the agent. The bridge exposes `workflows_list` and `workflow_run`, so Claude Code can run your workflows.
+
+## Schedules
+
+A schedule runs a saved workflow or a plain AI prompt on a timer, with no side panel open.
+
+- **Schedules** view: **New schedule**, then pick a workflow (and fill its variables) or write a prompt with a provider and model. Choose when: every N minutes (15 or more), every day at a time (optionally only on some weekdays), or every week on a day. Times use this computer's time zone and stay at the same local time across daylight saving changes. Each schedule has an on/off switch, **Run now**, **Edit** and **Delete**, and shows its next run and last result.
+- Runs use `chrome.alarms`, so they happen **while Chrome is open**. If a run time passed while Chrome was closed, the schedule runs once at the next start (never a backlog) and then goes back to its timer. One run happens at a time, a schedule never queues itself twice, and a run is stopped after 10 minutes.
+- Each run works in its own tab group, `autochrome · <schedule name>`. Its tabs are closed when the run succeeds and left open when it fails, so you can look at what happened.
+- A prompt run is saved as a chat (titled `<schedule name>: …`) that the run links to. A workflow run logs each step like a manual replay, and the AI repairs a failed step the same way.
+- The **Runs** view lists the last 200 runs: yours, scheduled ones and ones started from the bridge, each with its log. Every run also raises one Chrome notification, "✓ name finished" or "✗ name failed at step 3". Clicking it opens that run in the side panel (or in a tab if Chrome will not open the panel from a notification).
+
+**Scheduled runs are full auto.** Nobody is there to answer, so a scheduled run acts as in Auto mode whatever your safety setting is: it does not ask before purchases, sending, deleting or password and payment fields, and the allowed-sites list does not apply. Only schedule tasks you trust, on sites where you are happy for the AI to act on your behalf. Settings → Safety shows a warning while any schedule is on. Two limits stay: `chrome://`, extension and Chrome Web Store pages are still refused, and `js_eval` is denied (a scheduled run that needs it reports that instead of running code). Variable values and prompts are stored on this device in plain text, like API keys.
+
 ## Use from Claude Code, Cursor or scripts
 
 The bridge runs on your machine and only listens on `127.0.0.1`.
@@ -96,11 +121,13 @@ You choose a mode in Settings → Safety:
 | Per-site (default) | Approve a site once with Allow on this site. Risky actions still ask every time.   |
 | Auto               | No prompts. The side panel shows an "Auto" badge. Only use it for tasks you trust. |
 
+[Scheduled runs](#schedules) always act as in Auto mode, whatever mode is saved.
+
 What counts as risky: clicking or pressing Enter on buttons or links that purchase or pay (buy, checkout, place order, donate), send or publish (send, post, submit, reply), or delete (delete, remove, close account); and typing into password or card fields. In auto mode these do not ask either.
 
 Always on:
 
-- `js_eval` asks before every run, in every mode, including auto.
+- `js_eval` asks before every run, in every mode, including auto. Scheduled runs cannot ask, so they never run it.
 - Page text is wrapped as untrusted data and the system prompt tells the model never to follow instructions found in it.
 - `chrome://`, extension and Chrome Web Store pages are refused.
 - The bridge accepts only local connections with the pairing token and rejects requests that carry a browser `Origin` header.
@@ -114,29 +141,31 @@ The side panel agent and bridge clients use the same tools. This table is genera
 
 <!-- tools:start (generated by `pnpm docs:tools`, do not edit) -->
 
-| Tool               | What it does                                                                                               |
-| ------------------ | ---------------------------------------------------------------------------------------------------------- |
-| `tabs_list`        | List open tabs, one per line as "tabId · title · url".                                                     |
-| `tab_open`         | Open a new tab in the agent tab group and make it the current tab, unless background is true.              |
-| `tab_switch`       | Make an existing tab the current tab, bring it to the front and add it to the agent tab group.             |
-| `tab_close`        | Close a tab.                                                                                               |
-| `navigate`         | Load a URL in a tab and wait for it to finish loading.                                                     |
-| `go_back`          | Go back one step in the tab history and wait for the page to load.                                         |
-| `go_forward`       | Go forward one step in the tab history and wait for the page to load.                                      |
-| `read_page`        | Read the page as a compact accessibility tree.                                                             |
-| `find`             | Find elements whose role, name or value contains the query (case-insensitive).                             |
-| `get_text`         | Get the page title, URL and readable text (up to 20,000 characters).                                       |
-| `screenshot`       | Take a JPEG screenshot of the visible viewport.                                                            |
-| `click`            | Click an element by ref, or a viewport point by x and y.                                                   |
-| `type`             | Type text into the focused element, or into the element given by ref (focused first).                      |
-| `key`              | Press a key or key combination.                                                                            |
-| `scroll`           | Scroll the page, or the element under the given ref or x/y point.                                          |
-| `form_input`       | Set the value of an input, textarea, select, checkbox or radio by ref and fire input and change events.    |
-| `wait`             | Wait for a fixed time, for text to appear in the page, or both.                                            |
-| `console_logs`     | Read the browser console of a tab: console.* calls, uncaught exceptions and browser warnings, newest last. |
-| `network_requests` | List the network requests a tab made, one per line as "[requestId] METHOD status url (type, size, ms)".    |
-| `network_response` | Get the response headers and body of a request listed by network_requests.                                 |
-| `js_eval`          | Run JavaScript in the page and return the JSON result (or the exception).                                  |
+| Tool               | What it does                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tabs_list`        | List open tabs, one per line as "tabId · title · url".                                                                                               |
+| `tab_open`         | Open a new tab in the agent tab group and make it the current tab, unless background is true.                                                        |
+| `tab_switch`       | Make an existing tab the current tab, bring it to the front and add it to the agent tab group.                                                       |
+| `tab_close`        | Close a tab.                                                                                                                                         |
+| `navigate`         | Load a URL in a tab and wait for it to finish loading.                                                                                               |
+| `go_back`          | Go back one step in the tab history and wait for the page to load.                                                                                   |
+| `go_forward`       | Go forward one step in the tab history and wait for the page to load.                                                                                |
+| `read_page`        | Read the page as a compact accessibility tree.                                                                                                       |
+| `find`             | Find elements whose role, name or value contains the query (case-insensitive).                                                                       |
+| `get_text`         | Get the page title, URL and readable text (up to 20,000 characters).                                                                                 |
+| `screenshot`       | Take a JPEG screenshot of the visible viewport.                                                                                                      |
+| `click`            | Click an element by ref, or a viewport point by x and y.                                                                                             |
+| `type`             | Type text into the focused element, or into the element given by ref (focused first).                                                                |
+| `key`              | Press a key or key combination.                                                                                                                      |
+| `scroll`           | Scroll the page, or the element under the given ref or x/y point.                                                                                    |
+| `form_input`       | Set the value of an input, textarea, select, checkbox or radio by ref and fire input and change events.                                              |
+| `wait`             | Wait for a fixed time, for text to appear in the page, or both.                                                                                      |
+| `console_logs`     | Read the browser console of a tab: console.* calls, uncaught exceptions and browser warnings, newest last.                                           |
+| `network_requests` | List the network requests a tab made, one per line as "[requestId] METHOD status url (type, size, ms)".                                              |
+| `network_response` | Get the response headers and body of a request listed by network_requests.                                                                           |
+| `workflows_list`   | List the saved workflows (recorded in the browser or saved from a chat) with their ids, names and variables.                                         |
+| `workflow_run`     | Replay a saved workflow by id or name in its own tab and return the run log: each step with its status (ok, repaired by AI, or failed) and duration. |
+| `js_eval`          | Run JavaScript in the page and return the JSON result (or the exception).                                                                            |
 
 <!-- tools:end -->
 
@@ -165,7 +194,7 @@ The side panel agent and bridge clients use the same tools. This table is genera
 | `scripts`            | Maintainer scripts: tools table, icons, demo GIF                     |
 | `docs/plans`         | The design spec for each milestone                                   |
 
-Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, and [PLAN.md](PLAN.md) for the design.
+Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first; it builds the extension again with test hooks into `.output-e2e`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, and [PLAN.md](PLAN.md) for the design.
 
 ## License
 

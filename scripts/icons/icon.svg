@@ -1,6 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <rect width="128" height="128" rx="28" fill="#2f4fd8" />
-  <circle cx="60" cy="60" r="34" fill="none" stroke="#ffffff" stroke-width="10" />
-  <circle cx="60" cy="60" r="11" fill="#ffffff" />
-  <path d="M74 70 L112 84 L94 92 L86 110 Z" fill="#ffc83d" stroke="#2f4fd8" stroke-width="6" stroke-linejoin="round" />
+  <rect width="128" height="128" rx="28" fill="#111111" />
+  <!-- The browser window the AI works in -->
+  <rect x="16" y="22" width="84" height="72" rx="13" fill="none" stroke="#ffffff" stroke-width="9" />
+  <path d="M16 44 H100" stroke="#ffffff" stroke-width="9" />
+  <circle cx="30" cy="33" r="3.6" fill="#ffffff" />
+  <circle cx="42" cy="33" r="3.6" fill="#ffffff" />
+  <!-- AI spark -->
+  <path d="M50 52 L54.5 64.5 L67 69 L54.5 73.5 L50 86 L45.5 73.5 L33 69 L45.5 64.5 Z" fill="#ffffff" />
+  <!-- The pointer it drives -->
+  <path d="M64 62 L114 81 L91 90 L82 114 Z" fill="#ffffff" stroke="#111111" stroke-width="8" stroke-linejoin="round" paint-order="stroke" />
 </svg>

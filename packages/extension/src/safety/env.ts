@@ -1,6 +1,6 @@
 import { browser } from 'wxt/browser';
 import { callPage } from '../content';
-import { findAgentGroupId } from '../tabGroup';
+import { isAgentGroup } from '../tabGroup';
 import { formatTabContext } from '../tabContext';
 import { resolveTabId } from '../target';
 import type { GateEnv, TabInfo } from './gate';
@@ -10,12 +10,11 @@ import { loadSafety } from './settings';
 async function tabInfo(tabId: number | undefined): Promise<TabInfo> {
   const id = await resolveTabId(tabId);
   const tab = await browser.tabs.get(id);
-  const agentGroup = tab.groupId === -1 ? undefined : await findAgentGroupId(tab.windowId);
   return {
     id,
     url: tab.url ?? '',
     title: tab.title ?? '',
-    inAgentGroup: agentGroup !== undefined && tab.groupId === agentGroup,
+    inAgentGroup: await isAgentGroup(tab.groupId),
   };
 }
 

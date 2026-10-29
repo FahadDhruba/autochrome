@@ -1,18 +1,22 @@
 import {
   toolDefinitions,
+  type TargetHint,
   type ToolCall,
   type ToolContent,
   type ToolName,
   type ToolResult,
 } from '@autochrome/shared';
 import { z } from 'zod';
+import type { DescribeTarget, ElementDescription } from './page/messages';
 import { authorize } from './safety/authorize';
 import { gateEnv, pageSite, tabContext } from './safety/env';
+import { describeTargetOf, type Input } from './safety/gate';
 import type { ToolSource } from './safety/types';
 import { wrapPageContent } from './safety/wrap';
 import { TAB_CONTEXT_TOOLS, withTabContext } from './tabContext';
+import { resolveTabId } from './target';
 import { toolHandlers } from './tools';
-import type { ToolHandlers } from './tools/types';
+import type { HandlerContext, ToolHandlers } from './tools/types';
 
 /** Tools whose text comes from a web page and must be marked as untrusted. */
 const PAGE_CONTENT_TOOLS = new Set<ToolName>([
@@ -24,6 +28,9 @@ const PAGE_CONTENT_TOOLS = new Set<ToolName>([
   'network_response',
   'js_eval',
 ]);
+
+/** Actions on an element; the result says which element, so a chat can become a workflow. */
+const TARGET_TOOLS = new Set<ToolName>(['click', 'type', 'form_input']);
 
 export type ExecuteOptions = {
   source: ToolSource;
@@ -38,6 +45,8 @@ export type ExecuteOptions = {
   ) => Promise<string | undefined>;
   /** The site of the tab a page tool read. */
   pageSite?: (tabId: number | undefined) => Promise<string>;
+  /** Describes the element an action is about to act on. */
+  describe?: (tabId: number, target: DescribeTarget) => Promise<ElementDescription | undefined>;
   /** The `[tab id · title · url]` line for the tab a tool acted on. */
   tabContext?: (tabId: number | undefined) => Promise<string>;
 };
@@ -55,6 +64,22 @@ async function wrapContent(
   return content.map((item) =>
     item.type === 'text' ? { type: 'text', text: wrapPageContent(site, item.text) } : item,
   );
+}
+
+/** Read before the action, which may navigate away from the element. Never fails the call. */
+async function captureTarget(
+  call: ToolCall,
+  describe: NonNullable<ExecuteOptions['describe']>,
+): Promise<TargetHint | undefined> {
+  if (!TARGET_TOOLS.has(call.name)) return undefined;
+  try {
+    const input = call.input as Input;
+    const target = describeTargetOf(call, input);
+    if (!target) return undefined;
+    return (await describe(await resolveTabId(input.tabId), target))?.hint;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -83,11 +108,14 @@ export async function executeTool(call: ToolCall, options: ExecuteOptions): Prom
     )(checked, source, signal);
     if (denial !== undefined) return failure(call.id, denial);
 
+    const target = await captureTarget(checked, options.describe ?? gateEnv.describe);
+
     // The handler map is keyed by the same name that selected the schema above.
     const handler = handlers[call.name] as (
       input: unknown,
+      context: HandlerContext,
     ) => ReturnType<ToolHandlers['tabs_list']>;
-    let content = await handler(parsed.data);
+    let content = await handler(parsed.data, { source, signal });
     const tabId = (parsed.data as { tabId?: number }).tabId;
     if (PAGE_CONTENT_TOOLS.has(call.name)) {
       content = await wrapContent(content, tabId, options.pageSite ?? pageSite);
@@ -97,7 +125,7 @@ export async function executeTool(call: ToolCall, options: ExecuteOptions): Prom
       const line = await (options.tabContext ?? tabContext)(tabId).catch(() => undefined);
       if (line) content = withTabContext(content, line);
     }
-    return { id: call.id, ok: true, content };
+    return { id: call.id, ok: true, content, ...(target && { target }) };
   } catch (error) {
     return failure(call.id, error instanceof Error ? error.message : String(error));
   }

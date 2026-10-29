@@ -33,11 +33,17 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   tab_open: 'action',
   tab_switch: 'action',
   tab_close: 'action',
+  workflows_list: 'free',
+  workflow_run: 'action',
   console_logs: 'read',
   network_requests: 'read',
   network_response: 'read',
   js_eval: 'always_ask',
 };
+
+/** Shown to the AI when a scheduled run tries a tool that always needs the user's answer. */
+export const SCHEDULED_ASK_TEXT =
+  'Scheduled runs cannot run JavaScript; run it from the side panel. Nobody is there to approve it, so report that this step needs the user instead.';
 
 const ALWAYS_ASK_RISK: Partial<Record<ToolName, string>> = {
   js_eval: 'Runs JavaScript in the page',
@@ -72,7 +78,7 @@ export function decide({ mode, group, siteAllowed, risky }: Decision): 'allow' |
   return siteAllowed ? 'allow' : 'ask';
 }
 
-type Input = {
+export type Input = {
   tabId?: number;
   url?: string;
   ref?: string;
@@ -96,6 +102,9 @@ async function targetOf(call: ToolCall, input: Input, env: GateEnv): Promise<Tar
     case 'tab_open':
       // A blank tab involves no site.
       return { url: input.url };
+    case 'workflow_run':
+      // The run's own steps are gated one by one, each on its own tab and site.
+      return {};
     case 'tab_close': {
       const tab = await env.tab(input.tabId);
       // Closing a tab the agent opened needs no site check.
@@ -108,7 +117,8 @@ async function targetOf(call: ToolCall, input: Input, env: GateEnv): Promise<Tar
   }
 }
 
-function describeTargetOf(call: ToolCall, input: Input): DescribeTarget | undefined {
+/** Which element the call acts on, as the content script's `describe` wants it. */
+export function describeTargetOf(call: ToolCall, input: Input): DescribeTarget | undefined {
   switch (call.name) {
     case 'click':
       if (input.ref !== undefined) return { ref: input.ref };
@@ -142,8 +152,14 @@ export async function checkPermission(
   // The debug page is the user's own click.
   if (source === 'debug' || group === 'free') return ALLOW;
 
+  // Nobody is there to answer an approval prompt during a scheduled run.
+  if (source === 'scheduled' && group === 'always_ask') return deny(SCHEDULED_ASK_TEXT);
+
   const input = (call.input ?? {}) as Input;
-  const { mode, sites } = await env.loadSafety();
+  const saved = await env.loadSafety();
+  // Scheduled runs are full auto whatever the saved mode is; the URL checks below still apply.
+  const mode = source === 'scheduled' ? 'auto' : saved.mode;
+  const { sites } = saved;
 
   let target: Target;
   try {

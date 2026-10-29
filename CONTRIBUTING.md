@@ -47,6 +47,11 @@ The first time you run e2e tests, install a browser with `pnpm --filter @autochr
   through the provider base URL setting. No test calls a real provider API, so changes to provider
   code are only as good as the provider documentation you followed. If you have keys, trying a real
   run by hand and reporting the result is very valuable.
+- **Test hooks.** `pnpm test:e2e` first builds the extension with `wxt build --mode e2e` into
+  `packages/extension/.output-e2e`, which includes `src/schedules/testHook.ts` (fire a schedule's
+  alarm handler now, simulate a notification click or a browser start). Production builds
+  (`.output`) leave it out; do not move it out of the `import.meta.env.MODE !== 'production'` guard
+  in `entrypoints/background.ts`.
 - **Bridge e2e** (`e2e/bridge.spec.ts`) runs the built `packages/bridge/dist/cli.js`, so build
   before running e2e.
 

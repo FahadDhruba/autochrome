@@ -13,6 +13,7 @@ export default defineConfig({
       'scripting',
       'debugger',
       'alarms',
+      'notifications',
       'storage',
       'unlimitedStorage',
     ],

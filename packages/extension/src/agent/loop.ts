@@ -135,6 +135,7 @@ export async function runAgent(run: AgentRun): Promise<void> {
         callId: call.id,
         content: result.content,
         isError: !result.ok,
+        ...(result.target && { target: result.target }),
       });
     }
     await append({ role: 'user', parts: results });

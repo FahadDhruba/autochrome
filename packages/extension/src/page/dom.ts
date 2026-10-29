@@ -129,11 +129,11 @@ function isActionable(el: Element, role: string): boolean {
   );
 }
 
-const collapse = (s: string) => s.replace(/\s+/g, ' ').trim();
+export const collapse = (s: string) => s.replace(/\s+/g, ' ').trim();
 const truncate = (s: string) =>
   s.length > MAX_NAME_CHARS ? `${s.slice(0, MAX_NAME_CHARS - 1)}…` : s;
 
-function textOf(el: Element): string {
+export function textOf(el: Element): string {
   return collapse((el as HTMLElement).innerText ?? el.textContent ?? '');
 }
 
@@ -207,7 +207,7 @@ function levelOf(el: Element): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
-function isVisible(el: Element): boolean {
+export function isVisible(el: Element): boolean {
   const rect = el.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0 && el.checkVisibility({ checkVisibilityCSS: true });
 }

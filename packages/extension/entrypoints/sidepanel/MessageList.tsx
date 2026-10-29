@@ -26,12 +26,26 @@ type Props = {
   running: boolean;
   error?: string;
   usage?: Usage;
+  /** An approval prompt is waiting; it belongs to the newest call that has no result yet. */
+  awaitingApproval?: boolean;
   /** Shown after the last message, e.g. an approval prompt. */
   children?: ReactNode;
 };
 
-export default function MessageList({ messages, running, error, usage, children }: Props) {
+export default function MessageList({
+  messages,
+  running,
+  error,
+  usage,
+  awaitingApproval,
+  children,
+}: Props) {
   const results = resultsById(messages);
+  const pendingId = awaitingApproval
+    ? messages
+        .flatMap((message) => message.parts)
+        .findLast((part) => part.type === 'tool_call' && !results.has(part.id))
+    : undefined;
   const end = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,7 +69,14 @@ export default function MessageList({ messages, running, error, usage, children 
             );
           }
           if (part.type === 'tool_call') {
-            return <ToolCard key={key} call={part} result={results.get(part.id)} />;
+            return (
+              <ToolCard
+                key={key}
+                call={part}
+                result={results.get(part.id)}
+                awaitingApproval={part === pendingId}
+              />
+            );
           }
           return null;
         }),

@@ -1,12 +1,13 @@
 import { isPaymentField, isPasswordField, type FieldInfo } from '../safety/risk';
 import { nameOf, roleOf } from './dom';
+import { hintFor } from './hint';
 import type { DescribeTarget, ElementDescription } from './messages';
 import { elementForRef } from './refs';
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 type Info = Omit<ElementDescription, 'inForm' | 'formHasPassword' | 'formHasPayment'>;
 
-const CLICKABLE = 'button, a[href], input, select, summary, [role], [onclick], [tabindex]';
+export const CLICKABLE = 'button, a[href], input, select, summary, [role], [onclick], [tabindex]';
 
 function deepActiveElement(): Element | undefined {
   let el = document.activeElement;
@@ -64,5 +65,6 @@ export function describe(target: DescribeTarget): ElementDescription | undefined
     inForm: form !== null,
     formHasPassword: fields.some(isPasswordField),
     formHasPayment: fields.some(isPaymentField),
+    hint: hintFor(el),
   };
 }

@@ -7,3 +7,4 @@ dist
 test-results
 playwright-report
 dist-npm
+.output-e2e

@@ -56,7 +56,7 @@ test('runs a task with tools, shows the steps and keeps the chat in history', as
   await expect(fixture.locator('#clicks')).toHaveText('clicks: 1');
 
   // A tool card opens to show the input and the result.
-  await panel.getByTestId('tool-card').nth(1).locator('summary').click();
+  await panel.getByTestId('tool-card').nth(1).locator('.tool-head').click();
   await expect(panel.getByTestId('tool-card').nth(1)).toContainText('Count');
 
   // What the extension sent to the API.

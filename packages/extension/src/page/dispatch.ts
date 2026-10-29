@@ -1,6 +1,8 @@
 import { describe } from './describe';
 import { hasText, locate, setValue } from './interact';
 import type { PageMessage, PageOp, PageRequests, PageResponse, PageResults } from './messages';
+import { startRecording, stopRecording } from './recorder';
+import { resolveTarget } from './resolve';
 import { findElements, pageText, readPage } from './snapshot';
 
 const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] } = {
@@ -11,6 +13,9 @@ const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] 
   set_value: ({ ref, value }) => setValue(ref, value),
   has_text: ({ text }) => hasText(text),
   describe: (target) => describe(target),
+  resolve: ({ target }) => resolveTarget(target),
+  record_start: () => startRecording(),
+  record_stop: () => stopRecording(),
 };
 
 export function handlePageMessage(message: PageMessage): PageResponse<unknown> {

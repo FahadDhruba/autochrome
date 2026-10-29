@@ -1,4 +1,4 @@
-import { expect, refOf, test } from './harness';
+import { expect, openModelChip, refOf, test } from './harness';
 import type { ProviderRequest } from './mockProviders';
 
 type GeminiPart = {
@@ -68,6 +68,7 @@ test('runs the chat flow against an OpenAI-compatible server', async ({
   );
 
   const panel = await openSidePanel();
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('compatible');
   await expect(panel.getByLabel('Model')).toHaveValue('mock-chat');
   await panel.getByLabel('Message').fill('Open the form and click Count');
@@ -205,12 +206,14 @@ test('switches a chat from Anthropic to a compatible provider mid-conversation',
   mockOpenAi.play({ text: 'Continuing on the other model.' });
 
   const panel = await openSidePanel();
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('anthropic');
   await panel.getByLabel('Message').fill('List my tabs');
   await panel.getByLabel('Message').press('Enter');
   await expect(panel.getByText('Listed the tabs.')).toBeVisible();
 
   // The picker is locked while a task runs and free afterwards.
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toBeEnabled();
   await panel.getByLabel('Provider').selectOption('compatible');
   await expect(panel.getByLabel('Model')).toHaveValue('mock-chat');
@@ -240,6 +243,7 @@ test('switches a chat from Anthropic to a compatible provider mid-conversation',
   await panel.reload();
   await panel.getByRole('button', { name: 'Chats' }).click();
   await panel.getByRole('button', { name: 'List my tabs', exact: true }).click();
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('compatible');
   await expect(panel.getByLabel('Model')).toHaveValue('mock-chat');
 });
@@ -265,6 +269,7 @@ test('opens an older chat without a provider as an Anthropic chat', async ({
   const panel = await openSidePanel();
   await panel.getByRole('button', { name: 'Chats' }).click();
   await panel.getByRole('button', { name: 'Old chat', exact: true }).click();
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('anthropic');
   await expect(panel.getByLabel('Model')).toHaveValue('saved-model');
 });
@@ -296,6 +301,7 @@ test('configures the compatible provider in Settings and makes it the default', 
 
   await panel.getByRole('button', { name: 'Back to chat' }).click();
   await expect(panel.getByTestId('empty-state')).toBeHidden();
+  await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('compatible');
   await expect(panel.getByLabel('Provider').locator('option')).toHaveText(['OpenAI-compatible']);
 });

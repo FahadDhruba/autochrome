@@ -163,6 +163,27 @@ export const toolDefinitions = {
     'Get the response headers and body of a request listed by network_requests. Text bodies only, truncated at 20,000 characters.',
     z.object({ requestId: z.string(), tabId }),
   ),
+  workflows_list: defineTool(
+    'workflows_list',
+    'List the saved workflows (recorded in the browser or saved from a chat) with their ids, names and variables. Use it to find a workflow before running it with workflow_run.',
+    z.object({}),
+  ),
+  workflow_run: defineTool(
+    'workflow_run',
+    'Replay a saved workflow by id or name in its own tab and return the run log: each step with its status (ok, repaired by AI, or failed) and duration. Fill the workflow variables with `variables`. A step that cannot find its element is handed to the configured AI provider to repair.',
+    z
+      .object({
+        id: z.string().optional().describe('Workflow id from workflows_list.'),
+        name: z.string().optional().describe('Workflow name, when the id is not known.'),
+        variables: z
+          .record(z.string(), z.string())
+          .optional()
+          .describe('Values for the workflow variables, by name.'),
+      })
+      .refine((v) => v.id !== undefined || v.name !== undefined, {
+        message: 'Provide id or name.',
+      }),
+  ),
   js_eval: defineTool(
     'js_eval',
     'Run JavaScript in the page and return the JSON result (or the exception). For debugging and inspecting page state, not for ordinary browsing. The user is always asked to approve the code first.',

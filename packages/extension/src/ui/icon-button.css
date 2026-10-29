@@ -1,0 +1,78 @@
+.tip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+button.icon-btn,
+a.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button.icon-btn:hover:not(:disabled),
+a.icon-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+button.icon-btn.icon-btn-active {
+  background: var(--surface);
+  color: var(--accent);
+}
+
+button.icon-btn.icon-btn-danger:hover:not(:disabled) {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.tip {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 20;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+}
+
+.tip-center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tip-start {
+  left: 0;
+}
+
+.tip-end {
+  right: 0;
+}
+
+.tip-wrap:hover > .tip,
+.tip-wrap:has(:focus-visible) > .tip {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip {
+    transition: none;
+  }
+}

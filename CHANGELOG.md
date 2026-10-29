@@ -2,6 +2,55 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.0] - 2026-10-29
+
+### Added
+
+- **Side panel polish:** tool cards are one collapsed row (tool icon, name, input, and a result
+  summary such as "8 elements", "1,240 chars", a screenshot thumbnail, or the first line of an
+  error) that opens on click, Enter or Space; failed calls and calls waiting for approval start
+  open. Send is always solid and does nothing while the box is empty; while a task runs it becomes
+  an outlined Stop. The chat history is a drawer that slides over a dimmed backdrop (closes on the
+  backdrop or Escape, moves focus in and back). Provider and model are one compact chip in the
+  composer that opens a small editor. Friendly empty states with example prompts for the first
+  chat, and Record/Import and New schedule shortcuts when there are no workflows or schedules.
+- **Theme switch:** Settings > Appearance offers System, Light and Dark, saved as `ui.theme` and
+  applied to the side panel, approve popup and debug page without a flash of the wrong theme.
+- **New logo and monochrome theme:** a black-and-white mark (also in the side panel, approve popup
+  and debug page headers, and as the extension icon) and a grey UI that follows light and dark
+  mode. Colour is kept for meaning only: red for danger and recording, green for success, amber
+  for warnings and the Auto badge.
+- **Icon toolbar with hover labels:** the side panel header and secondary or row actions (edit,
+  delete, export, move step, back, cancel) are icons. Each shows its name in a tooltip on hover
+  and keyboard focus and keeps the same accessible name; the active view is highlighted. Primary
+  actions (Send, Save, Run, Allow once, Deny) keep icon and text.
+- **Workflows (M8):** record your own actions in the side panel (clicks, typed values, selects,
+  checkboxes, Enter, page loads; passwords become a `{{password}}` variable and are never stored),
+  or save a finished chat as a workflow. Edit, reorder and delete steps, turn a typed value into a
+  variable, and export or import workflows as JSON.
+- **Replay with AI fallback:** a run opens its own tab, asks for the variables, finds each element
+  again by role and name, then text, then selector, and hands a failed step to the default
+  provider (at most 8 tool calls). The run log shows each step as ok, repaired by AI or failed with
+  its duration and a screenshot, and can update the workflow with the repaired step. Replays go
+  through the same permission checks as the agent (new `workflow` source).
+- **Bridge and MCP:** `workflows_list` and `workflow_run` tools.
+- **Schedules (M9):** run a saved workflow or an AI prompt (with its own provider and model) every
+  N minutes (at least 15), daily at a time with optional weekdays, or weekly, via `chrome.alarms`
+  while Chrome is open. Times follow the local time zone across daylight saving changes. A run
+  missed while Chrome was closed happens once at the next start. Runs go one at a time, never
+  queue the same schedule twice, stop after 10 minutes, and work in their own tab group
+  (`autochrome · <name>`) that is closed on success and left open on failure. Prompt runs are saved
+  as chats.
+- **Full-auto scheduled runs:** a new `scheduled` tool source acts as Auto mode whatever the saved
+  mode is, including risky actions; `js_eval` is denied instead of asked, and `chrome://` and
+  extension pages are still refused. Settings → Safety warns while a schedule is on.
+- **Schedules and Runs views** in the side panel (list, editor, run now, enable switch) and one
+  Chrome notification per run; clicking it opens the run in the side panel, or in a tab at
+  `sidepanel.html#run=<id>`. Runs now record how they started (`manual`, `schedule` or `bridge`);
+  older runs read as manual. New `notifications` permission.
+- **Test builds:** `pnpm test:e2e` builds the extension with test hooks into `.output-e2e`;
+  production builds do not contain them.
+
 ## [1.0.0] - 2026-10-29
 
 First release. Everything below was verified with unit tests and Playwright e2e tests against local
@@ -37,4 +86,5 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.1.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.0
 [1.0.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.0.0

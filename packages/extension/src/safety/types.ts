@@ -1,7 +1,11 @@
 import type { ToolName } from '@autochrome/shared';
 
-/** Who asked for a tool call. `debug` is the user's own click on the tool debugger page. */
-export type ToolSource = 'agent' | 'bridge' | 'debug';
+/**
+ * Who asked for a tool call. `debug` is the user's own click on the tool debugger page; `workflow`
+ * is a replay started from the side panel and is gated like the agent. `scheduled` is an unattended
+ * run from a schedule: it acts as in Auto mode, and nothing that needs an answer can run.
+ */
+export type ToolSource = 'agent' | 'workflow' | 'bridge' | 'scheduled' | 'debug';
 
 export type ApprovalChoice = 'once' | 'site' | 'deny';
 
