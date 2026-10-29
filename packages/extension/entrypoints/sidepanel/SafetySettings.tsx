@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { X } from 'lucide-react';
 import { clearSites, removeSite, saveMode, type SafetyMode } from '@/src/safety/settings';
 import { scheduleStore } from '@/src/schedules/store';
 import { useSafety } from './useSafety';
@@ -65,9 +67,7 @@ export default function SafetySettings() {
             >
               Turn on Auto
             </button>
-            <button className="secondary" onClick={() => setConfirmingAuto(false)}>
-              Cancel
-            </button>
+            <IconButton label="Cancel" icon={X} onClick={() => setConfirmingAuto(false)} />
           </div>
         </div>
       )}
@@ -89,13 +89,13 @@ export default function SafetySettings() {
             {safety.sites.map((site) => (
               <li key={site}>
                 <span>{site}</span>
-                <button
-                  className="link"
-                  aria-label={`Remove ${site}`}
+                <IconButton
+                  label={`Remove ${site}`}
+                  icon={X}
+                  tone="danger"
+                  align="end"
                   onClick={() => void removeSite(site)}
-                >
-                  Remove
-                </button>
+                />
               </li>
             ))}
           </ul>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Trash2, X } from 'lucide-react';
+import IconButton from '@/src/ui/IconButton';
 import { deleteChat, listChats, type ChatSummary } from '@/src/history';
 
 type Props = {
@@ -24,9 +26,7 @@ export default function ChatDrawer({ activeId, revision, onOpen, onClose }: Prop
     <nav className="drawer" aria-label="Chat history">
       <div className="drawer-head">
         <strong>Chats</strong>
-        <button className="link" onClick={onClose}>
-          Close
-        </button>
+        <IconButton label="Close" icon={X} align="end" onClick={onClose} />
       </div>
       {chats?.length === 0 && <p className="muted">No chats yet.</p>}
       <ul>
@@ -35,13 +35,13 @@ export default function ChatDrawer({ activeId, revision, onOpen, onClose }: Prop
             <button className="chat-item" onClick={() => onOpen(chat.id)}>
               {chat.title}
             </button>
-            <button
-              className="link"
-              aria-label={`Delete chat ${chat.title}`}
+            <IconButton
+              label={`Delete chat ${chat.title}`}
+              icon={Trash2}
+              tone="danger"
+              align="end"
               onClick={() => void remove(chat.id)}
-            >
-              Delete
-            </button>
+            />
           </li>
         ))}
       </ul>

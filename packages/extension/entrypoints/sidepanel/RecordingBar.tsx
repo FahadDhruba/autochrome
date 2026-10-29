@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { Square, X } from 'lucide-react';
 import type { RecordingState } from '@/src/workflows/recording';
 import { controlRecording } from './useRecording';
 
@@ -27,12 +29,17 @@ export default function RecordingBar({ recording, onFinished }: Props) {
           {steps.length} {steps.length === 1 ? 'step' : 'steps'}
         </span>
         <div className="recording-actions">
-          <button disabled={busy} onClick={() => void finish('stop')}>
+          <button className="with-icon" disabled={busy} onClick={() => void finish('stop')}>
+            <Square size={12} fill="currentColor" aria-hidden="true" />
             Stop
           </button>
-          <button className="secondary" disabled={busy} onClick={() => void finish('cancel')}>
-            Cancel
-          </button>
+          <IconButton
+            label="Cancel"
+            icon={X}
+            align="end"
+            disabled={busy}
+            onClick={() => void finish('cancel')}
+          />
         </div>
       </div>
       <ol className="recording-steps">

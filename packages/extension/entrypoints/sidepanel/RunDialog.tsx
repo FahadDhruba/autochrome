@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { Play, X } from 'lucide-react';
 import type { Workflow } from '@autochrome/shared';
 
 type Props = {
@@ -37,10 +39,11 @@ export default function RunDialog({ workflow, onRun, onCancel }: Props) {
         </label>
       ))}
       <div className="button-row">
-        <button type="submit">Run</button>
-        <button type="button" className="secondary" onClick={onCancel}>
-          Cancel
+        <button type="submit" className="with-icon">
+          <Play size={14} aria-hidden="true" />
+          Run
         </button>
+        <IconButton label="Cancel" icon={X} onClick={onCancel} />
       </div>
     </form>
   );

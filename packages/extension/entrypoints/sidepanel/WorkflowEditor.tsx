@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { ArrowDown, ArrowLeft, ArrowUp, Download, Play, Save, X } from 'lucide-react';
 import type { Step, Workflow } from '@autochrome/shared';
 import {
   editableFields,
@@ -171,13 +173,13 @@ export default function WorkflowEditor({ workflow, onRun, onExport, onClose }: P
                 }
               />
             )}
-            <button
-              className="link"
-              aria-label={`Remove variable ${variable.name}`}
+            <IconButton
+              label={`Remove variable ${variable.name}`}
+              icon={X}
+              tone="danger"
+              align="end"
               onClick={() => change(removeVariable(draft, variable.name))}
-            >
-              Remove
-            </button>
+            />
           </li>
         ))}
       </ul>
@@ -194,29 +196,25 @@ export default function WorkflowEditor({ workflow, onRun, onExport, onClose }: P
                 value={step.note ?? ''}
                 onChange={(e) => changeStep(index, { note: e.target.value })}
               />
-              <button
-                className="link"
-                aria-label={`Move step ${index + 1} up`}
+              <IconButton
+                label={`Move step ${index + 1} up`}
+                icon={ArrowUp}
                 disabled={index === 0}
                 onClick={() => change({ ...draft, steps: moveStep(draft.steps, index, -1) })}
-              >
-                ↑
-              </button>
-              <button
-                className="link"
-                aria-label={`Move step ${index + 1} down`}
+              />
+              <IconButton
+                label={`Move step ${index + 1} down`}
+                icon={ArrowDown}
                 disabled={index === draft.steps.length - 1}
                 onClick={() => change({ ...draft, steps: moveStep(draft.steps, index, 1) })}
-              >
-                ↓
-              </button>
-              <button
-                className="link"
-                aria-label={`Delete step ${index + 1}`}
+              />
+              <IconButton
+                label={`Delete step ${index + 1}`}
+                icon={X}
+                tone="danger"
+                align="end"
                 onClick={() => change({ ...draft, steps: removeStep(draft.steps, index) })}
-              >
-                ✕
-              </button>
+              />
             </div>
             <p className="muted wf-step-meta">
               <code>{step.tool}</code> {targetLabel(step)}
@@ -259,18 +257,20 @@ export default function WorkflowEditor({ workflow, onRun, onExport, onClose }: P
       </ol>
 
       <div className="button-row">
-        <button disabled={saved || !draft.name.trim()} onClick={() => void save()}>
+        <button
+          className="with-icon"
+          disabled={saved || !draft.name.trim()}
+          onClick={() => void save()}
+        >
+          <Save size={14} aria-hidden="true" />
           {saved ? 'Saved' : 'Save'}
         </button>
-        <button className="secondary" onClick={() => onRun(draft)} disabled={!saved}>
+        <button className="secondary with-icon" onClick={() => onRun(draft)} disabled={!saved}>
+          <Play size={14} aria-hidden="true" />
           Run
         </button>
-        <button className="secondary" onClick={() => onExport(draft)}>
-          Export
-        </button>
-        <button className="secondary" onClick={onClose}>
-          Back to workflows
-        </button>
+        <IconButton label="Export" icon={Download} onClick={() => onExport(draft)} />
+        <IconButton label="Back to workflows" icon={ArrowLeft} align="end" onClick={onClose} />
       </div>
     </section>
   );

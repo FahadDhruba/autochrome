@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react';
+import { Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import IconButton from '@/src/ui/IconButton';
 import { describeWhen, nextRunAfter } from '@/src/schedules/next-run';
 import { RUN_NOW_MESSAGE, type RunNowResponse } from '@/src/schedules/messages';
 import { patchSchedule, scheduleStore } from '@/src/schedules/store';
@@ -86,7 +88,10 @@ export default function SchedulesView({ screen, onScreen, providers, onOpenRun }
     <div className="workflows">
       <div className="wf-toolbar">
         <h2>Schedules</h2>
-        <button onClick={() => onScreen({ name: 'edit', id: undefined })}>New schedule</button>
+        <button className="with-icon" onClick={() => onScreen({ name: 'edit', id: undefined })}>
+          <Plus size={14} aria-hidden="true" />
+          New schedule
+        </button>
       </div>
       <p className="muted">
         Runs happen while Chrome is open. A run missed while it was closed happens once at the next
@@ -134,27 +139,24 @@ export default function SchedulesView({ screen, onScreen, providers, onOpenRun }
                 />
                 On
               </label>
-              <button
-                aria-label={`Run ${schedule.name} now`}
+              <IconButton
+                label={`Run ${schedule.name} now`}
+                icon={Play}
                 disabled={running !== undefined}
                 onClick={() => void runNow(schedule)}
-              >
-                {running === schedule.id ? 'Running…' : 'Run now'}
-              </button>
-              <button
-                className="secondary"
-                aria-label={`Edit ${schedule.name}`}
+              />
+              <IconButton
+                label={`Edit ${schedule.name}`}
+                icon={Pencil}
                 onClick={() => onScreen({ name: 'edit', id: schedule.id })}
-              >
-                Edit
-              </button>
-              <button
-                className="link"
-                aria-label={`Delete ${schedule.name}`}
+              />
+              <IconButton
+                label={`Delete ${schedule.name}`}
+                icon={Trash2}
+                tone="danger"
+                align="end"
                 onClick={() => void scheduleStore.remove(schedule.id)}
-              >
-                Delete
-              </button>
+              />
             </div>
           </li>
         ))}

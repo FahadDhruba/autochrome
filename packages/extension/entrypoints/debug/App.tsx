@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Play } from 'lucide-react';
+import Logo from '@/src/ui/Logo';
 import {
   toolDefinitions,
   toolNames,
@@ -63,7 +65,10 @@ export default function App() {
 
   return (
     <main>
-      <h1>autochrome tool debugger</h1>
+      <h1 className="app-title">
+        <Logo />
+        autochrome tool debugger
+      </h1>
       <label>
         Tool{' '}
         <select value={name} onChange={(e) => choose(e.target.value as ToolName)}>
@@ -82,7 +87,8 @@ export default function App() {
         rows={8}
         spellCheck={false}
       />
-      <button onClick={run} disabled={running}>
+      <button className="with-icon" onClick={run} disabled={running}>
+        <Play size={14} aria-hidden="true" />
         {running ? 'Running…' : 'Run'}
       </button>
 

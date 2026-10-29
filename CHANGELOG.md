@@ -6,6 +6,14 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
+- **New logo and monochrome theme:** a black-and-white mark (also in the side panel, approve popup
+  and debug page headers, and as the extension icon) and a grey UI that follows light and dark
+  mode. Colour is kept for meaning only: red for danger and recording, green for success, amber
+  for warnings and the Auto badge.
+- **Icon toolbar with hover labels:** the side panel header and secondary or row actions (edit,
+  delete, export, move step, back, cancel) are icons. Each shows its name in a tooltip on hover
+  and keyboard focus and keeps the same accessible name; the active view is highlighted. Primary
+  actions (Send, Save, Run, Allow once, Deny) keep icon and text.
 - **Workflows (M8):** record your own actions in the side panel (clicks, typed values, selects,
   checkboxes, Enter, page loads; passwords become a `{{password}}` variable and are never stored),
   or save a finished chat as a workflow. Edit, reorder and delete steps, turn a typed value into a

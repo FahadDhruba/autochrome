@@ -25,13 +25,9 @@ h2 {
 
 .header-actions {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0 4px;
-}
-
-.header-actions button {
-  white-space: nowrap;
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 0;
 }
 
 main {
@@ -197,7 +193,7 @@ a {
 
 .drawer {
   position: absolute;
-  top: 41px;
+  top: 45px;
   left: 0;
   right: 0;
   max-height: 60vh;
@@ -278,20 +274,20 @@ a {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #9aa0a6;
+  background: var(--muted);
 }
 
 .dot-connected {
-  background: #1e8e3e;
+  background: var(--ok);
 }
 
 .dot-waiting,
 .dot-connecting {
-  background: #f9ab00;
+  background: var(--warn);
 }
 
 .dot-bad-token {
-  background: #d93025;
+  background: var(--danger);
 }
 
 .picker {
@@ -318,7 +314,7 @@ a {
 }
 
 .badge-auto {
-  margin-left: 8px;
+  flex: none;
   padding: 1px 8px;
   border-radius: 999px;
   border: 1px solid var(--warn-border);
@@ -399,7 +395,7 @@ a {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--danger);
+  background: var(--recording);
   animation: recording-pulse 1.4s ease-in-out infinite;
 }
 
@@ -421,7 +417,7 @@ a {
   margin-left: auto;
 }
 
-.recording-actions button {
+.recording-actions button:not(.icon-btn) {
   padding: 3px 10px;
 }
 
@@ -495,7 +491,7 @@ a {
   flex-wrap: wrap;
 }
 
-.wf-item-actions button:not(.link) {
+.wf-item-actions button:not(.link):not(.icon-btn) {
   padding: 3px 10px;
 }
 
@@ -548,7 +544,7 @@ a {
 
 .wf-step-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
 }
 

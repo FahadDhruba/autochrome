@@ -1,4 +1,15 @@
 import { useCallback, useState } from 'react';
+import {
+  CalendarClock,
+  History,
+  MessagesSquare,
+  Settings,
+  SquarePen,
+  Workflow,
+} from 'lucide-react';
+import IconButton from '@/src/ui/IconButton';
+import Logo from '@/src/ui/Logo';
+import Tooltip from '@/src/ui/Tooltip';
 import RecordingBar from './RecordingBar';
 import ChatDrawer from './ChatDrawer';
 import ChatView from './ChatView';
@@ -56,8 +67,26 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>
-          autochrome
+        <h1 className="app-title">
+          {activeView === 'chat' ? (
+            <span className="brand">
+              <Logo />
+              <span className="app-name">autochrome</span>
+            </span>
+          ) : (
+            // Off the chat, the brand doubles as the way back, so the toolbar needs no extra icon.
+            <Tooltip label="Back to chat" align="start">
+              <button
+                type="button"
+                className="brand brand-btn"
+                aria-label="Back to chat"
+                onClick={() => show('chat')}
+              >
+                <Logo />
+                <span className="app-name">autochrome</span>
+              </button>
+            </Tooltip>
+          )}
           {safety?.mode === 'auto' && (
             <span
               className="badge-auto"
@@ -68,56 +97,52 @@ export default function App() {
             </span>
           )}
         </h1>
-        <div className="header-actions">
-          <button
-            className="link"
+        <nav className="header-actions" aria-label="Main">
+          <IconButton
+            label="Chats"
+            icon={MessagesSquare}
+            active={drawerOpen}
             disabled={chat.running}
             onClick={() => setDrawerOpen(!drawerOpen)}
-          >
-            Chats
-          </button>
-          <button
-            className="link"
+          />
+          <IconButton
+            label="New chat"
+            icon={SquarePen}
             disabled={chat.running}
             onClick={() => {
               chat.newChat();
               show('chat');
             }}
-          >
-            New chat
-          </button>
-          {activeView !== 'workflows' && (
-            <button className="link" onClick={() => show('workflows')}>
-              Workflows
-            </button>
-          )}
-          {activeView !== 'schedules' && (
-            <button className="link" onClick={() => show('schedules')}>
-              Schedules
-            </button>
-          )}
-          {activeView !== 'runs' && (
-            <button
-              className="link"
-              onClick={() => {
-                setSelectedRun(undefined);
-                show('runs');
-              }}
-            >
-              Runs
-            </button>
-          )}
-          {activeView !== 'settings' && (
-            <button className="link" onClick={() => show('settings')}>
-              Settings
-            </button>
-          )}
-          {activeView !== 'chat' && (
-            <button className="link" onClick={() => show('chat')}>
-              Back to chat
-            </button>
-          )}
-        </div>
+          />
+          <IconButton
+            label="Workflows"
+            icon={Workflow}
+            active={activeView === 'workflows'}
+            onClick={() => show('workflows')}
+          />
+          <IconButton
+            label="Schedules"
+            icon={CalendarClock}
+            active={activeView === 'schedules'}
+            onClick={() => show('schedules')}
+          />
+          <IconButton
+            label="Runs"
+            icon={History}
+            active={activeView === 'runs'}
+            onClick={() => {
+              setSelectedRun(undefined);
+              show('runs');
+            }}
+          />
+          <IconButton
+            label="Settings"
+            icon={Settings}
+            align="end"
+            active={activeView === 'settings'}
+            onClick={() => show('settings')}
+          />
+        </nav>
       </header>
       {recording && <RecordingBar recording={recording} onFinished={openEditor} />}
       {drawerOpen && (

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { ArrowLeft } from 'lucide-react';
 import { runStore } from '@/src/workflows/store';
 import { triggerOf } from '@/src/workflows/types';
 import { formatTime, TRIGGER_LABEL } from './format';
@@ -39,9 +41,7 @@ export default function RunsView({ selected, onSelect, onOpenChat }: Props) {
       return (
         <div className="workflows">
           <p className="muted">This run is no longer in the log.</p>
-          <button className="secondary" onClick={() => onSelect(undefined)}>
-            Back to runs
-          </button>
+          <IconButton label="Back to runs" icon={ArrowLeft} onClick={() => onSelect(undefined)} />
         </div>
       );
     }

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { ArrowLeft, MessageSquare, Save, Square } from 'lucide-react';
 import { applyRepairs, repairedSteps } from '@/src/workflows/editing';
 import { saveWorkflow, workflowStore } from '@/src/workflows/store';
 import type { StepLog } from '@/src/workflows/types';
@@ -118,7 +120,8 @@ export default function RunLog({
       )}
       {run.chatId && onOpenChat && (
         <div className="button-row">
-          <button className="secondary" onClick={() => onOpenChat(run.chatId!)}>
+          <button className="secondary with-icon" onClick={() => onOpenChat(run.chatId!)}>
+            <MessageSquare size={14} aria-hidden="true" />
             Open chat
           </button>
         </div>
@@ -128,7 +131,12 @@ export default function RunLog({
           {update === 'done' ? (
             <p className="muted">Workflow updated.</p>
           ) : (
-            <button disabled={update === 'saving'} onClick={() => void updateWorkflow()}>
+            <button
+              className="with-icon"
+              disabled={update === 'saving'}
+              onClick={() => void updateWorkflow()}
+            >
+              <Save size={14} aria-hidden="true" />
               {repaired.length === 1
                 ? 'Update workflow with repaired step'
                 : `Update workflow with ${repaired.length} repaired steps`}
@@ -141,13 +149,12 @@ export default function RunLog({
       )}
       <div className="button-row">
         {run.status === 'running' ? (
-          <button className="danger" onClick={onStop}>
+          <button className="danger with-icon" onClick={onStop}>
+            <Square size={14} fill="currentColor" aria-hidden="true" />
             Stop
           </button>
         ) : (
-          <button className="secondary" onClick={onBack}>
-            {backLabel}
-          </button>
+          <IconButton label={backLabel} icon={ArrowLeft} onClick={onBack} />
         )}
       </div>
     </section>

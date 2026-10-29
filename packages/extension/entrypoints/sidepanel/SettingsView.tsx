@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { Bug } from 'lucide-react';
 import { COMPATIBLE_PRESETS, PROVIDER_IDS, providers } from '@/src/providers';
 import type { ProviderId, ProviderSettings } from '@/src/providers/types';
 import {
@@ -174,9 +176,12 @@ export default function SettingsView() {
       <SafetySettings />
       <BridgeSettings />
       <p>
-        <a href={browser.runtime.getURL('/debug.html')} target="_blank" rel="noreferrer">
-          Open tool debugger
-        </a>
+        <IconButton
+          label="Open tool debugger"
+          icon={Bug}
+          href={browser.runtime.getURL('/debug.html')}
+          align="start"
+        />
       </p>
     </div>
   );

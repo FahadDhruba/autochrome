@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.svg" alt="autochrome logo" width="96" height="96"></p>
+
 # autochrome
 
 An open-source Chrome extension that lets an AI control your real browser, from a side panel chat or from outside tools like Claude Code and Cursor.

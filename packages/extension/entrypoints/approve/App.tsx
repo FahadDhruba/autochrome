@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Logo from '@/src/ui/Logo';
 import type { ApprovalAnswer, ApprovalGet } from '@/src/safety/messages';
 import type { ApprovalChoice, ApprovalRequest } from '@/src/safety/types';
 import ApprovalCard from '@/src/ui/ApprovalCard';
@@ -30,6 +31,10 @@ export default function App() {
 
   return (
     <main>
+      <h1 className="app-title">
+        <Logo />
+        autochrome
+      </h1>
       {request ? (
         <ApprovalCard request={request} onAnswer={(choice) => void answer(choice)} />
       ) : (

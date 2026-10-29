@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Circle, Download, Pencil, Play, Trash2, Upload } from 'lucide-react';
+import IconButton from '@/src/ui/IconButton';
 import { parseWorkflowJson, type Workflow } from '@autochrome/shared';
 import { saveWorkflow, runStore, workflowStore } from '@/src/workflows/store';
 import type { RecordingState } from '@/src/workflows/recording';
@@ -129,12 +131,20 @@ export default function WorkflowsView(props: Props) {
       <div className="wf-toolbar">
         <h2>Workflows</h2>
         <div className="button-row">
-          <button disabled={recording !== undefined} onClick={() => void record()}>
+          <button
+            className="with-icon"
+            disabled={recording !== undefined}
+            onClick={() => void record()}
+          >
+            <Circle size={14} fill="var(--recording)" color="var(--recording)" aria-hidden="true" />
             Record
           </button>
-          <button className="secondary" onClick={() => fileInput.current?.click()}>
-            Import
-          </button>
+          <IconButton
+            label="Import"
+            icon={Upload}
+            align="end"
+            onClick={() => fileInput.current?.click()}
+          />
           <input
             ref={fileInput}
             type="file"
@@ -168,34 +178,29 @@ export default function WorkflowsView(props: Props) {
               <span className="muted">{workflow.steps} steps</span>
             </div>
             <div className="wf-item-actions">
-              <button
-                aria-label={`Run ${workflow.name}`}
+              <IconButton
+                label={`Run ${workflow.name}`}
+                icon={Play}
                 disabled={run.running}
                 onClick={() => void runWorkflow(workflow.id)}
-              >
-                Run
-              </button>
-              <button
-                className="secondary"
-                aria-label={`Edit ${workflow.name}`}
+              />
+              <IconButton
+                label={`Edit ${workflow.name}`}
+                icon={Pencil}
                 onClick={() => onScreen({ name: 'edit', id: workflow.id })}
-              >
-                Edit
-              </button>
-              <button
-                className="secondary"
-                aria-label={`Export ${workflow.name}`}
+              />
+              <IconButton
+                label={`Export ${workflow.name}`}
+                icon={Download}
                 onClick={() => void open(workflow.id).then((w) => w && download(w))}
-              >
-                Export
-              </button>
-              <button
-                className="link"
-                aria-label={`Delete ${workflow.name}`}
+              />
+              <IconButton
+                label={`Delete ${workflow.name}`}
+                icon={Trash2}
+                tone="danger"
+                align="end"
                 onClick={() => void workflowStore.remove(workflow.id)}
-              >
-                Delete
-              </button>
+              />
             </div>
           </li>
         ))}

@@ -1,4 +1,5 @@
 import { titleFor } from '@/src/history';
+import { Workflow } from 'lucide-react';
 import ApprovalCard from '@/src/ui/ApprovalCard';
 import { stepsFromMessages, workflowFromChat } from '@/src/workflows/fromChat';
 import { saveWorkflow } from '@/src/workflows/store';
@@ -65,7 +66,8 @@ export default function ChatView({ chat, providers, onOpenSettings, onSavedWorkf
       )}
       {canSave && (
         <div className="chat-actions">
-          <button className="link" onClick={() => void saveAsWorkflow()}>
+          <button className="link with-icon" onClick={() => void saveAsWorkflow()}>
+            <Workflow size={14} aria-hidden="true" />
             Save as workflow
           </button>
         </div>

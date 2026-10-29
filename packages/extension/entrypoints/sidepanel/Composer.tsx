@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from 'react';
+import { Send, Square } from 'lucide-react';
 
 type Props = { running: boolean; onSend: (text: string) => void; onStop: () => void };
 
@@ -36,11 +37,13 @@ export default function Composer({ running, onSend, onStop }: Props) {
         onKeyDown={onKeyDown}
       />
       {running ? (
-        <button type="button" className="danger" onClick={onStop}>
+        <button type="button" className="danger with-icon" onClick={onStop}>
+          <Square size={14} fill="currentColor" aria-hidden="true" />
           Stop
         </button>
       ) : (
-        <button type="submit" disabled={!text.trim()}>
+        <button type="submit" className="with-icon" disabled={!text.trim()}>
+          <Send size={14} aria-hidden="true" />
           Send
         </button>
       )}

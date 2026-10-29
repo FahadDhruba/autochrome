@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import IconButton from '@/src/ui/IconButton';
+import { Save, X } from 'lucide-react';
 import { providers } from '@/src/providers';
 import { checkWhen, nextRunAfter, TIME_PATTERN } from '@/src/schedules/next-run';
 import { scheduleStore } from '@/src/schedules/store';
@@ -311,10 +313,11 @@ export default function ScheduleEditor({ schedule, providers: providerState, onC
         </div>
       )}
       <div className="button-row">
-        <button type="submit">Save</button>
-        <button type="button" className="secondary" onClick={onClose}>
-          Cancel
+        <button type="submit" className="with-icon">
+          <Save size={14} aria-hidden="true" />
+          Save
         </button>
+        <IconButton label="Cancel" icon={X} onClick={onClose} />
       </div>
     </form>
   );
