@@ -48,11 +48,11 @@ export const tabHandlers: Pick<
     return text(lines.join('\n') || 'No tabs open.');
   },
 
-  async tab_open({ url, background }) {
+  async tab_open({ url, background }, { source }) {
     // Open straight at the URL: navigating a blank tab afterwards races with the blank page's own load.
     const tab = await browser.tabs.create({ active: !background, url });
     const tabId = tab.id!;
-    await addToAgentGroup(tabId);
+    await addToAgentGroup(tabId, source);
     if (!background) setCurrentTab(tabId);
     const where = background ? ' in the background' : '';
     if (!url) return text(`Opened tab ${tabId}${where}.`);
@@ -60,10 +60,10 @@ export const tabHandlers: Pick<
     return text(`Opened tab ${tabId}${where}: ${await describeTab(tabId)}`);
   },
 
-  async tab_switch({ tabId }) {
+  async tab_switch({ tabId }, { source }) {
     const tab = await browser.tabs.update(tabId, { active: true });
     await browser.windows.update(tab!.windowId, { focused: true });
-    await addToAgentGroup(tabId);
+    await addToAgentGroup(tabId, source);
     setCurrentTab(tabId);
     return text(`Switched to tab ${tabId}: ${await describeTab(tabId)}`);
   },

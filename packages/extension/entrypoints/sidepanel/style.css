@@ -660,3 +660,61 @@ a {
 .wf-update {
   margin: 8px 0;
 }
+
+.wf-field select,
+.wf-field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  font: inherit;
+}
+
+.sched-item .wf-item-main {
+  flex: 1 1 160px;
+}
+
+.sched-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sched-last {
+  align-self: flex-start;
+  padding: 0;
+  text-align: left;
+}
+
+.sched-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.sched-days label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sched-summary {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.run-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.run-meta {
+  font-size: 12px;
+}

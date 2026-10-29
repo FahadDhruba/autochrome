@@ -49,20 +49,37 @@ export const workflowStore = createStore<Workflow, WorkflowSummary>(
   ({ id, name, updatedAt, steps }) => ({ id, name, updatedAt, steps: steps.length }),
 );
 
-export const runStore = createStore<RunResult, RunSummary>(
-  'run',
-  ({ id, workflowId, workflowName, source, startedAt, finishedAt, status, error }) => ({
-    id,
-    workflowId,
-    workflowName,
-    source,
-    startedAt,
-    finishedAt,
-    status,
-    error,
-  }),
-  MAX_STORED_RUNS,
-);
+export const summaryOfRun = ({
+  id,
+  workflowId,
+  workflowName,
+  source,
+  startedAt,
+  finishedAt,
+  status,
+  error,
+  trigger,
+  kind,
+  scheduleId,
+  scheduleName,
+  chatId,
+}: RunResult): RunSummary => ({
+  id,
+  workflowId,
+  workflowName,
+  source,
+  startedAt,
+  finishedAt,
+  status,
+  error,
+  trigger,
+  kind,
+  scheduleId,
+  scheduleName,
+  chatId,
+});
+
+export const runStore = createStore<RunResult, RunSummary>('run', summaryOfRun, MAX_STORED_RUNS);
 
 export const saveWorkflow = (workflow: Workflow): Promise<void> =>
   workflowStore.save({ ...workflow, updatedAt: Date.now() });

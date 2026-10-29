@@ -61,6 +61,18 @@ A workflow is a list of steps you can replay without the AI.
 
 A replay goes through the same permission checks as the agent. The bridge exposes `workflows_list` and `workflow_run`, so Claude Code can run your workflows.
 
+## Schedules
+
+A schedule runs a saved workflow or a plain AI prompt on a timer, with no side panel open.
+
+- **Schedules** view: **New schedule**, then pick a workflow (and fill its variables) or write a prompt with a provider and model. Choose when: every N minutes (15 or more), every day at a time (optionally only on some weekdays), or every week on a day. Times use this computer's time zone and stay at the same local time across daylight saving changes. Each schedule has an on/off switch, **Run now**, **Edit** and **Delete**, and shows its next run and last result.
+- Runs use `chrome.alarms`, so they happen **while Chrome is open**. If a run time passed while Chrome was closed, the schedule runs once at the next start (never a backlog) and then goes back to its timer. One run happens at a time, a schedule never queues itself twice, and a run is stopped after 10 minutes.
+- Each run works in its own tab group, `autochrome · <schedule name>`. Its tabs are closed when the run succeeds and left open when it fails, so you can look at what happened.
+- A prompt run is saved as a chat (titled `<schedule name>: …`) that the run links to. A workflow run logs each step like a manual replay, and the AI repairs a failed step the same way.
+- The **Runs** view lists the last 200 runs: yours, scheduled ones and ones started from the bridge, each with its log. Every run also raises one Chrome notification, "✓ name finished" or "✗ name failed at step 3". Clicking it opens that run in the side panel (or in a tab if Chrome will not open the panel from a notification).
+
+**Scheduled runs are full auto.** Nobody is there to answer, so a scheduled run acts as in Auto mode whatever your safety setting is: it does not ask before purchases, sending, deleting or password and payment fields, and the allowed-sites list does not apply. Only schedule tasks you trust, on sites where you are happy for the AI to act on your behalf. Settings → Safety shows a warning while any schedule is on. Two limits stay: `chrome://`, extension and Chrome Web Store pages are still refused, and `js_eval` is denied (a scheduled run that needs it reports that instead of running code). Variable values and prompts are stored on this device in plain text, like API keys.
+
 ## Use from Claude Code, Cursor or scripts
 
 The bridge runs on your machine and only listens on `127.0.0.1`.
@@ -107,11 +119,13 @@ You choose a mode in Settings → Safety:
 | Per-site (default) | Approve a site once with Allow on this site. Risky actions still ask every time.   |
 | Auto               | No prompts. The side panel shows an "Auto" badge. Only use it for tasks you trust. |
 
+[Scheduled runs](#schedules) always act as in Auto mode, whatever mode is saved.
+
 What counts as risky: clicking or pressing Enter on buttons or links that purchase or pay (buy, checkout, place order, donate), send or publish (send, post, submit, reply), or delete (delete, remove, close account); and typing into password or card fields. In auto mode these do not ask either.
 
 Always on:
 
-- `js_eval` asks before every run, in every mode, including auto.
+- `js_eval` asks before every run, in every mode, including auto. Scheduled runs cannot ask, so they never run it.
 - Page text is wrapped as untrusted data and the system prompt tells the model never to follow instructions found in it.
 - `chrome://`, extension and Chrome Web Store pages are refused.
 - The bridge accepts only local connections with the pairing token and rejects requests that carry a browser `Origin` header.
@@ -178,7 +192,7 @@ The side panel agent and bridge clients use the same tools. This table is genera
 | `scripts`            | Maintainer scripts: tools table, icons, demo GIF                     |
 | `docs/plans`         | The design spec for each milestone                                   |
 
-Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, and [PLAN.md](PLAN.md) for the design.
+Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first; it builds the extension again with test hooks into `.output-e2e`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, and [PLAN.md](PLAN.md) for the design.
 
 ## License
 

@@ -62,6 +62,18 @@ test('the bridge lists and runs workflows', async ({ baseUrl, context, debugPage
   expect(summary).toContain('3. Click "Sign in": ok');
   const replay = context.pages().find((page) => page.url().endsWith('/login.html'))!;
   await expect(replay.locator('#result')).toContainText('"email":"bridge@example.com"');
+  // The run is in the log as a bridge run, and the Runs view says so.
+  const [stored] = await debugPage.evaluate(async () => {
+    const all = await chrome.storage.local.get(null);
+    return Object.entries(all)
+      .filter(([key]) => /^run:[0-9a-f-]{36}$/.test(key))
+      .map(([, value]) => value as { trigger?: string; source: string });
+  });
+  expect(stored).toMatchObject({ trigger: 'bridge', source: 'bridge' });
+  const panel = await context.newPage();
+  await panel.goto(`chrome-extension://${new URL(debugPage.url()).host}/sidepanel.html`);
+  await panel.getByRole('button', { name: 'Runs' }).click();
+  await expect(panel.getByTestId('run-item')).toContainText('Bridge');
   // The element hint stays inside the extension.
   expect(JSON.stringify(run)).not.toContain('"target"');
 

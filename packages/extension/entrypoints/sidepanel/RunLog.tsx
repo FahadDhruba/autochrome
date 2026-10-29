@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { applyRepairs, repairedSteps } from '@/src/workflows/editing';
 import { saveWorkflow, workflowStore } from '@/src/workflows/store';
 import type { StepLog } from '@/src/workflows/types';
+import { formatTime, TRIGGER_LABEL } from './format';
 import type { RunView } from './useWorkflowRun';
 
 const STATUS_LABEL: Record<StepLog['status'], string> = {
@@ -46,9 +47,22 @@ function StepRow({ step }: { step: StepLog }) {
   );
 }
 
-type Props = { run: RunView; onStop: () => void; onBack: () => void };
+type Props = {
+  run: RunView;
+  onStop: () => void;
+  onBack: () => void;
+  backLabel?: string;
+  /** Opens the chat a prompt run was saved as. */
+  onOpenChat?: (chatId: string) => void;
+};
 
-export default function RunLog({ run, onStop, onBack }: Props) {
+export default function RunLog({
+  run,
+  onStop,
+  onBack,
+  backLabel = 'Back to workflows',
+  onOpenChat,
+}: Props) {
   const [update, setUpdate] = useState<'idle' | 'saving' | 'done' | string>('idle');
   const repaired = run.steps.filter(
     (step) => step.status === 'repaired' && step.repair?.steps.length,
@@ -71,6 +85,18 @@ export default function RunLog({ run, onStop, onBack }: Props) {
       <p className="wf-run-status" data-testid="run-status">
         {RUN_LABEL[run.status]}
       </p>
+      {run.trigger && run.startedAt !== undefined && (
+        <p className="muted" data-testid="run-origin">
+          {TRIGGER_LABEL[run.trigger]}
+          {run.scheduleName && run.trigger === 'schedule' ? ` · ${run.scheduleName}` : ''} ·{' '}
+          {formatTime(run.startedAt)}
+        </p>
+      )}
+      {run.kind === 'prompt' && run.summary && (
+        <p className="sched-summary" data-testid="run-summary">
+          {run.summary}
+        </p>
+      )}
       <ol className="wf-steps">
         {run.steps.map((step) => (
           <StepRow key={step.index} step={step} />
@@ -88,6 +114,13 @@ export default function RunLog({ run, onStop, onBack }: Props) {
       {run.error && (
         <div className="error-banner" role="alert">
           {run.error}
+        </div>
+      )}
+      {run.chatId && onOpenChat && (
+        <div className="button-row">
+          <button className="secondary" onClick={() => onOpenChat(run.chatId!)}>
+            Open chat
+          </button>
         </div>
       )}
       {repaired.length > 0 && run.workflowId && (
@@ -113,7 +146,7 @@ export default function RunLog({ run, onStop, onBack }: Props) {
           </button>
         ) : (
           <button className="secondary" onClick={onBack}>
-            Back to workflows
+            {backLabel}
           </button>
         )}
       </div>

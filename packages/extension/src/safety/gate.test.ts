@@ -1,7 +1,14 @@
 import { toolDefinitions, toolNames, type ToolCall, type ToolName } from '@autochrome/shared';
 import { describe, expect, it, vi } from 'vitest';
 import type { ElementDescription } from '../page/messages';
-import { checkPermission, decide, TOOL_GROUPS, type GateEnv, type TabInfo } from './gate';
+import {
+  checkPermission,
+  decide,
+  SCHEDULED_ASK_TEXT,
+  TOOL_GROUPS,
+  type GateEnv,
+  type TabInfo,
+} from './gate';
 import type { SafetyMode } from './settings';
 import { canAllowSite, type ToolSource } from './types';
 
@@ -456,6 +463,52 @@ describe('checkPermission', () => {
       for (const name of toolNames) {
         expect(await verdict(name, 'per-site', {}, source)).toBe(await verdict(name, 'per-site'));
       }
+    });
+
+    describe('scheduled', () => {
+      const risky = description({ name: 'Place order', inForm: true });
+
+      it.each(['ask', 'per-site', 'auto'] as const)(
+        'acts as in auto mode, risky actions included, when the saved mode is %s',
+        async (mode) => {
+          for (const name of toolNames) {
+            if (TOOL_GROUPS[name] === 'always_ask') continue;
+            const result = await checkPermission(
+              call(name),
+              'scheduled',
+              env(mode, { element: risky }),
+            );
+            expect(result, name).toEqual({ decision: 'allow' });
+          }
+        },
+      );
+
+      it('denies always-ask tools with a clear message instead of asking', async () => {
+        for (const mode of MODES) {
+          const result = await checkPermission(call('js_eval'), 'scheduled', env(mode));
+          expect(result).toEqual({ decision: 'deny', reason: SCHEDULED_ASK_TEXT });
+        }
+        expect(SCHEDULED_ASK_TEXT).toContain(
+          'Scheduled runs cannot run JavaScript; run it from the side panel',
+        );
+      });
+
+      it('still refuses chrome:// and extension pages', async () => {
+        for (const url of ['chrome://settings', 'chrome-extension://abc/debug.html']) {
+          const result = await checkPermission(
+            call('click'),
+            'scheduled',
+            env('auto', { tab: tab({ url }) }),
+          );
+          expect(result.decision, url).toBe('deny');
+        }
+        const nav = await checkPermission(
+          call('navigate', { url: 'chrome://settings' }),
+          'scheduled',
+          env('auto'),
+        );
+        expect(nav.decision).toBe('deny');
+      });
     });
 
     it('asks for a workflow action in ask mode, like the agent', async () => {

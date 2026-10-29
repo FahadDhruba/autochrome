@@ -41,6 +41,10 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   js_eval: 'always_ask',
 };
 
+/** Shown to the AI when a scheduled run tries a tool that always needs the user's answer. */
+export const SCHEDULED_ASK_TEXT =
+  'Scheduled runs cannot run JavaScript; run it from the side panel. Nobody is there to approve it, so report that this step needs the user instead.';
+
 const ALWAYS_ASK_RISK: Partial<Record<ToolName, string>> = {
   js_eval: 'Runs JavaScript in the page',
 };
@@ -148,8 +152,14 @@ export async function checkPermission(
   // The debug page is the user's own click.
   if (source === 'debug' || group === 'free') return ALLOW;
 
+  // Nobody is there to answer an approval prompt during a scheduled run.
+  if (source === 'scheduled' && group === 'always_ask') return deny(SCHEDULED_ASK_TEXT);
+
   const input = (call.input ?? {}) as Input;
-  const { mode, sites } = await env.loadSafety();
+  const saved = await env.loadSafety();
+  // Scheduled runs are full auto whatever the saved mode is; the URL checks below still apply.
+  const mode = source === 'scheduled' ? 'auto' : saved.mode;
+  const { sites } = saved;
 
   let target: Target;
   try {

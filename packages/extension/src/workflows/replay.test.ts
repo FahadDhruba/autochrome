@@ -118,6 +118,24 @@ describe('runWorkflow', () => {
     ]);
   });
 
+  it('records who started the run, and which schedule when there is one', async () => {
+    const wf = workflow([click()]);
+    const run = async (
+      source: 'workflow' | 'bridge' | 'scheduled',
+      schedule?: { id: string; name: string },
+    ) => runWorkflow(wf, {}, { source, schedule }, setup().deps);
+
+    expect(await run('workflow')).toMatchObject({ trigger: 'manual', kind: 'workflow' });
+    expect(await run('bridge')).toMatchObject({ trigger: 'bridge' });
+    const scheduled = await run('scheduled', { id: 's1', name: 'Nightly' });
+    expect(scheduled).toMatchObject({
+      trigger: 'schedule',
+      source: 'scheduled',
+      scheduleId: 's1',
+      scheduleName: 'Nightly',
+    });
+  });
+
   it('runs every step as the given source', async () => {
     const { deps } = setup();
     await runWorkflow(workflow([click()]), {}, { source: 'bridge' }, deps);

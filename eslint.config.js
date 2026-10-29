@@ -5,7 +5,7 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['**/dist', '**/.output', '**/.wxt', '**/node_modules'] },
+  { ignores: ['**/dist', '**/.output', '**/.output-e2e', '**/.wxt', '**/node_modules'] },
   js.configs.recommended,
   tseslint.configs.recommended,
   {

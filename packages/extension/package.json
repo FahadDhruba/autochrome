@@ -9,7 +9,7 @@
     "zip": "wxt zip",
     "typecheck": "wxt prepare && tsc --noEmit",
     "postinstall": "wxt prepare",
-    "test:e2e": "playwright test"
+    "test:e2e": "wxt build --mode e2e -c wxt.e2e.config.ts && playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.3.0",

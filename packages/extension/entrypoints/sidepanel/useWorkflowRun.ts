@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { RunResult, RunStatus, StepLog } from '@/src/workflows/types';
+import type { RunKind, RunResult, RunStatus, RunTrigger, StepLog } from '@/src/workflows/types';
 import type { WorkflowEvent } from '@/src/workflows/session';
 import type { useChat } from './useChat';
 
@@ -13,6 +13,14 @@ export type RunView = {
   /** The step being run right now. */
   current?: { index: number; note: string };
   error?: string;
+  /** Set for a run loaded from the log. */
+  trigger?: RunTrigger;
+  kind?: RunKind;
+  scheduleName?: string;
+  startedAt?: number;
+  /** Prompt runs: the AI's answer, and the chat the run was saved as. */
+  summary?: string;
+  chatId?: string;
 };
 
 export const viewOf = (run: RunResult): RunView => ({
@@ -22,6 +30,12 @@ export const viewOf = (run: RunResult): RunView => ({
   totalSteps: run.totalSteps,
   steps: run.steps,
   error: run.error,
+  trigger: run.trigger ?? 'manual',
+  kind: run.kind ?? 'workflow',
+  scheduleName: run.scheduleName,
+  startedAt: run.startedAt,
+  summary: run.summary,
+  chatId: run.chatId,
 });
 
 function applyRunEvent(view: RunView | undefined, event: WorkflowEvent): RunView | undefined {

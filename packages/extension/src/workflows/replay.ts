@@ -15,7 +15,13 @@ import { resolveTabId, setCurrentTab } from '../target';
 import { noteFor } from './note';
 import { repairStep, type RepairOutcome, type RepairRequest } from './repair';
 import { runStore } from './store';
-import type { RunEvent, RunResult, RunStatus, StepLog } from './types';
+import {
+  triggerForSource,
+  type RunEvent,
+  type RunResult,
+  type RunStatus,
+  type StepLog,
+} from './types';
 
 /** Tools that act on an element, which the step's target hint stands for. */
 const TARGET_TOOLS = new Set<Step['tool']>(['click', 'type', 'form_input', 'scroll']);
@@ -24,12 +30,14 @@ const RESOLVE_TIMEOUT_MS = 3_000;
 const RESOLVE_POLL_MS = 250;
 
 export type RunOptions = {
-  /** `workflow` for the side panel, `bridge` for a bridge/MCP caller. */
+  /** `workflow` for the side panel, `bridge` for a bridge/MCP caller, `scheduled` for a schedule. */
   source: ToolSource;
   signal?: AbortSignal;
   onEvent?: (event: RunEvent) => void;
   /** Run in this tab instead of opening a new one. */
   tabId?: number;
+  /** The schedule behind the run, kept in the run log. */
+  schedule?: { id: string; name: string };
 };
 
 export type ReplayDeps = {
@@ -230,6 +238,12 @@ async function replay(
     workflowId: workflow.id,
     workflowName: workflow.name,
     source: options.source,
+    trigger: triggerForSource(options.source),
+    kind: 'workflow',
+    ...(options.schedule && {
+      scheduleId: options.schedule.id,
+      scheduleName: options.schedule.name,
+    }),
     startedAt: deps.now(),
     finishedAt: 0,
     status: 'ok',

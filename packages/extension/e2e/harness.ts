@@ -9,7 +9,7 @@ import type { SafetyMode } from '../src/safety/settings';
 import { MockAnthropic } from './mockAnthropic';
 import { MockGemini, MockOpenAi } from './mockProviders';
 
-const extensionPath = path.resolve(import.meta.dirname, '../.output/chrome-mv3');
+const extensionPath = path.resolve(import.meta.dirname, '../.output-e2e/chrome-mv3-e2e');
 const fixturesPath = path.resolve(import.meta.dirname, 'fixtures');
 
 async function serveFixtures(): Promise<Server> {

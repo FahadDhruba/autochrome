@@ -4,6 +4,7 @@ import { saveWorkflow, runStore, workflowStore } from '@/src/workflows/store';
 import type { RecordingState } from '@/src/workflows/recording';
 import ApprovalCard from '@/src/ui/ApprovalCard';
 import type { ApprovalChoice, ApprovalRequest } from '@/src/safety/types';
+import { formatTime } from './format';
 import RunDialog from './RunDialog';
 import RunLog from './RunLog';
 import WorkflowEditor from './WorkflowEditor';
@@ -41,8 +42,7 @@ const STATUS_LABEL = {
   stopped: 'stopped',
 } as const;
 
-const when = (time: number) =>
-  new Date(time).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+const when = formatTime;
 
 export default function WorkflowsView(props: Props) {
   const { screen, onScreen, run, recording, approval, onApproval, onStop } = props;

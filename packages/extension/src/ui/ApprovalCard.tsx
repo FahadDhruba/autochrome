@@ -5,6 +5,7 @@ const ASKER: Record<ApprovalRequest['source'], string> = {
   agent: 'The AI wants to',
   workflow: 'A workflow wants to',
   bridge: 'An external tool wants to',
+  scheduled: 'A scheduled run wants to',
 };
 
 type Props = { request: ApprovalRequest; onAnswer: (choice: ApprovalChoice) => void };

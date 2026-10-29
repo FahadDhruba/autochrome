@@ -22,6 +22,17 @@ export type StepLog = {
 /** A run stops at the first failed step; `stopped` means the user stopped it. */
 export type RunStatus = 'ok' | 'repaired' | 'failed' | 'stopped';
 
+/** Who started a run. Runs saved before schedules existed have none: they were manual. */
+export type RunTrigger = 'manual' | 'schedule' | 'bridge';
+
+export const triggerOf = (run: { trigger?: RunTrigger }): RunTrigger => run.trigger ?? 'manual';
+
+export const triggerForSource = (source: ToolSource): RunTrigger =>
+  source === 'scheduled' ? 'schedule' : source === 'bridge' ? 'bridge' : 'manual';
+
+/** What a run did. Missing on older runs, which were all workflows. */
+export type RunKind = 'workflow' | 'prompt';
+
 export type RunResult = {
   id: string;
   workflowId: string;
@@ -36,11 +47,32 @@ export type RunResult = {
   /** Names only: the values may be passwords. */
   variableNames: string[];
   steps: StepLog[];
+  trigger?: RunTrigger;
+  kind?: RunKind;
+  /** The schedule that started the run, and its name when it ran. */
+  scheduleId?: string;
+  scheduleName?: string;
+  /** Prompt runs: the chat the run was saved as. */
+  chatId?: string;
+  /** Prompt runs: the AI's final answer. */
+  summary?: string;
 };
 
 export type RunSummary = Pick<
   RunResult,
-  'id' | 'workflowId' | 'workflowName' | 'source' | 'startedAt' | 'finishedAt' | 'status' | 'error'
+  | 'id'
+  | 'workflowId'
+  | 'workflowName'
+  | 'source'
+  | 'startedAt'
+  | 'finishedAt'
+  | 'status'
+  | 'error'
+  | 'trigger'
+  | 'kind'
+  | 'scheduleId'
+  | 'scheduleName'
+  | 'chatId'
 >;
 
 /** Progress of a run, for the live log. */

@@ -16,6 +16,22 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
   its duration and a screenshot, and can update the workflow with the repaired step. Replays go
   through the same permission checks as the agent (new `workflow` source).
 - **Bridge and MCP:** `workflows_list` and `workflow_run` tools.
+- **Schedules (M9):** run a saved workflow or an AI prompt (with its own provider and model) every
+  N minutes (at least 15), daily at a time with optional weekdays, or weekly, via `chrome.alarms`
+  while Chrome is open. Times follow the local time zone across daylight saving changes. A run
+  missed while Chrome was closed happens once at the next start. Runs go one at a time, never
+  queue the same schedule twice, stop after 10 minutes, and work in their own tab group
+  (`autochrome · <name>`) that is closed on success and left open on failure. Prompt runs are saved
+  as chats.
+- **Full-auto scheduled runs:** a new `scheduled` tool source acts as Auto mode whatever the saved
+  mode is, including risky actions; `js_eval` is denied instead of asked, and `chrome://` and
+  extension pages are still refused. Settings → Safety warns while a schedule is on.
+- **Schedules and Runs views** in the side panel (list, editor, run now, enable switch) and one
+  Chrome notification per run; clicking it opens the run in the side panel, or in a tab at
+  `sidepanel.html#run=<id>`. Runs now record how they started (`manual`, `schedule` or `bridge`);
+  older runs read as manual. New `notifications` permission.
+- **Test builds:** `pnpm test:e2e` builds the extension with test hooks into `.output-e2e`;
+  production builds do not contain them.
 
 ## [1.0.0] - 2026-10-29
 

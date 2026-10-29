@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { clearSites, removeSite, saveMode, type SafetyMode } from '@/src/safety/settings';
+import { scheduleStore } from '@/src/schedules/store';
 import { useSafety } from './useSafety';
+import { useStorageList } from './useStorageList';
 
 const MODES: { id: SafetyMode; label: string; description: string }[] = [
   {
@@ -19,7 +21,12 @@ const MODES: { id: SafetyMode; label: string; description: string }[] = [
 export default function SafetySettings() {
   const safety = useSafety();
   const [confirmingAuto, setConfirmingAuto] = useState(false);
+  const schedules = useStorageList(
+    useCallback(() => scheduleStore.list(), []),
+    'schedule:',
+  );
   if (!safety) return null;
+  const scheduled = schedules?.filter((schedule) => schedule.enabled).length ?? 0;
 
   const choose = (mode: SafetyMode) => {
     setConfirmingAuto(mode === 'auto');
@@ -63,6 +70,14 @@ export default function SafetySettings() {
             </button>
           </div>
         </div>
+      )}
+
+      {scheduled > 0 && (
+        <p className="warning" role="status" data-testid="schedule-warning">
+          Scheduled runs act in Auto mode: {scheduled} enabled{' '}
+          {scheduled === 1 ? 'schedule runs' : 'schedules run'} without asking, including purchases,
+          sending and deleting. They never run JavaScript.
+        </p>
       )}
 
       <h3>Allowed sites</h3>
