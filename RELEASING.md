@@ -1,10 +1,10 @@
 # Releasing
 
-GitHub releases are automatic. The **Release** workflow (`.github/workflows/release.yml`) runs
-after CI passes on `main`. If the version in `packages/extension/package.json` has no release yet,
-it builds the extension zip, creates the `v<version>` tag and the GitHub release, and uses that
-version's `CHANGELOG.md` section as the release notes. Merges that do not change the version do
-nothing.
+Releases are automatic. The **Release** workflow (`.github/workflows/release.yml`) runs after CI
+passes on `main`. For the version in `packages/extension/package.json` it creates whatever is
+missing: the `v<version>` tag and GitHub release (with the extension zip, and that version's
+`CHANGELOG.md` section as the notes), and the `autochrome-bridge` package on npm. Merges that do
+not change the version do nothing.
 
 ## Release a new version
 
@@ -14,25 +14,39 @@ nothing.
    workflow fails if the section is missing.
 3. Merge. When CI is green on `main`, the release appears on the
    [Releases page](https://github.com/FahadDhruba/autochrome/releases) with
-   `autochrome-<version>-chrome.zip` attached.
+   `autochrome-<version>-chrome.zip` attached, and the new bridge version is on npm.
 
 If a release run fails, fix the cause in a PR; the next green CI run on `main` retries it. You can
 also re-run the failed Release workflow from the Actions tab.
 
-## Publish the bridge to npm (manual)
+## npm
 
-npm publishing is not automated. `packages/bridge/package.json` has `"private": true` so it cannot
-be published by accident. After the GitHub release exists:
+The same workflow publishes `autochrome-bridge` to npm with
+[trusted publishing](https://docs.npmjs.com/trusted-publishers): npm checks the workflow's GitHub
+identity, so there is no npm token in the repository, and each version gets a provenance statement
+linking it to the commit it was built from. It is skipped when the version is already on npm.
+
+### One-time setup
+
+npm only lets you add a trusted publisher to a package that already exists, so the first version is
+published by hand:
 
 ```sh
-git checkout v1.0.0
+git checkout main && git pull
 pnpm install --frozen-lockfile && pnpm build
 cd packages/bridge
-# delete the "private": true line from package.json (do not commit it unless you want to)
-npm pack --dry-run   # should list only dist, README.md, LICENSE and package.json
+pnpm pack            # turns workspace: dependencies into real versions
 npm login
-npm publish
+npm publish ./autochrome-bridge-1.0.0.tgz --access public
 ```
+
+Then on npmjs.com open the package → **Settings** → **Trusted publishing**, choose **GitHub
+Actions**, and enter owner `FahadDhruba`, repository `autochrome`, workflow file `release.yml`
+(no environment). After that, every release publishes automatically. You can also set the package
+to require two-factor authentication and disallow tokens, since the workflow no longer needs one.
+
+If the workflow runs before the package exists, its npm step fails; publish by hand as above and
+re-run the failed Release workflow, which then skips npm.
 
 `npx autochrome-bridge` runs the built `dist/cli.js` and needs Node 22 or newer.
 

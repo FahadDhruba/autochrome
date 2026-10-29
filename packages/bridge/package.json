@@ -22,7 +22,6 @@
     "cursor",
     "ai-agent"
   ],
-  "private": true,
   "type": "module",
   "bin": {
     "autochrome-bridge": "dist/cli.js"

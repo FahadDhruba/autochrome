@@ -84,7 +84,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 
 Bridge calls pass through the same safety checks as the side panel, so approvals appear in Chrome (in the side panel, or in a small popup window if it is closed). Details, the WebSocket API and options are in [packages/bridge/README.md](packages/bridge/README.md).
 
-> `autochrome-bridge` is published to npm by the maintainer as part of the 1.0.0 release. Until it is, run it from a checkout: `node packages/bridge/dist/cli.js` after `pnpm build`.
+> `autochrome-bridge` is published to npm automatically with each release. If `npx` cannot find it yet, run it from a checkout: `node packages/bridge/dist/cli.js` after `pnpm build`.
 
 ## Safety
 

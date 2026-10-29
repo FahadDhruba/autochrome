@@ -1,8 +1,9 @@
 name: Release
 
-# Runs after CI passes on main. If the version in package.json has no tag yet, it builds the
-# extension zip and creates the tag and GitHub release, so releasing is: bump the version, add a
-# CHANGELOG section, merge. Merges that do not change the version do nothing.
+# Runs after CI passes on main. For the version in package.json it creates whatever is missing:
+# the tag and GitHub release (with the extension zip), and the autochrome-bridge package on npm.
+# So releasing is: bump the version, add a CHANGELOG section, merge. Merges that do not change the
+# version do nothing, and a re-run only finishes the parts that failed.
 on:
   workflow_run:
     workflows: [CI]
@@ -11,6 +12,8 @@ on:
 
 permissions:
   contents: write
+  # npm trusted publishing: npm verifies this workflow's OIDC identity instead of a stored token.
+  id-token: write
 
 concurrency:
   group: release
@@ -28,25 +31,34 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Read version
+      - name: Read version and what is already released
         id: version
         run: |
           version=$(node -p "require('./packages/extension/package.json').version")
           bridge=$(node -p "require('./packages/bridge/package.json').version")
+          package=$(node -p "require('./packages/bridge/package.json').name")
           if [ "$version" != "$bridge" ]; then
             echo "::error::Extension ($version) and bridge ($bridge) versions differ."
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "package=$package" >> "$GITHUB_OUTPUT"
+
           if gh release view "v$version" >/dev/null 2>&1; then
-            echo "v$version is already released; nothing to do."
-            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub release v$version exists."
+            echo "github=false" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "github=true" >> "$GITHUB_OUTPUT"
+          fi
+          if npm view "$package@$version" version >/dev/null 2>&1; then
+            echo "$package@$version is on npm."
+            echo "npm=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Release notes from CHANGELOG.md
-        if: steps.version.outputs.exists == 'false'
+        if: steps.version.outputs.github == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -59,27 +71,43 @@ jobs:
           fi
 
       - uses: pnpm/action-setup@v4
-        if: steps.version.outputs.exists == 'false'
+        if: steps.version.outputs.github == 'true' || steps.version.outputs.npm == 'true'
       - uses: actions/setup-node@v4
-        if: steps.version.outputs.exists == 'false'
+        if: steps.version.outputs.github == 'true' || steps.version.outputs.npm == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
+          registry-url: https://registry.npmjs.org
 
-      - name: Build the extension zip
-        if: steps.version.outputs.exists == 'false'
+      - name: Build
+        if: steps.version.outputs.github == 'true' || steps.version.outputs.npm == 'true'
         run: |
           pnpm install --frozen-lockfile
           pnpm build
-          pnpm --filter @autochrome/extension zip
 
       - name: Create the tag and GitHub release
-        if: steps.version.outputs.exists == 'false'
+        if: steps.version.outputs.github == 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
+          pnpm --filter @autochrome/extension zip
           gh release create "v$VERSION" \
             "packages/extension/.output/autochrome-$VERSION-chrome.zip" \
             --target "$SHA" \
             --title "v$VERSION" \
             --notes-file notes.md
+
+      - name: Publish the bridge to npm
+        if: steps.version.outputs.npm == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.package }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Trusted publishing needs npm 11.5.1 or newer; Node 22 ships npm 10.
+          npm install -g npm@^11.5.1
+          # pnpm pack turns workspace: dependencies into real versions; npm publish then uses OIDC
+          # and adds a provenance statement linking the package to this commit.
+          mkdir -p dist-npm
+          (cd packages/bridge && pnpm pack --pack-destination ../../dist-npm)
+          # The ./ matters: without it npm reads "dist-npm/x.tgz" as a GitHub user/repo.
+          npm publish "./dist-npm/$PACKAGE-$VERSION.tgz" --access public
