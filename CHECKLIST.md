@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** v2 — plan awaiting approval ([docs/plans/v2-workflows-schedules.md](docs/plans/v2-workflows-schedules.md))
+**Current:** v2 — M8 Workflows ([docs/plans/v2-workflows-schedules.md](docs/plans/v2-workflows-schedules.md))
 
 ## Planning
 
@@ -87,7 +87,7 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 ## v2 — Workflows and schedules
 
 - [x] Requirements gathered
-- [ ] Plan approved
+- [x] Plan approved
 
 ### M8 — Workflows
 

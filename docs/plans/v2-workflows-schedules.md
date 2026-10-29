@@ -1,6 +1,6 @@
 # v2 — Workflows and schedules
 
-Status: **Planned, awaiting approval.** Two milestones, one PR each, same loop as v1 (Opus plans →
+Status: **Approved, in progress.** Two milestones, one PR each, same loop as v1 (Opus plans →
 `executor` builds → `reviewer` checks → PR).
 
 ## Decisions
