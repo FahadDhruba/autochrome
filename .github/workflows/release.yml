@@ -1,0 +1,85 @@
+name: Release
+
+# Runs after CI passes on main. If the version in package.json has no tag yet, it builds the
+# extension zip and creates the tag and GitHub release, so releasing is: bump the version, add a
+# CHANGELOG section, merge. Merges that do not change the version do nothing.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(node -p "require('./packages/extension/package.json').version")
+          bridge=$(node -p "require('./packages/bridge/package.json').version")
+          if [ "$version" != "$bridge" ]; then
+            echo "::error::Extension ($version) and bridge ($bridge) versions differ."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "v$version is already released; nothing to do."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Release notes from CHANGELOG.md
+        if: steps.version.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # The "## [VERSION]" section, without the link definitions at the end of the file.
+          awk -v v="$VERSION" '/^## \[/{p = index($0, "## [" v "]") == 1; next} p' CHANGELOG.md \
+            | { grep -v '^\[[^]]*\]: ' || true; } > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "::error::CHANGELOG.md has no section for $VERSION."
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.version.outputs.exists == 'false'
+      - uses: actions/setup-node@v4
+        if: steps.version.outputs.exists == 'false'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build the extension zip
+        if: steps.version.outputs.exists == 'false'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          pnpm --filter @autochrome/extension zip
+
+      - name: Create the tag and GitHub release
+        if: steps.version.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            "packages/extension/.output/autochrome-$VERSION-chrome.zip" \
+            --target "$SHA" \
+            --title "v$VERSION" \
+            --notes-file notes.md

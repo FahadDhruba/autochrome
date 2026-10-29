@@ -1,67 +1,46 @@
 # Releasing
 
-For the maintainer. The repository is prepared for 1.0.0 (versions set, changelog written, icons
-and demo GIF committed); the steps below create the tag, the GitHub release and the npm package.
-Replace `1.0.0` with the version you are releasing.
+GitHub releases are automatic. The **Release** workflow (`.github/workflows/release.yml`) runs
+after CI passes on `main`. If the version in `packages/extension/package.json` has no release yet,
+it builds the extension zip, creates the `v<version>` tag and the GitHub release, and uses that
+version's `CHANGELOG.md` section as the release notes. Merges that do not change the version do
+nothing.
 
-## 1. Check main
+## Release a new version
 
-```sh
-git checkout main && git pull
-rm -rf node_modules packages/*/node_modules scripts/node_modules
-pnpm install --frozen-lockfile
-pnpm lint && pnpm format:check && pnpm typecheck && pnpm test
-pnpm build && pnpm test:e2e && pnpm docs:tools --check
-```
+1. In a PR, set the same version in `packages/extension/package.json` (WXT writes it into the
+   manifest) and `packages/bridge/package.json`. The workflow fails if they differ.
+2. Add a `## [<version>] - <date>` section to `CHANGELOG.md`, plus its link at the bottom. The
+   workflow fails if the section is missing.
+3. Merge. When CI is green on `main`, the release appears on the
+   [Releases page](https://github.com/FahadDhruba/autochrome/releases) with
+   `autochrome-<version>-chrome.zip` attached.
 
-## 2. Bump the version
+If a release run fails, fix the cause in a PR; the next green CI run on `main` retries it. You can
+also re-run the failed Release workflow from the Actions tab.
 
-Set the same version in `packages/extension/package.json` (WXT writes it into the manifest) and
-`packages/bridge/package.json`, add a section to `CHANGELOG.md`, and commit. Skip this for 1.0.0,
-which is already set.
+## Publish the bridge to npm (manual)
 
-## 3. Build the extension zip
-
-```sh
-pnpm build
-pnpm --filter @autochrome/extension zip
-```
-
-This produces `packages/extension/.output/autochrome-1.0.0-chrome.zip`. Load it unzipped in
-`chrome://extensions` once as a last check.
-
-## 4. Tag and create the GitHub release
+npm publishing is not automated. `packages/bridge/package.json` has `"private": true` so it cannot
+be published by accident. After the GitHub release exists:
 
 ```sh
-git tag v1.0.0
-git push origin v1.0.0
-gh release create v1.0.0 packages/extension/.output/autochrome-1.0.0-chrome.zip \
-  --title "v1.0.0" --notes "See CHANGELOG.md."
-```
-
-(Or create the release in the GitHub UI and attach the zip.)
-
-## 5. Publish the bridge to npm
-
-`packages/bridge/package.json` has `"private": true` so it cannot be published by accident. Remove
-that line for the release (do not commit the removal unless you want to):
-
-```sh
+git checkout v1.0.0
+pnpm install --frozen-lockfile && pnpm build
 cd packages/bridge
-# delete the "private": true line from package.json
+# delete the "private": true line from package.json (do not commit it unless you want to)
 npm pack --dry-run   # should list only dist, README.md, LICENSE and package.json
 npm login
 npm publish
 ```
 
-`npx autochrome-bridge` runs the built `dist/cli.js` and needs Node 22 or newer. Run `pnpm build`
-first so `dist` is current.
+`npx autochrome-bridge` runs the built `dist/cli.js` and needs Node 22 or newer.
 
-## 6. Smoke test
+## Smoke test
 
 In a clean directory and Chrome profile:
 
-1. Install the released zip as an unpacked extension.
+1. Download the zip from the release, unzip it, and load it unpacked in `chrome://extensions`.
 2. `npx -y autochrome-bridge --version` prints `autochrome-bridge v1.0.0 (protocol 1)`.
 3. `npx -y autochrome-bridge token`, paste the token in Settings → Bridge, and check the status dot
    turns green.
@@ -71,5 +50,5 @@ In a clean directory and Chrome profile:
 
 ## Afterwards
 
-Update the README note about npm availability and the "from a release zip" section if needed, tick
-the release item in `CHECKLIST.md` and announce.
+Update the README note about npm availability if needed, tick the release item in `CHECKLIST.md`
+and announce.
