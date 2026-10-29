@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Form fixture</title>
+  </head>
+  <body>
+    <h1>Signup</h1>
+    <a href="/next.html">Go to next page</a>
+    <button id="counter" type="button">Count</button>
+    <p id="clicks">clicks: 0</p>
+    <button id="later" type="button">Load later</button>
+    <button id="hidden-button" type="button" style="display: none">Secret</button>
+
+    <form id="form">
+      <label>Name <input id="name" name="name" type="text" /></label>
+      <label
+        >Email <input id="email" name="email" type="email" placeholder="you@example.com"
+      /></label>
+      <label>
+        Color
+        <select id="color" name="color">
+          <option value="red">Red</option>
+          <option value="green">Green</option>
+          <option value="blue">Blue</option>
+        </select>
+      </label>
+      <label><input id="subscribe" name="subscribe" type="checkbox" /> Subscribe</label>
+      <button type="submit">Submit</button>
+    </form>
+    <pre id="result"></pre>
+
+    <script>
+      let clicks = 0;
+      document.getElementById('counter').addEventListener('click', () => {
+        document.getElementById('clicks').textContent = `clicks: ${++clicks}`;
+      });
+      document.getElementById('later').addEventListener('click', () => {
+        setTimeout(() => {
+          document.body.append(
+            Object.assign(document.createElement('p'), { textContent: 'Loaded later' }),
+          );
+        }, 500);
+      });
+      const events = [];
+      for (const id of ['name', 'color', 'subscribe']) {
+        for (const type of ['input', 'change']) {
+          document.getElementById(id).addEventListener(type, () => events.push(`${id}:${type}`));
+        }
+      }
+      window.events = events;
+      document.getElementById('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const data = new FormData(event.target);
+        document.getElementById('result').textContent =
+          'submitted ' + JSON.stringify(Object.fromEntries(data));
+      });
+    </script>
+  </body>
+</html>

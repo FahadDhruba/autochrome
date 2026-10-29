@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Checkout fixture</title>
+  </head>
+  <body>
+    <h1>Checkout</h1>
+    <a href="/next.html">Payment history</a>
+    <button id="count" type="button">Count</button>
+    <button id="place-order" type="button">Place order</button>
+    <p id="status">not ordered</p>
+
+    <form id="login">
+      <label>Email <input id="email" name="email" type="email" /></label>
+      <label>Password <input id="password" name="password" type="password" /></label>
+      <button id="log-in" type="button">Log in</button>
+    </form>
+    <label>Card number <input id="card" name="card" autocomplete="cc-number" /></label>
+
+    <script>
+      document.getElementById('place-order').addEventListener('click', () => {
+        document.getElementById('status').textContent = 'ordered';
+      });
+    </script>
+  </body>
+</html>

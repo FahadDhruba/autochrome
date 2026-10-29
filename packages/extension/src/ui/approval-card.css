@@ -1,0 +1,76 @@
+.approval {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+}
+
+.approval-risky {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+}
+
+.approval-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+
+.approval-action,
+.approval-detail,
+.approval-risk {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.approval-tool {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.approval-summary {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.approval-risk {
+  color: var(--warn);
+}
+
+.approval-code {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  max-height: 200px;
+  overflow: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.approval-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+
+.approval-facts dt {
+  color: var(--muted);
+}
+
+.approval-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.approval-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

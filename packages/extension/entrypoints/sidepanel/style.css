@@ -1,0 +1,372 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1rem;
+  margin: 24px 0 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+button.link {
+  background: none;
+  color: var(--accent);
+  padding: 4px 6px;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+a {
+  color: var(--accent);
+}
+
+.empty {
+  margin: auto;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.empty h2 {
+  margin-top: 0;
+}
+
+.empty p {
+  color: var(--muted);
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.bubble-user {
+  align-self: flex-end;
+  max-width: 90%;
+  background: var(--user-bg);
+}
+
+.bubble-assistant {
+  background: var(--surface);
+}
+
+.working,
+.usage {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.error-banner {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.tool-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.tool-card summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.tool-name {
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+}
+
+.tool-summary {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.tool-state {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.tool-error {
+  border-color: var(--danger);
+}
+
+.tool-error .tool-name,
+.tool-error .tool-state,
+.tool-error .tool-result {
+  color: var(--danger);
+}
+
+.tool-body {
+  padding: 0 8px 8px;
+}
+
+.tool-body pre {
+  margin: 4px 0 0;
+  padding: 6px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--surface);
+  border-radius: 6px;
+}
+
+.tool-image {
+  display: block;
+  max-width: 100%;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.composer textarea {
+  flex: 1;
+  resize: none;
+  min-width: 0;
+}
+
+.drawer {
+  position: absolute;
+  top: 41px;
+  left: 0;
+  right: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 1;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.drawer li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drawer li.active {
+  font-weight: 600;
+}
+
+.chat-item {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  background: none;
+  color: inherit;
+  padding: 6px 4px;
+}
+
+.settings {
+  padding: 4px 16px 16px;
+  overflow-y: auto;
+}
+
+.settings h2:first-child {
+  margin-top: 12px;
+}
+
+.settings label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.settings input,
+.settings select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.settings details {
+  margin-bottom: 12px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9aa0a6;
+}
+
+.dot-connected {
+  background: #1e8e3e;
+}
+
+.dot-waiting,
+.dot-connecting {
+  background: #f9ab00;
+}
+
+.dot-bad-token {
+  background: #d93025;
+}
+
+.picker {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px 0;
+}
+
+.picker select {
+  flex: 0 1 auto;
+  max-width: 55%;
+  min-width: 0;
+}
+
+.picker input {
+  flex: 1;
+  min-width: 0;
+}
+
+.button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge-auto {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.settings .radio-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.settings .radio-option input {
+  display: inline-block;
+  width: auto;
+  margin-top: 2px;
+}
+
+.option-description {
+  display: block;
+}
+
+.warning {
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--warn-border);
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.warning p {
+  margin: 0 0 8px;
+}
+
+.settings h3 {
+  font-size: 0.875rem;
+  margin: 16px 0 8px;
+}
+
+.site-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.site-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}

@@ -3,8 +3,14 @@
 - Model is `opusplan`: plan mode runs on Opus, everything else runs on Sonnet.
 - For non-trivial work, start in plan mode (Shift+Tab) so Opus produces the plan; approving it switches to Sonnet for execution.
 - Small, obvious edits: skip planning and just do them.
-- Subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL`). The `executor` agent is for handing off a finished plan.
+- Subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL`).
+- Loop per task: Opus plans → `executor` (Sonnet) builds → `reviewer` (Opus) checks plan fit, standards and that it works → fix until PASS → commit.
 
 # Commits
 
 - Commit as `fahaddhruba <dhruba.fahad2004@gmail.com>`. No Claude co-author or session trailers in commits or PRs.
+
+# Continuity
+
+- Read PLAN.md and CHECKLIST.md at the start of every session.
+- Tick CHECKLIST.md items and add a session log row in the same PR as the work.

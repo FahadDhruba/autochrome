@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shadow fixture</title>
+  </head>
+  <body>
+    <div id="host"></div>
+    <div role="button" tabindex="0" aria-label="Custom control">custom</div>
+    <script>
+      const root = document.getElementById('host').attachShadow({ mode: 'open' });
+      root.innerHTML = '<button>Inside shadow</button>';
+    </script>
+  </body>
+</html>

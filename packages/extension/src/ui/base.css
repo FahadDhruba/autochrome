@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --surface: #f3f4f6;
+  --border: #d9dce1;
+  --text: #1f2328;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --user-bg: #dbeafe;
+  --danger: #c5221f;
+  --danger-bg: #fdecea;
+  --ok: #1e8e3e;
+  --warn: #8a5a00;
+  --warn-bg: #fff4d6;
+  --warn-border: #f0c36d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --surface: #222630;
+    --border: #353a46;
+    --text: #e6e8eb;
+    --muted: #9aa3b2;
+    --accent: #5b8def;
+    --accent-text: #0b1020;
+    --user-bg: #23365e;
+    --danger: #ff8a80;
+    --danger-bg: #3a1f1f;
+    --ok: #5bd778;
+    --warn: #f5c451;
+    --warn-bg: #3a2f12;
+    --warn-border: #6b5520;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.danger {
+  background: var(--danger);
+  color: var(--bg);
+}
+
+button.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
