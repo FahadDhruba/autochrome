@@ -79,7 +79,9 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [x] CONTRIBUTING.md
 - [x] SECURITY.md, RELEASING.md, CHANGELOG.md, issue and PR templates
 - [x] Extension icons, 1.0.0 versions, bridge package metadata, CI zip artifact
-- [ ] Tag v1.0.0 release (maintainer step: follow [RELEASING.md](RELEASING.md); also publishes `autochrome-bridge` to npm)
+- [x] Automatic GitHub release on version bump (`.github/workflows/release.yml`)
+- [ ] v1.0.0 GitHub release created by the workflow (after this merges)
+- [ ] Publish `autochrome-bridge` to npm (manual, see [RELEASING.md](RELEASING.md))
 
 ## v2 (later)
 
@@ -99,3 +101,4 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 | 2026-10-28 | M5 safety built and verified (one permission gate for agent/bridge/debug, three modes, per-site allow list, risky-action detection, inline + popup approval prompts, `<page_content>` wrapping, Auto badge; unit + e2e)                                                                          |
 | 2026-10-28 | M6 multi-tab + debug tools built and verified (tab context line, background tabs, per-step tab state note kept out of the Anthropic cached prefix, console/network capture via `chrome.debugger`, `js_eval` that asks in every mode; unit + e2e)                                                 |
 | 2026-10-28 | M7 release prep built and verified (README with honest status, CONTRIBUTING, SECURITY, RELEASING, CHANGELOG, templates, icons, scripted demo GIF via `pnpm demo`, `pnpm docs:tools` + CI check, extension zip in CI, 1.0.0 versions); tag, GitHub release and npm publish left to the maintainer |
+| 2026-10-29 | PR #2 merged; CI fixed on GitHub (Playwright install path, hidden `.output` upload); automatic GitHub release workflow added                                                                                                                                                                     |

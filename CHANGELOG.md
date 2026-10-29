@@ -2,7 +2,7 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-10-29
 
 First release. Everything below was verified with unit tests and Playwright e2e tests against local
 mock provider servers; the bridge was also verified with the real Claude Code CLI. The real
