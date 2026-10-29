@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import EmptyState from '@/src/ui/EmptyState';
 import IconButton from '@/src/ui/IconButton';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, History } from 'lucide-react';
 import { runStore } from '@/src/workflows/store';
 import { triggerOf } from '@/src/workflows/types';
 import { formatTime, TRIGGER_LABEL } from './format';
@@ -64,10 +65,9 @@ export default function RunsView({ selected, onSelect, onOpenChat }: Props) {
         <h2>Runs</h2>
       </div>
       {runs?.length === 0 && (
-        <p className="muted">
-          No runs yet. Runs of workflows and schedules, and workflows started from the bridge, are
-          listed here.
-        </p>
+        <EmptyState testId="runs-empty" visual={<History size={40} strokeWidth={1.5} />}>
+          No runs yet. Workflow, schedule and bridge runs show up here.
+        </EmptyState>
       )}
       <ul className="wf-list">
         {runs?.map((run) => (

@@ -1,16 +1,34 @@
-import { useState, type KeyboardEvent } from 'react';
+import { type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { Send, Square } from 'lucide-react';
 
-type Props = { running: boolean; onSend: (text: string) => void; onStop: () => void };
+type Props = {
+  text: string;
+  onTextChange: (text: string) => void;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
+  running: boolean;
+  onSend: (text: string) => void;
+  onStop: () => void;
+  /** Sits at the start of the row under the text box, e.g. the model chip. */
+  tools?: ReactNode;
+};
 
-export default function Composer({ running, onSend, onStop }: Props) {
-  const [text, setText] = useState('');
+export default function Composer({
+  text,
+  onTextChange,
+  inputRef,
+  running,
+  onSend,
+  onStop,
+  tools,
+}: Props) {
+  const empty = !text.trim();
 
   const submit = () => {
-    const trimmed = text.trim();
-    if (!trimmed || running) return;
-    onSend(trimmed);
-    setText('');
+    if (running) return;
+    // An empty Send keeps its look but does nothing, except point at the box to type in.
+    if (empty) return inputRef.current?.focus();
+    onSend(text.trim());
+    onTextChange('');
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -29,24 +47,28 @@ export default function Composer({ running, onSend, onStop }: Props) {
       }}
     >
       <textarea
+        ref={inputRef}
         value={text}
         rows={2}
         placeholder="Ask autochrome to do something in your browser"
         aria-label="Message"
-        onChange={(event) => setText(event.target.value)}
+        onChange={(event) => onTextChange(event.target.value)}
         onKeyDown={onKeyDown}
       />
-      {running ? (
-        <button type="button" className="danger with-icon" onClick={onStop}>
-          <Square size={14} fill="currentColor" aria-hidden="true" />
-          Stop
-        </button>
-      ) : (
-        <button type="submit" className="with-icon" disabled={!text.trim()}>
-          <Send size={14} aria-hidden="true" />
-          Send
-        </button>
-      )}
+      <div className="composer-row">
+        <div className="composer-tools">{tools}</div>
+        {running ? (
+          <button type="button" className="btn-stop with-icon" onClick={onStop}>
+            <Square size={14} fill="currentColor" aria-hidden="true" />
+            Stop
+          </button>
+        ) : (
+          <button type="submit" className="btn-send with-icon" aria-disabled={empty}>
+            <Send size={14} aria-hidden="true" />
+            Send
+          </button>
+        )}
+      </div>
     </form>
   );
 }

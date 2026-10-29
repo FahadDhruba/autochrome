@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Circle, Download, Pencil, Play, Trash2, Upload } from 'lucide-react';
+import {
+  Circle,
+  Download,
+  Pencil,
+  Play,
+  Trash2,
+  Upload,
+  Workflow as WorkflowIcon,
+} from 'lucide-react';
 import IconButton from '@/src/ui/IconButton';
+import EmptyState from '@/src/ui/EmptyState';
 import { parseWorkflowJson, type Workflow } from '@autochrome/shared';
 import { saveWorkflow, runStore, workflowStore } from '@/src/workflows/store';
 import type { RecordingState } from '@/src/workflows/recording';
@@ -130,34 +139,41 @@ export default function WorkflowsView(props: Props) {
     <div className="workflows">
       <div className="wf-toolbar">
         <h2>Workflows</h2>
-        <div className="button-row">
-          <button
-            className="with-icon"
-            disabled={recording !== undefined}
-            onClick={() => void record()}
-          >
-            <Circle size={14} fill="var(--recording)" color="var(--recording)" aria-hidden="true" />
-            Record
-          </button>
-          <IconButton
-            label="Import"
-            icon={Upload}
-            align="end"
-            onClick={() => fileInput.current?.click()}
-          />
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/json,.json"
-            hidden
-            aria-label="Import workflow file"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              if (file) void importFile(file);
-            }}
-          />
-        </div>
+        {workflows?.length !== 0 && (
+          <div className="button-row">
+            <button
+              className="with-icon"
+              disabled={recording !== undefined}
+              onClick={() => void record()}
+            >
+              <Circle
+                size={14}
+                fill="var(--recording)"
+                color="var(--recording)"
+                aria-hidden="true"
+              />
+              Record
+            </button>
+            <IconButton
+              label="Import"
+              icon={Upload}
+              align="end"
+              onClick={() => fileInput.current?.click()}
+            />
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              aria-label="Import workflow file"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = '';
+                if (file) void importFile(file);
+              }}
+            />
+          </div>
+        )}
       </div>
       {message && (
         <p className="muted" role="status">
@@ -165,10 +181,33 @@ export default function WorkflowsView(props: Props) {
         </p>
       )}
       {workflows?.length === 0 && (
-        <p className="muted">
-          No workflows yet. Press Record and do the task yourself, or save a finished chat as a
-          workflow.
-        </p>
+        <EmptyState
+          testId="workflows-empty"
+          visual={<WorkflowIcon size={40} strokeWidth={1.5} />}
+          actions={
+            <>
+              <button
+                className="with-icon"
+                disabled={recording !== undefined}
+                onClick={() => void record()}
+              >
+                <Circle
+                  size={14}
+                  fill="var(--recording)"
+                  color="var(--recording)"
+                  aria-hidden="true"
+                />
+                Record
+              </button>
+              <button className="secondary with-icon" onClick={() => fileInput.current?.click()}>
+                <Upload size={14} aria-hidden="true" />
+                Import
+              </button>
+            </>
+          }
+        >
+          No workflows yet. Record a task you do, or import one.
+        </EmptyState>
       )}
       <ul className="wf-list">
         {workflows?.map((workflow) => (

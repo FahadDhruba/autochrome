@@ -176,3 +176,9 @@ export function refOf(tree: string, pattern: RegExp): string {
   if (!ref) throw new Error(`No ref for ${pattern} in:\n${tree}`);
   return ref;
 }
+
+/** Opens the model chip's popover (provider select and model input) if it is closed. */
+export async function openModelChip(panel: Page): Promise<void> {
+  const chip = panel.getByTestId('model-chip');
+  if ((await chip.getAttribute('aria-expanded')) !== 'true') await chip.click();
+}

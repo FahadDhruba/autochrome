@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { CalendarClock, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import EmptyState from '@/src/ui/EmptyState';
 import IconButton from '@/src/ui/IconButton';
 import { describeWhen, nextRunAfter } from '@/src/schedules/next-run';
 import { RUN_NOW_MESSAGE, type RunNowResponse } from '@/src/schedules/messages';
@@ -84,14 +85,18 @@ export default function SchedulesView({ screen, onScreen, providers, onOpenRun }
     (a, b) => Number(b.enabled) - Number(a.enabled) || a.nextRunAt - b.nextRunAt,
   );
 
+  const newScheduleButton = (
+    <button className="with-icon" onClick={() => onScreen({ name: 'edit', id: undefined })}>
+      <Plus size={14} aria-hidden="true" />
+      New schedule
+    </button>
+  );
+
   return (
     <div className="workflows">
       <div className="wf-toolbar">
         <h2>Schedules</h2>
-        <button className="with-icon" onClick={() => onScreen({ name: 'edit', id: undefined })}>
-          <Plus size={14} aria-hidden="true" />
-          New schedule
-        </button>
+        {schedules?.length !== 0 && newScheduleButton}
       </div>
       <p className="muted">
         Runs happen while Chrome is open. A run missed while it was closed happens once at the next
@@ -103,9 +108,13 @@ export default function SchedulesView({ screen, onScreen, providers, onOpenRun }
         </p>
       )}
       {schedules?.length === 0 && (
-        <p className="muted">
-          No schedules yet. Pick a saved workflow or write a prompt, and choose when it runs.
-        </p>
+        <EmptyState
+          testId="schedules-empty"
+          visual={<CalendarClock size={40} strokeWidth={1.5} />}
+          actions={newScheduleButton}
+        >
+          No schedules yet. Run a workflow or a prompt on a timer.
+        </EmptyState>
       )}
       <ul className="wf-list">
         {sorted.map((schedule) => (

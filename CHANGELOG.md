@@ -6,6 +6,16 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
+- **Side panel polish:** tool cards are one collapsed row (tool icon, name, input, and a result
+  summary such as "8 elements", "1,240 chars", a screenshot thumbnail, or the first line of an
+  error) that opens on click, Enter or Space; failed calls and calls waiting for approval start
+  open. Send is always solid and does nothing while the box is empty; while a task runs it becomes
+  an outlined Stop. The chat history is a drawer that slides over a dimmed backdrop (closes on the
+  backdrop or Escape, moves focus in and back). Provider and model are one compact chip in the
+  composer that opens a small editor. Friendly empty states with example prompts for the first
+  chat, and Record/Import and New schedule shortcuts when there are no workflows or schedules.
+- **Theme switch:** Settings > Appearance offers System, Light and Dark, saved as `ui.theme` and
+  applied to the side panel, approve popup and debug page without a flash of the wrong theme.
 - **New logo and monochrome theme:** a black-and-white mark (also in the side panel, approve popup
   and debug page headers, and as the extension icon) and a grey UI that follows light and dark
   mode. Colour is kept for meaning only: red for danger and recording, green for success, amber

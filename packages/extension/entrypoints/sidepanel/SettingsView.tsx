@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import IconButton from '@/src/ui/IconButton';
 import { Bug } from 'lucide-react';
+import { THEMES, useTheme, type Theme } from '@/src/ui/theme';
 import { COMPATIBLE_PRESETS, PROVIDER_IDS, providers } from '@/src/providers';
 import type { ProviderId, ProviderSettings } from '@/src/providers/types';
 import {
@@ -21,6 +22,8 @@ const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
   compatible: 'Optional',
 };
 
+const THEME_LABEL: Record<Theme, string> = { system: 'System', light: 'Light', dark: 'Dark' };
+
 const CUSTOM = 'custom';
 const emptySettings: ProviderSettings = { apiKey: '', baseUrl: '', model: '' };
 
@@ -31,6 +34,7 @@ export default function SettingsView() {
   const [defaultProvider, setDefaultProvider] = useState<ProviderId>('anthropic');
   const [justSaved, setJustSaved] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [theme, setTheme] = useTheme();
 
   useEffect(() => {
     void Promise.all([loadAllProviderSettings(), loadDefaultProvider()]).then(([all, current]) => {
@@ -175,6 +179,23 @@ export default function SettingsView() {
       </section>
       <SafetySettings />
       <BridgeSettings />
+      <section aria-label="Appearance settings">
+        <h2>Appearance</h2>
+        <div className="segmented" role="radiogroup" aria-label="Theme">
+          {THEMES.map((id) => (
+            <label key={id}>
+              {THEME_LABEL[id]}
+              <input
+                type="radio"
+                name="theme"
+                value={id}
+                checked={theme === id}
+                onChange={() => setTheme(id)}
+              />
+            </label>
+          ))}
+        </div>
+      </section>
       <p>
         <IconButton
           label="Open tool debugger"
