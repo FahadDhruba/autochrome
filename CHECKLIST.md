@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** Release (maintainer)
+**Current:** v2 — plan awaiting approval ([docs/plans/v2-workflows-schedules.md](docs/plans/v2-workflows-schedules.md))
 
 ## Planning
 
@@ -82,12 +82,29 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [x] Automatic GitHub release on version bump (`.github/workflows/release.yml`)
 - [x] v1.0.0 GitHub release created by the workflow
 - [x] Automatic npm publish of `autochrome-bridge` with trusted publishing (`.github/workflows/release.yml`)
-- [ ] First npm publish of 1.0.0 by hand + trusted publisher setup on npmjs.com (maintainer, see [RELEASING.md](RELEASING.md))
+- [x] First npm publish of 1.0.0 by hand + trusted publisher setup on npmjs.com (maintainer)
 
-## v2 (later)
+## v2 — Workflows and schedules
 
-- [ ] Workflow record/replay
-- [ ] Scheduled tasks
+- [x] Requirements gathered
+- [ ] Plan approved
+
+### M8 — Workflows
+
+- [ ] Workflow format (shared, zod) with variables and target hints
+- [ ] Record your own actions (passwords become variables)
+- [ ] Save a finished AI chat as a workflow
+- [ ] Workflow editor + JSON import/export
+- [ ] Replay with AI fallback for failed steps + run log
+- [ ] Bridge/MCP: `workflows_list`, `workflow_run`
+
+### M9 — Schedules
+
+- [ ] Schedule model + next-run calculation (catch up once after missed runs)
+- [ ] Runs via `chrome.alarms` in their own tab group, full auto (except `js_eval`)
+- [ ] Workflow or prompt schedules
+- [ ] Schedules + Runs views
+- [ ] Chrome notification per run
 
 ## Session log
 
@@ -104,3 +121,4 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 | 2026-10-28 | M7 release prep built and verified (README with honest status, CONTRIBUTING, SECURITY, RELEASING, CHANGELOG, templates, icons, scripted demo GIF via `pnpm demo`, `pnpm docs:tools` + CI check, extension zip in CI, 1.0.0 versions); tag, GitHub release and npm publish left to the maintainer |
 | 2026-10-29 | PR #2 merged; CI fixed on GitHub (Playwright install path, hidden `.output` upload); automatic GitHub release workflow added                                                                                                                                                                     |
 | 2026-10-29 | v1.0.0 GitHub release created by the workflow; automatic npm publish of the bridge via trusted publishing added (first publish by hand)                                                                                                                                                          |
+| 2026-10-29 | v2 requirements gathered (record + save-from-chat, fast replay with AI fallback, variables, schedules in full auto with notifications); plan written                                                                                                                                             |
