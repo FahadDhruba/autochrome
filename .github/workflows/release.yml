@@ -111,4 +111,5 @@ jobs:
           mkdir -p dist-npm
           (cd packages/bridge && pnpm pack --pack-destination ../../dist-npm)
           # The ./ matters: without it npm reads "dist-npm/x.tgz" as a GitHub user/repo.
-          npm publish "./dist-npm/$PACKAGE-$VERSION.tgz" --access public
+          # Verbose so a refused trusted-publishing exchange logs npm's reason instead of just ENEEDAUTH.
+          npm publish "./dist-npm/$PACKAGE-$VERSION.tgz" --access public --loglevel verbose
