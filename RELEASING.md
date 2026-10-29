@@ -40,9 +40,17 @@ npm login
 npm publish ./autochrome-bridge-1.0.0.tgz --access public
 ```
 
-Then on npmjs.com open the package → **Settings** → **Trusted publishing**, choose **GitHub
+Then on npmjs.com open the package → **Settings** → **Trusted Publisher**, choose **GitHub
 Actions**, and enter owner `FahadDhruba`, repository `autochrome`, workflow file `release.yml`
-(no environment). After that, every release publishes automatically. You can also set the package
+(no environment), and tick **Allow npm publish**. Two details matter:
+
+- The owner must match GitHub's spelling exactly, capitals included (`FahadDhruba`, not
+  `fahaddhruba`); npm compares it literally. These fields cannot be edited later, so a wrong one
+  means deleting the connection and creating it again.
+- Without **Allow npm publish** the workflow may only `npm stage publish`, and its `npm publish`
+  is refused with `ENEEDAUTH`.
+
+After that, every release publishes automatically. You can also set the package
 to require two-factor authentication and disallow tokens, since the workflow no longer needs one.
 
 If the workflow runs before the package exists, its npm step fails; publish by hand as above and
@@ -55,7 +63,7 @@ re-run the failed Release workflow, which then skips npm.
 In a clean directory and Chrome profile:
 
 1. Download the zip from the release, unzip it, and load it unpacked in `chrome://extensions`.
-2. `npx -y autochrome-bridge --version` prints `autochrome-bridge v1.0.0 (protocol 1)`.
+2. `npx -y autochrome-bridge --version` prints `autochrome-bridge v<version> (protocol 1)`.
 3. `npx -y autochrome-bridge token`, paste the token in Settings → Bridge, and check the status dot
    turns green.
 4. `claude mcp add autochrome -- npx -y autochrome-bridge`, then ask Claude Code to open a page and
