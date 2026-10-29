@@ -32,7 +32,7 @@ pnpm build
 | `pnpm icons`      | Renders the extension icon PNGs from `scripts/icons/icon.svg`    |
 | `pnpm demo`       | Re-records `docs/demo.gif` (needs `pnpm build` first)            |
 
-The first time you run e2e tests, install a browser with `pnpm exec playwright install chromium`.
+The first time you run e2e tests, install a browser with `pnpm --filter @autochrome/extension exec playwright install chromium`.
 
 ## How tests are organised
 
