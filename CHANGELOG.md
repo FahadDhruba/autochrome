@@ -2,7 +2,7 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.1.0] - 2026-10-29
 
 ### Added
 
@@ -86,4 +86,5 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.1.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.0
 [1.0.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.0.0
