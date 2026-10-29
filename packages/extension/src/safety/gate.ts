@@ -33,6 +33,8 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   tab_open: 'action',
   tab_switch: 'action',
   tab_close: 'action',
+  workflows_list: 'free',
+  workflow_run: 'action',
   console_logs: 'read',
   network_requests: 'read',
   network_response: 'read',
@@ -72,7 +74,7 @@ export function decide({ mode, group, siteAllowed, risky }: Decision): 'allow' |
   return siteAllowed ? 'allow' : 'ask';
 }
 
-type Input = {
+export type Input = {
   tabId?: number;
   url?: string;
   ref?: string;
@@ -96,6 +98,9 @@ async function targetOf(call: ToolCall, input: Input, env: GateEnv): Promise<Tar
     case 'tab_open':
       // A blank tab involves no site.
       return { url: input.url };
+    case 'workflow_run':
+      // The run's own steps are gated one by one, each on its own tab and site.
+      return {};
     case 'tab_close': {
       const tab = await env.tab(input.tabId);
       // Closing a tab the agent opened needs no site check.
@@ -108,7 +113,8 @@ async function targetOf(call: ToolCall, input: Input, env: GateEnv): Promise<Tar
   }
 }
 
-function describeTargetOf(call: ToolCall, input: Input): DescribeTarget | undefined {
+/** Which element the call acts on, as the content script's `describe` wants it. */
+export function describeTargetOf(call: ToolCall, input: Input): DescribeTarget | undefined {
   switch (call.name) {
     case 'click':
       if (input.ref !== undefined) return { ref: input.ref };

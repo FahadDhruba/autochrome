@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ElementDescription } from '../page/messages';
 import { checkPermission, decide, TOOL_GROUPS, type GateEnv, type TabInfo } from './gate';
 import type { SafetyMode } from './settings';
-import { canAllowSite } from './types';
+import { canAllowSite, type ToolSource } from './types';
 
 const SITE = 'https://shop.example.com';
 const OTHER = 'https://other.example.com';
@@ -63,6 +63,8 @@ const INPUTS: Record<ToolName, object> = {
   console_logs: {},
   network_requests: {},
   network_response: { requestId: '1' },
+  workflows_list: {},
+  workflow_run: { name: 'Sign in' },
   js_eval: { code: '1 + 1' },
 };
 
@@ -123,7 +125,7 @@ describe('checkPermission', () => {
     name: ToolName,
     mode: SafetyMode,
     options: Parameters<typeof env>[1] = {},
-    source: 'agent' | 'bridge' | 'debug' = 'agent',
+    source: ToolSource = 'agent',
     input?: object,
   ) => (await checkPermission(call(name, input), source, env(mode, options))).decision;
 
@@ -147,6 +149,7 @@ describe('checkPermission', () => {
       ['tab_open', 'ask', 'ask', 'allow'],
       ['tab_switch', 'ask', 'ask', 'allow'],
       ['tab_close', 'ask', 'ask', 'allow'],
+      ['workflows_list', 'allow', 'allow', 'allow'],
       ['console_logs', 'allow', 'ask', 'allow'],
       ['network_requests', 'allow', 'ask', 'allow'],
       ['network_response', 'allow', 'ask', 'allow'],
@@ -162,10 +165,30 @@ describe('checkPermission', () => {
       expect(await verdict(name, 'ask')).toBe(whenUnapproved);
     });
 
-    it('covers every tool except js_eval, which has its own tests', () => {
+    it('covers every tool except js_eval and workflow_run, which have their own tests', () => {
       expect(TABLE.map(([name]) => name).sort()).toEqual(
-        toolNames.filter((name) => name !== 'js_eval').sort(),
+        toolNames.filter((name) => name !== 'js_eval' && name !== 'workflow_run').sort(),
       );
+    });
+  });
+
+  describe('workflow_run', () => {
+    // It has no site of its own: the steps of the run are gated one by one.
+    it('asks only in ask mode', async () => {
+      expect(await verdict('workflow_run', 'ask')).toBe('ask');
+      expect(await verdict('workflow_run', 'per-site')).toBe('allow');
+      expect(await verdict('workflow_run', 'auto')).toBe('allow');
+    });
+
+    it('needs no open tab', async () => {
+      const noTab: GateEnv = {
+        ...env('ask'),
+        tab: async () => {
+          throw new Error('No target tab.');
+        },
+      };
+      const result = await checkPermission(call('workflow_run'), 'agent', noTab);
+      expect(result.decision).toBe('ask');
     });
   });
 
@@ -429,10 +452,19 @@ describe('checkPermission', () => {
       expect(loadSafety).not.toHaveBeenCalled();
     });
 
-    it('gates bridge calls like agent calls', async () => {
+    it.each(['bridge', 'workflow'] as const)('gates %s calls like agent calls', async (source) => {
       for (const name of toolNames) {
-        expect(await verdict(name, 'per-site', {}, 'bridge')).toBe(await verdict(name, 'per-site'));
+        expect(await verdict(name, 'per-site', {}, source)).toBe(await verdict(name, 'per-site'));
       }
+    });
+
+    it('asks for a workflow action in ask mode, like the agent', async () => {
+      const result = await checkPermission(
+        call('click'),
+        'workflow',
+        env('ask', { sites: [SITE] }),
+      );
+      expect(result).toMatchObject({ decision: 'ask', request: { source: 'workflow' } });
     });
   });
 });

@@ -1,6 +1,7 @@
 import type { ToolHandlers } from './tools/types';
 import { describe, expect, it, vi } from 'vitest';
 import { executeTool, type ExecuteOptions } from './executor';
+import type { ElementDescription } from './page/messages';
 
 function fakeHandlers(overrides: Partial<ToolHandlers> = {}): ToolHandlers {
   const unused = async () => {
@@ -25,11 +26,10 @@ describe('executeTool', () => {
     const tabs_list = vi.fn(async () => [{ type: 'text' as const, text: 'tabs' }]);
     const click = vi.fn(async () => [{ type: 'text' as const, text: 'clicked' }]);
     await executeTool({ id: '1', name: 'click', input: { ref: 'e1' } }, debug({ click }));
-    expect(click).toHaveBeenCalledWith({
-      ref: 'e1',
-      button: 'left',
-      clickCount: 1,
-    });
+    expect(click).toHaveBeenCalledWith(
+      { ref: 'e1', button: 'left', clickCount: 1 },
+      { source: 'debug', signal: undefined },
+    );
     const result = await executeTool(
       { id: '2', name: 'tabs_list', input: {} },
       debug({ tabs_list }),
@@ -254,4 +254,76 @@ describe('executeTool tab context', () => {
       ]);
     },
   );
+
+  describe('target hint', () => {
+    const hint = { role: 'button', name: 'Sign in', selector: '#go' };
+    const description = { hint } as ElementDescription;
+    const text = async () => [{ type: 'text' as const, text: 'done' }];
+
+    it('is read before the action and returned with the result', async () => {
+      const order: string[] = [];
+      const describe = vi.fn(async () => {
+        order.push('describe');
+        return description;
+      });
+      const click = vi.fn(async () => {
+        order.push('click');
+        return text();
+      });
+      const result = await executeTool(
+        { id: '1', name: 'click', input: { ref: 'e3', tabId: 7 } },
+        { ...debug({ click }), describe },
+      );
+      expect(result.target).toEqual(hint);
+      expect(describe).toHaveBeenCalledWith(7, { ref: 'e3' });
+      expect(order).toEqual(['describe', 'click']);
+    });
+
+    it('describes the element at a point, and the focused element for typing without a ref', async () => {
+      const describe = vi.fn(async () => description);
+      const options = { ...debug({ click: text, type: text }), describe };
+      await executeTool({ id: '1', name: 'click', input: { x: 4, y: 5, tabId: 7 } }, options);
+      await executeTool({ id: '2', name: 'type', input: { text: 'hi', tabId: 7 } }, options);
+      expect(describe).toHaveBeenNthCalledWith(1, 7, { point: { x: 4, y: 5 } });
+      expect(describe).toHaveBeenNthCalledWith(2, 7, {});
+    });
+
+    it('is left out for tools that do not act on an element', async () => {
+      const describe = vi.fn(async () => description);
+      const result = await executeTool(
+        { id: '1', name: 'key', input: { keys: 'Enter', tabId: 7 } },
+        { ...debug({ key: text }), describe },
+      );
+      expect(describe).not.toHaveBeenCalled();
+      expect(result).not.toHaveProperty('target');
+    });
+
+    it('is left out when the page cannot describe the element, without failing the call', async () => {
+      const describe = vi.fn(async () => {
+        throw new Error('no content script');
+      });
+      const result = await executeTool(
+        { id: '1', name: 'click', input: { ref: 'e3', tabId: 7 } },
+        { ...debug({ click: text }), describe },
+      );
+      expect(result.ok).toBe(true);
+      expect(result).not.toHaveProperty('target');
+    });
+
+    it('is not returned for a failed action', async () => {
+      const result = await executeTool(
+        { id: '1', name: 'click', input: { ref: 'e3', tabId: 7 } },
+        {
+          ...debug({
+            click: async () => {
+              throw new Error('Unknown ref e3.');
+            },
+          }),
+          describe: async () => description,
+        },
+      );
+      expect(result.ok).toBe(false);
+      expect(result).not.toHaveProperty('target');
+    });
+  });
 });

@@ -1,6 +1,12 @@
 import { canAllowSite, type ApprovalChoice, type ApprovalRequest } from '@/src/safety/types';
 import './approval-card.css';
 
+const ASKER: Record<ApprovalRequest['source'], string> = {
+  agent: 'The AI wants to',
+  workflow: 'A workflow wants to',
+  bridge: 'An external tool wants to',
+};
+
 type Props = { request: ApprovalRequest; onAnswer: (choice: ApprovalChoice) => void };
 
 /** Asks whether the AI may do one thing. Shared by the side panel chat and the approve popup. */
@@ -11,9 +17,7 @@ export default function ApprovalCard({ request, onAnswer }: Props) {
       aria-label="Approval request"
       data-testid="approval-card"
     >
-      <h2 className="approval-title">
-        {request.source === 'bridge' ? 'An external tool wants to' : 'The AI wants to'}
-      </h2>
+      <h2 className="approval-title">{ASKER[request.source]}</h2>
       <p className="approval-action">
         <span className="approval-tool">{request.tool}</span>
         {request.summary && <span className="approval-summary">{request.summary}</span>}

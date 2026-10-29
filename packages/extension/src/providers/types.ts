@@ -1,4 +1,4 @@
-import type { ToolContent } from '@autochrome/shared';
+import type { TargetHint, ToolContent } from '@autochrome/shared';
 
 export type Part =
   | {
@@ -10,7 +10,14 @@ export type Part =
     }
   | { type: 'image'; data: string; mimeType: string }
   | { type: 'tool_call'; id: string; name: string; input: unknown; signature?: string }
-  | { type: 'tool_result'; callId: string; content: ToolContent[]; isError: boolean };
+  | {
+      type: 'tool_result';
+      callId: string;
+      content: ToolContent[];
+      isError: boolean;
+      /** The element the action acted on. For saving a chat as a workflow; never sent to a provider. */
+      target?: TargetHint;
+    };
 
 export type ProviderId = 'anthropic' | 'openai' | 'gemini' | 'compatible';
 

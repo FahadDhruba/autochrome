@@ -7,6 +7,7 @@ export const MAX_STEPS = 50;
 /** Side panel to background. */
 export type PanelMessage =
   | { type: 'send'; chatId: string; text: string; providerId: ProviderId; model: string }
+  | { type: 'run_workflow'; workflowId: string; variables: Record<string, string> }
   | { type: 'stop' };
 
 /** Background to side panel. */

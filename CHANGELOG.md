@@ -2,6 +2,21 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- **Workflows (M8):** record your own actions in the side panel (clicks, typed values, selects,
+  checkboxes, Enter, page loads; passwords become a `{{password}}` variable and are never stored),
+  or save a finished chat as a workflow. Edit, reorder and delete steps, turn a typed value into a
+  variable, and export or import workflows as JSON.
+- **Replay with AI fallback:** a run opens its own tab, asks for the variables, finds each element
+  again by role and name, then text, then selector, and hands a failed step to the default
+  provider (at most 8 tool calls). The run log shows each step as ok, repaired by AI or failed with
+  its duration and a screenshot, and can update the workflow with the repaired step. Replays go
+  through the same permission checks as the agent (new `workflow` source).
+- **Bridge and MCP:** `workflows_list` and `workflow_run` tools.
+
 ## [1.0.0] - 2026-10-29
 
 First release. Everything below was verified with unit tests and Playwright e2e tests against local

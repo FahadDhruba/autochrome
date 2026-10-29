@@ -1,3 +1,6 @@
+import type { TargetHint } from '@autochrome/shared';
+import type { ResolvedTarget } from './resolve';
+
 export type Point = { x: number; y: number };
 
 /** What the safety checks need to know about an element; see `describe`. */
@@ -14,6 +17,8 @@ export type ElementDescription = {
   inForm: boolean;
   formHasPassword: boolean;
   formHasPayment: boolean;
+  /** How to find the element again; used to turn an action into a workflow step. */
+  hint?: TargetHint;
 };
 
 /** A ref, a viewport point, or neither (the focused element). */
@@ -27,6 +32,9 @@ export type PageRequests = {
   set_value: { ref: string; value: string | boolean };
   has_text: { text: string };
   describe: DescribeTarget;
+  resolve: { target: TargetHint };
+  record_start: Record<string, never>;
+  record_stop: Record<string, never>;
 };
 
 export type PageResults = {
@@ -37,6 +45,9 @@ export type PageResults = {
   set_value: string;
   has_text: boolean;
   describe: ElementDescription | undefined;
+  resolve: ResolvedTarget | undefined;
+  record_start: true;
+  record_stop: true;
 };
 
 export type PageOp = keyof PageRequests;

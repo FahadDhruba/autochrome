@@ -20,6 +20,19 @@ async function send(panel: Page, text: string) {
 
 const card = (panel: Page) => panel.getByTestId('approval-card');
 
+/**
+ * Answers the approve popup. The popup closes itself as soon as it is answered, which can race
+ * Playwright's post-click checks, so an error is only a failure if the popup is still open.
+ */
+async function answerPopup(popup: Page, name: string) {
+  await popup
+    .getByRole('button', { name })
+    .click()
+    .catch((error: unknown) => {
+      if (!popup.isClosed()) throw error;
+    });
+}
+
 test('per-site: asks on a new site, remembers "Allow on this site", then stops asking', async ({
   baseUrl,
   debugPage,
@@ -358,7 +371,7 @@ test.describe('bridge', () => {
     const popup = await opened;
     await expect(popup.getByTestId('approval-card')).toContainText('An external tool wants to');
     await expect(popup.getByTestId('approval-card')).toContainText(baseUrl);
-    await popup.getByRole('button', { name: 'Allow once' }).click();
+    await answerPopup(popup, 'Allow once');
 
     expect((await call).ok).toBe(true);
     await expect.poll(() => popup.isClosed()).toBe(true);
@@ -389,7 +402,7 @@ test.describe('bridge', () => {
     const popup = await opened;
     await expect(popup.getByTestId('approval-code')).toHaveText('document.title');
     await expect(popup.getByTestId('approval-risk')).toContainText('Runs JavaScript in the page');
-    await popup.getByRole('button', { name: 'Allow once' }).click();
+    await answerPopup(popup, 'Allow once');
     const result = await call;
     expect(result.ok).toBe(true);
     expect(JSON.stringify(result.content)).toContain('Checkout fixture');

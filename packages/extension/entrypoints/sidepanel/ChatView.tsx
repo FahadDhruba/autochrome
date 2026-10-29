@@ -1,4 +1,7 @@
+import { titleFor } from '@/src/history';
 import ApprovalCard from '@/src/ui/ApprovalCard';
+import { stepsFromMessages, workflowFromChat } from '@/src/workflows/fromChat';
+import { saveWorkflow } from '@/src/workflows/store';
 import type { useChat } from './useChat';
 import Composer from './Composer';
 import MessageList from './MessageList';
@@ -9,9 +12,11 @@ type Props = {
   chat: ReturnType<typeof useChat>;
   providers: ProviderState;
   onOpenSettings: () => void;
+  /** Called with the id of the workflow a finished chat was saved as. */
+  onSavedWorkflow: (workflowId: string) => void;
 };
 
-export default function ChatView({ chat, providers, onOpenSettings }: Props) {
+export default function ChatView({ chat, providers, onOpenSettings, onSavedWorkflow }: Props) {
   const { target } = chat;
   const approval = chat.approval && (
     <ApprovalCard request={chat.approval} onAnswer={chat.answerApproval} />
@@ -30,6 +35,16 @@ export default function ChatView({ chat, providers, onOpenSettings }: Props) {
     );
   }
 
+  const canSave = !chat.running && stepsFromMessages(chat.messages).length > 0;
+  const saveAsWorkflow = async () => {
+    const workflow = workflowFromChat({
+      title: titleFor(chat.messages),
+      messages: chat.messages,
+    });
+    await saveWorkflow(workflow);
+    onSavedWorkflow(workflow.id);
+  };
+
   return (
     <>
       {chat.messages.length === 0 ? (
@@ -47,6 +62,13 @@ export default function ChatView({ chat, providers, onOpenSettings }: Props) {
         >
           {approval}
         </MessageList>
+      )}
+      {canSave && (
+        <div className="chat-actions">
+          <button className="link" onClick={() => void saveAsWorkflow()}>
+            Save as workflow
+          </button>
+        </div>
       )}
       {target && (
         <ModelPicker

@@ -58,6 +58,14 @@ describe('toolDefinitions', () => {
     expect(toolDefinitions.find.input.safeParse({ query: '' }).success).toBe(false);
   });
 
+  it('requires an id or a name to run a workflow', () => {
+    const run = toolDefinitions.workflow_run.input;
+    expect(run.safeParse({}).success).toBe(false);
+    expect(run.safeParse({ name: 'Sign in', variables: { user: 'ada' } }).success).toBe(true);
+    expect(run.safeParse({ id: 'w1', variables: { user: 1 } }).success).toBe(false);
+    expect(toolDefinitions.workflows_list.input.safeParse({}).success).toBe(true);
+  });
+
   it('converts to JSON Schema', () => {
     for (const name of toolNames) {
       expect(() => z.toJSONSchema(toolDefinitions[name].input)).not.toThrow();

@@ -28,6 +28,7 @@ export function applyEvent(messages: ChatMessage[], event: AgentEvent): ChatMess
       callId: event.id,
       content: event.result.content,
       isError: !event.result.ok,
+      target: event.result.target,
     };
     if (last?.role === 'user') last.parts.push(result);
     else next.push({ role: 'user', parts: [result] });

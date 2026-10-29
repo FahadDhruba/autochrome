@@ -5,6 +5,7 @@ import { isBridgeStatusRequest } from '@/src/bridgeSettings';
 import { watchDebugger } from '@/src/debugger';
 import { executeTool } from '@/src/executor';
 import { handleApprovalMessage, isExtensionPage, startApprovalUi } from '@/src/safety/approvalUi';
+import { handleRecordMessage, startRecorder } from '@/src/workflows/recorder';
 
 export default defineBackground(() => {
   browser.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error: unknown) => {
@@ -15,6 +16,7 @@ export default defineBackground(() => {
   startBridge();
   startApprovalUi();
   startChatSessions();
+  startRecorder();
 
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (isBridgeStatusRequest(message)) {
@@ -22,6 +24,7 @@ export default defineBackground(() => {
       return;
     }
     if (handleApprovalMessage(message, sender, sendResponse)) return;
+    if (handleRecordMessage(message, sender, sendResponse)) return true;
     if (!isExecuteMessage(message)) return;
     // Only the extension's own pages (the debug page) run ungated; a content script never does.
     if (!isExtensionPage(sender)) {

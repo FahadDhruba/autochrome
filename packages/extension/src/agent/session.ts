@@ -7,12 +7,17 @@ import { isProviderId, loadProviderSettings } from '../settings';
 import { registerPanel } from '../safety/approvalUi';
 import { runAgent } from './loop';
 import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
+import { runFromPanel, type WorkflowEvent } from '../workflows/session';
 import { loadTabState } from './tab-state';
 import { buildSystemPrompt } from './system-prompt';
 
 function isPanelMessage(message: unknown): message is PanelMessage {
   const type = (message as { type?: unknown } | null)?.type;
   if (type === 'stop') return true;
+  const run = message as Partial<Extract<PanelMessage, { type: 'run_workflow' }>>;
+  if (type === 'run_workflow') {
+    return typeof run.workflowId === 'string' && typeof run.variables === 'object';
+  }
   const send = message as Partial<Extract<PanelMessage, { type: 'send' }>>;
   return type === 'send' && isProviderId(send.providerId) && typeof send.model === 'string';
 }
@@ -21,7 +26,7 @@ function isPanelMessage(message: unknown): message is PanelMessage {
 function handlePort(port: Browser.runtime.Port): void {
   registerPanel(port);
   let controller: AbortController | undefined;
-  const emit = (event: AgentEvent) => {
+  const emit = (event: AgentEvent | WorkflowEvent) => {
     try {
       port.postMessage(event);
     } catch {
@@ -68,13 +73,18 @@ function handlePort(port: Browser.runtime.Port): void {
   port.onMessage.addListener((message: unknown) => {
     if (!isPanelMessage(message)) return;
     if (message.type === 'stop') return controller?.abort();
-    if (controller) return emit({ type: 'error', message: 'A task is already running.' });
+    const isRun = message.type === 'run_workflow';
+    const fail = (text: string) =>
+      emit(isRun ? { type: 'run_error', message: text } : { type: 'error', message: text });
+    if (controller) return fail('A task is already running.');
 
     controller = new AbortController();
-    start(message.chatId, message.text, message.providerId, message.model)
-      .catch((error: unknown) =>
-        emit({ type: 'error', message: error instanceof Error ? error.message : String(error) }),
-      )
+    const task =
+      message.type === 'run_workflow'
+        ? runFromPanel(message.workflowId, message.variables, emit, controller.signal)
+        : start(message.chatId, message.text, message.providerId, message.model);
+    task
+      .catch((error: unknown) => fail(error instanceof Error ? error.message : String(error)))
       .finally(() => {
         controller = undefined;
       });

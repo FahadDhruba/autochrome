@@ -1,7 +1,10 @@
 import type { ToolName } from '@autochrome/shared';
 
-/** Who asked for a tool call. `debug` is the user's own click on the tool debugger page. */
-export type ToolSource = 'agent' | 'bridge' | 'debug';
+/**
+ * Who asked for a tool call. `debug` is the user's own click on the tool debugger page; `workflow`
+ * is a replay started from the side panel and is gated like the agent.
+ */
+export type ToolSource = 'agent' | 'workflow' | 'bridge' | 'debug';
 
 export type ApprovalChoice = 'once' | 'site' | 'deny';
 
