@@ -1,6 +1,6 @@
 {
   "name": "autochrome-bridge",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP server and local HTTP/WebSocket bridge that lets AI tools control Chrome through the autochrome extension.",
   "license": "MIT",
   "author": "fahaddhruba",
