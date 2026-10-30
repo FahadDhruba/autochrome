@@ -2,6 +2,21 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.0] - 2026-10-30
+
+### Added
+
+- **Gemini Live provider** for Live-only models such as `gemini-3.8-live`: one WebSocket session
+  per agent step, spoken answers shown as transcripts, tool calls, screenshots, and tool results
+  replayed as text (the Live API ignores `functionResponse` parts in replayed history). Uses the
+  Gemini API key when it has none of its own. `gemini-3.8-live-extended-thinking` is marked
+  experimental.
+
+### Verified
+
+- Real run with `gemini-3.8-live`: a side-panel form task with approvals (10 tool calls, about
+  25 s) and a workflow step repaired by the AI.
+
 ## [1.1.1] - 2026-10-30
 
 ### Changed
@@ -100,6 +115,7 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.2.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.0
 [1.1.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.1
 [1.1.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.0
 [1.0.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.0.0

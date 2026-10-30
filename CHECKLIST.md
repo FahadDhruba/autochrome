@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** v1.1.0 released; Gemini verified for real. Next: other real providers, Chrome Web Store
+**Current:** 1.2.0 with the Gemini Live provider, verified against the real Live API (`gemini-3.8-live`). Next: other real providers, Chrome Web Store
 
 ## Planning
 
@@ -106,6 +106,18 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 - [x] Schedules + Runs views
 - [x] Chrome notification per run
 
+## Gemini Live provider
+
+See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
+
+- [x] `gemini-live` provider: one Live WebSocket session per agent step, transcription as text
+- [x] History to turns translation (tool results as text, images, errors) and setup message
+- [x] Injectable WebSocket factory; unit tests with a fake socket
+- [x] `listModels` filtering and "(experimental)" label for thinking models
+- [x] Settings and model chip entries with the latency note; falls back to the Gemini key
+- [x] e2e mock Live server (`ws`) and chat flow test
+- [x] Real run with `gemini-3.8-live` (side-panel form task, workflow repair; maintainer)
+
 ## Session log
 
 | Date       | Session work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -127,3 +139,5 @@ Tick items as they land. Update this file in the same PR as the work. See [PLAN.
 | 2026-10-29 | Monochrome logo and theme, icon toolbar with hover labels, UI polish (collapsible tool cards, Send/Stop, drawer, model chip, empty states, theme switch); version 1.1.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | 2026-10-29 | v1.1.0 released: GitHub release by the workflow; npm via trusted publishing after three fixes (no setup-node `registry-url`, "Allow npm publish" ticked, owner recreated as `FahadDhruba`); verbose npm publish log kept                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | 2026-10-30 | First real-provider test (Gemini `gemini-3.5-flash-lite`): adapter, side-panel form task with approvals, workflow AI repair all pass; fixed `navigate` with no tab (opens one) and case-insensitive `wait` text                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-10-30 | Gemini Live provider built and verified with a fake socket (unit) and a mock Live server (e2e); real Live API not exercised (no key use), protocol facts taken from the spec's verified section                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-10-30 | Gemini Live verified against the real API with `gemini-3.8-live` (adapter, side-panel form task with approvals in 25 s, workflow repair in 6 s; key never in error messages); version 1.2.0                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |

@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { WebSocketServer } from 'ws';
 
 /** What the mock model says in one step: some text, some tool calls, or a stream that hangs. */
 export type MockStep = {
@@ -191,5 +192,101 @@ export class MockGemini extends MockProvider {
     }));
     out.push(chunk(callParts, 'STOP'));
     return out.join('');
+  }
+}
+
+export type LiveRequest = {
+  url: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setup: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  turns: any[];
+};
+
+/** A local stand-in for the Gemini Live WebSocket API (one session per agent step). */
+export class MockGeminiLive {
+  readonly requests: LiveRequest[] = [];
+  private script: ((request: LiveRequest) => MockStep)[] = [];
+  private server = createServer(this.serveModels);
+  private sockets = new WebSocketServer({ server: this.server });
+
+  get baseUrl(): string {
+    return `ws://127.0.0.1:${(this.server.address() as AddressInfo).port}`;
+  }
+
+  /** Replace the script; each session consumes the next entry. */
+  play(...script: (MockStep | ((request: LiveRequest) => MockStep))[]): void {
+    this.script = script.map((entry) => (typeof entry === 'function' ? entry : () => entry));
+    this.requests.length = 0;
+  }
+
+  async start(): Promise<void> {
+    this.sockets.on('connection', (socket, req) => {
+      let setup: unknown;
+      // Like the real service, send JSON as binary frames.
+      const send = (message: object) => socket.send(Buffer.from(JSON.stringify(message)));
+      socket.on('message', (raw) => {
+        const message = JSON.parse(String(raw));
+        if (message.setup) {
+          setup = message.setup;
+          return send({ setupComplete: {} });
+        }
+        const request: LiveRequest = {
+          url: req.url ?? '',
+          setup,
+          turns: message.clientContent.turns,
+        };
+        this.requests.push(request);
+        const entry = this.script[this.requests.length - 1];
+        if (!entry) return socket.close(1011, 'Mock script exhausted.');
+        this.reply(entry(request), send);
+      });
+    });
+    await new Promise<void>((resolve) => this.server.listen(0, '127.0.0.1', resolve));
+  }
+
+  async stop(): Promise<void> {
+    for (const socket of this.sockets.clients) socket.terminate();
+    this.sockets.close();
+    this.server.closeAllConnections();
+    await new Promise((resolve) => this.server.close(resolve));
+  }
+
+  private reply({ text, calls = [] }: MockStep, send: (message: object) => void): void {
+    const usageMetadata = { promptTokenCount: 100, responseTokenCount: 30 };
+    if (text) {
+      const middle = Math.ceil(text.length / 2);
+      send({ serverContent: { outputTranscription: { text: text.slice(0, middle) } } });
+      send({ serverContent: { modelTurn: { parts: [{ inlineData: { data: 'AAAA' } }] } } });
+      send({ serverContent: { outputTranscription: { text: text.slice(middle) } } });
+    }
+    if (calls.length > 0) {
+      send({
+        toolCall: {
+          functionCalls: calls.map((call) => ({
+            ...(call.id && { id: call.id }),
+            name: call.name,
+            args: call.input,
+          })),
+        },
+        usageMetadata,
+      });
+    } else {
+      send({ usageMetadata });
+      send({ serverContent: { turnComplete: true } });
+    }
+  }
+
+  private serveModels(req: IncomingMessage, res: ServerResponse): void {
+    const models = [
+      {
+        name: 'models/mock-live',
+        displayName: 'Mock Live',
+        supportedGenerationMethods: ['bidiGenerateContent'],
+      },
+      { name: 'models/mock-flash', supportedGenerationMethods: ['generateContent'] },
+    ];
+    res.writeHead(200, { ...CORS, 'content-type': 'application/json' });
+    res.end(JSON.stringify(req.url?.includes('/models') ? { models } : {}));
   }
 }

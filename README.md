@@ -10,7 +10,7 @@ _The demo is recorded by a script (`pnpm demo`) with a scripted model on a local
 
 ## What it does
 
-- **Side panel agent.** Describe a task and the agent works in your tabs, showing every step. Providers: Anthropic (Claude), OpenAI, Gemini, and any OpenAI-compatible server (Ollama, LM Studio, OpenRouter). Switch provider and model per chat.
+- **Side panel agent.** Describe a task and the agent works in your tabs, showing every step. Providers: Anthropic (Claude), OpenAI, Gemini, Gemini Live, and any OpenAI-compatible server (Ollama, LM Studio, OpenRouter). Switch provider and model per chat.
 - **Bridge.** `autochrome-bridge` is an MCP server (stdio) plus a local HTTP/WebSocket API, so Claude Code, Cursor or your own scripts can drive the same browser with the same tools.
 - **Safety modes.** Ask every action, per-site approval (default) or auto. Risky actions always ask.
 - **Debug tools.** Read the console, list network requests and their responses, run JavaScript in a page (always asks first).
@@ -19,9 +19,9 @@ The agent works on your real tabs and sessions, in its own colored tab group. Pa
 
 ## Status
 
-Version 1.1.1. Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against **local mock provider servers**. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
+Version 1.2.0. Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against **local mock provider servers**. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
 
-**Tested against a real provider: Gemini** (`gemini-3.5-flash-lite`): streaming, tool calls with thought signatures, screenshots in tool results, a real side-panel task (fill and submit a form, with approvals) and a workflow step repaired by the AI. **Not yet tested against the real APIs** of Anthropic, OpenAI, Ollama, LM Studio or OpenRouter; their request and response handling was written from each provider's API reference, so expect rough edges on the first real run and please [open an issue](https://github.com/FahadDhruba/autochrome/issues) if you hit one. Chrome is the target browser; Edge and Brave should work but are untested.
+**Tested against a real provider: Gemini** (`gemini-3.5-flash-lite`): streaming, tool calls with thought signatures, screenshots in tool results, a real side-panel task (fill and submit a form, with approvals) and a workflow step repaired by the AI. **Gemini Live** (`gemini-3.8-live`) passed the same side-panel form task and workflow repair; expect about 4 s per step. **Not yet tested against the real APIs** of Anthropic, OpenAI, Ollama, LM Studio or OpenRouter; their request and response handling was written from each provider's API reference, so expect rough edges on the first real run and please [open an issue](https://github.com/FahadDhruba/autochrome/issues) if you hit one. Chrome is the target browser; Edge and Brave should work but are untested.
 
 ## Install the extension
 
@@ -49,6 +49,8 @@ Chrome shows a "started debugging this browser" banner while the agent works. Th
 1. Click the autochrome toolbar icon to open the side panel.
 2. Open **Settings**, pick a provider and paste its API key. For OpenAI, enter a model name. For Ollama, LM Studio or OpenRouter choose the OpenAI-compatible provider and set its base URL (for example `http://localhost:11434/v1`).
 3. Back in the chat, give it a task. Use **Stop** to cancel at any time.
+
+**Gemini Live** (`gemini-3.8-live` and similar) works over the Live API's WebSocket and can only answer in audio, so the extension asks for a spoken reply with a transcript and shows the transcript. Trade-offs: about 4 seconds per agent step, no thought signatures, and tool results are replayed to the model as text because the Live API ignores structured function responses when history is replayed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes speaks and stops without calling a tool. Gemini Live uses your Gemini API key unless you set a separate one.
 
 API keys are stored in `chrome.storage.local` in your browser profile. They are sent only to the provider you configured, and never to the bridge. Chat history is stored locally too.
 

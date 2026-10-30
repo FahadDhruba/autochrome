@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isProviderReady } from './settings';
+import { isProviderReady, withKeyFallbacks, type AllProviderSettings } from './settings';
 
 const settings = (patch: Partial<{ apiKey: string; baseUrl: string; model: string }>) => ({
   apiKey: '',
@@ -20,5 +20,22 @@ describe('isProviderReady', () => {
       true,
     );
     expect(isProviderReady('compatible', settings({}))).toBe(false);
+  });
+});
+
+describe('withKeyFallbacks', () => {
+  const all = (live: string, gemini: string) =>
+    ({
+      anthropic: settings({}),
+      openai: settings({}),
+      gemini: settings({ apiKey: gemini }),
+      'gemini-live': settings({ apiKey: live }),
+      compatible: settings({}),
+    }) satisfies AllProviderSettings;
+
+  it('lends the Gemini key to Gemini Live only when it has none', () => {
+    expect(withKeyFallbacks(all('', 'g'))['gemini-live'].apiKey).toBe('g');
+    expect(withKeyFallbacks(all('own', 'g'))['gemini-live'].apiKey).toBe('own');
+    expect(withKeyFallbacks(all('', 'g')).openai.apiKey).toBe('');
   });
 });
