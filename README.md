@@ -4,9 +4,9 @@
 
 An open-source Chrome extension that lets an AI use your real browser. Tell it what to do in a side panel chat, and it clicks, types and reads pages in your tabs while you watch. Tools like Claude Code and Cursor can drive it too.
 
-![autochrome filling in and submitting a signup form](docs/demo.gif)
+![autochrome searching Wikipedia with Gemini and answering in the side panel](docs/real/gemini-wikipedia.gif)
 
-_The demo is recorded by a script (`pnpm demo`) with a scripted model on a local test page. It shows the real extension UI, not a real model._
+_A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: the task took 28 seconds, shown at 2× speed. Approval prompts were answered by the recording script._
 
 **Contents:** [Get started](#get-started) · [Using autochrome](#using-autochrome) · [Safety](#safety) · [Workflows](#workflows) · [Schedules](#schedules) · [Claude Code and Cursor](#use-from-claude-code-or-cursor) · [Troubleshooting](#troubleshooting) · [For developers](#for-developers)
 
@@ -171,6 +171,12 @@ Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues
 
 Version 1.2.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
 
+Screenshots from real Gemini Live (`gemini-3.8-live`) test runs:
+
+| Reading Hacker News (real site, 31 s)                                                     | A risky click waits for approval (local test page)                                      |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| ![Gemini Live listing the top Hacker News stories](docs/real/gemini-live-hacker-news.png) | ![Approval card asking before clicking Place order](docs/real/gemini-live-approval.png) |
+
 # For developers
 
 ## Build from source
@@ -216,6 +222,8 @@ Gemini Live uses the Live API's WebSocket, one session per agent step. The Live 
 | `packages/bridge`    | Node MCP server and HTTP/WebSocket API (`autochrome-bridge`)         |
 | `scripts`            | Maintainer scripts: tools table, icons, demo GIF                     |
 | `docs/plans`         | The design spec for each milestone                                   |
+
+`pnpm demo` records `docs/demo.gif` with a scripted model on a local page, for a demo that does not need an API key.
 
 Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first; it builds the extension again with test hooks into `.output-e2e`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, [PLAN.md](PLAN.md) for the design and [RELEASING.md](RELEASING.md) for releases.
 
