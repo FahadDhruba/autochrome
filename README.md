@@ -19,9 +19,9 @@ The agent works on your real tabs and sessions, in its own colored tab group. Pa
 
 ## Status
 
-Version 1.0.0. Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against **local mock provider servers**. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
+Version 1.1.0. Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against **local mock provider servers**. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
 
-**Not yet tested against the real provider APIs** (Anthropic, OpenAI, Gemini, Ollama, LM Studio, OpenRouter). The request and response handling was written from each provider's API reference (for OpenAI and Gemini, via documentation excerpts and the official SDK type definitions), so expect rough edges on the first real run and please [open an issue](https://github.com/FahadDhruba/autochrome/issues) if you hit one. Chrome is the target browser; Edge and Brave should work but are untested.
+**Tested against a real provider: Gemini** (`gemini-3.5-flash-lite`): streaming, tool calls with thought signatures, screenshots in tool results, a real side-panel task (fill and submit a form, with approvals) and a workflow step repaired by the AI. **Not yet tested against the real APIs** of Anthropic, OpenAI, Ollama, LM Studio or OpenRouter; their request and response handling was written from each provider's API reference, so expect rough edges on the first real run and please [open an issue](https://github.com/FahadDhruba/autochrome/issues) if you hit one. Chrome is the target browser; Edge and Brave should work but are untested.
 
 ## Install the extension
 

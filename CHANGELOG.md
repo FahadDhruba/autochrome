@@ -2,6 +2,20 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Changed
+
+- `navigate` with no tab to work in (a fresh task) now opens a new tab in the agent group instead
+  of failing, so the model's natural first step works.
+- `wait` for text matches case-insensitively; the model cannot know how a page capitalises it.
+
+### Verified
+
+- First run against a real provider: Gemini (`gemini-3.5-flash-lite`) handled streaming, tool
+  calls with thought signatures, screenshots in tool results, a side-panel form task with
+  approvals, and a workflow step repaired by the AI.
+
 ## [1.1.0] - 2026-10-29
 
 ### Added
