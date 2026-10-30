@@ -1,5 +1,5 @@
 import { expect, openModelChip, refOf, test } from './harness';
-import type { ProviderRequest } from './mockProviders';
+import type { LiveRequest, ProviderRequest } from './mockProviders';
 
 type GeminiPart = {
   text?: string;
@@ -27,6 +27,13 @@ const geminiResponse = (request: ProviderRequest, name: string): string => {
   return String(
     parts.find((p) => p.functionResponse?.name === name)?.functionResponse?.response.output ?? '',
   );
+};
+
+const liveResult = (request: LiveRequest, callId: string): string => {
+  const parts = (request.turns as { parts: GeminiPart[] }[]).flatMap((t) => t.parts);
+  const prefix = /^Result of \S+ \((.+)\):\n/;
+  const part = parts.find((p) => p.text?.match(prefix)?.[1] === callId);
+  return part?.text?.replace(prefix, '') ?? '';
 };
 
 test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
@@ -181,6 +188,82 @@ test('runs the chat flow against Gemini and sends thought signatures back', asyn
   ]);
 });
 
+test('runs the chat flow against Gemini Live and replays tool results as text', async ({
+  baseUrl,
+  context,
+  debugPage,
+  mockGeminiLive: mock,
+  openSidePanel,
+}) => {
+  // No Gemini Live key of its own: it uses the Gemini key.
+  await debugPage.evaluate(
+    (url) =>
+      chrome.storage.local.set({
+        'gemini.apiKey': 'gem-key',
+        'gemini-live.baseUrl': url,
+        'gemini-live.model': 'mock-live',
+        defaultProvider: 'gemini-live',
+      }),
+    mock.baseUrl,
+  );
+  mock.play(
+    {
+      text: 'Opening the form.',
+      calls: [
+        { id: 'live_open', name: 'tab_open', input: { url: `${baseUrl}/form.html` } },
+        { id: 'live_read', name: 'read_page', input: {} },
+      ],
+    },
+    (request) => ({
+      calls: [
+        {
+          id: 'live_click',
+          name: 'click',
+          input: { ref: refOf(liveResult(request, 'live_read'), /Count/) },
+        },
+      ],
+    }),
+    { text: 'I clicked the Count button.' },
+  );
+
+  const panel = await openSidePanel();
+  await openModelChip(panel);
+  await expect(panel.getByLabel('Provider')).toHaveValue('gemini-live');
+  await expect(panel.getByLabel('Model')).toHaveValue('mock-live');
+  await expect(panel.getByText('about 4 s per step')).toBeVisible();
+  await panel.getByLabel('Message').fill('Open the form and click Count');
+  await panel.getByLabel('Message').press('Enter');
+
+  await expect(panel.getByTestId('tool-card').locator('.tool-name')).toHaveText([
+    'tab_open',
+    'read_page',
+    'click',
+  ]);
+  await expect(panel.getByText('I clicked the Count button.')).toBeVisible();
+  const fixture = context.pages().find((page) => page.url().endsWith('/form.html'))!;
+  await expect(fixture.locator('#clicks')).toHaveText('clicks: 1');
+
+  expect(mock.requests).toHaveLength(3);
+  const [first, second] = mock.requests;
+  expect(first!.url).toContain('BidiGenerateContent?key=gem-key');
+  expect(first!.setup).toMatchObject({
+    model: 'models/mock-live',
+    generationConfig: { responseModalities: ['AUDIO'] },
+    outputAudioTranscription: {},
+  });
+  expect(first!.setup.generationConfig).not.toHaveProperty('thinkingConfig');
+  expect(first!.setup.tools[0].functionDeclarations.length).toBeGreaterThan(10);
+
+  const turns = second!.turns as { role: string; parts: GeminiPart[] }[];
+  expect(turns.map((t) => t.role)).toEqual(['user', 'model', 'user']);
+  expect(turns[1]!.parts[0]).toEqual({ text: 'Opening the form.' });
+  expect(turns[1]!.parts[1]).toMatchObject({ functionCall: { id: 'live_open', name: 'tab_open' } });
+  const replayed = turns.flatMap((t) => t.parts);
+  expect(replayed.some((p) => p.functionResponse)).toBe(false);
+  expect(replayed.some((p) => p.text?.startsWith('Result of tab_open (live_open):'))).toBe(true);
+  expect(liveResult(second!, 'live_read')).toContain('Count');
+});
+
 test('switches a chat from Anthropic to a compatible provider mid-conversation', async ({
   baseUrl,
   debugPage,
@@ -304,4 +387,23 @@ test('configures the compatible provider in Settings and makes it the default', 
   await openModelChip(panel);
   await expect(panel.getByLabel('Provider')).toHaveValue('compatible');
   await expect(panel.getByLabel('Provider').locator('option')).toHaveText(['OpenAI-compatible']);
+});
+
+test('shows Gemini Live in Settings with its note and lists only Live models', async ({
+  debugPage,
+  mockGeminiLive: mock,
+  openSidePanel,
+}) => {
+  await debugPage.evaluate(
+    (url) => chrome.storage.local.set({ 'gemini.apiKey': 'gem-key', 'gemini-live.baseUrl': url }),
+    mock.baseUrl,
+  );
+  const panel = await openSidePanel();
+  await panel.getByRole('button', { name: 'Settings', exact: true }).click();
+  await panel.getByLabel('Provider').selectOption('gemini-live');
+  const section = panel.getByRole('region', { name: 'Gemini Live settings' });
+  await expect(section.getByText('about 4 s per step')).toBeVisible();
+  await expect(section.getByLabel('API key')).toHaveValue('');
+  await expect(panel.locator('#settings-models option')).toHaveCount(1);
+  await expect(panel.locator('#settings-models option')).toHaveAttribute('value', 'mock-live');
 });

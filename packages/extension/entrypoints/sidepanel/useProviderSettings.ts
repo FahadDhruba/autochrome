@@ -4,6 +4,7 @@ import {
   isProviderReady,
   loadAllProviderSettings,
   loadDefaultProvider,
+  withKeyFallbacks,
   type AllProviderSettings,
 } from '@/src/settings';
 import { PROVIDER_IDS } from '@/src/providers';
@@ -21,10 +22,11 @@ export function useProviderSettings(): ProviderState | undefined {
 
   useEffect(() => {
     const refresh = async () => {
-      const [all, defaultProvider] = await Promise.all([
+      const [stored, defaultProvider] = await Promise.all([
         loadAllProviderSettings(),
         loadDefaultProvider(),
       ]);
+      const all = withKeyFallbacks(stored);
       const ready = PROVIDER_IDS.filter((id) => isProviderReady(id, all[id])).sort(
         (a, b) => Number(b === defaultProvider) - Number(a === defaultProvider),
       );

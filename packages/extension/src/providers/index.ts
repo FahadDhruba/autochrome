@@ -1,5 +1,10 @@
 import { createAnthropicProvider, DEFAULT_MODEL as ANTHROPIC_DEFAULT_MODEL } from './anthropic';
 import { createGeminiProvider, DEFAULT_BASE_URL as GEMINI_BASE_URL } from './gemini';
+import {
+  createGeminiLiveProvider,
+  DEFAULT_BASE_URL as GEMINI_LIVE_BASE_URL,
+  DEFAULT_MODEL as GEMINI_LIVE_MODEL,
+} from './gemini-live';
 import { createOpenAiProvider } from './openai';
 import type { Provider, ProviderId } from './types';
 
@@ -11,11 +16,21 @@ export type ProviderInfo = {
   /** Used when no base URL is saved. Empty means the user has to supply one. */
   defaultBaseUrl: string;
   defaultModel: string;
+  /** Another provider whose API key is used when this one has none. */
+  keyFallback?: ProviderId;
+  /** One line shown under the provider's settings. */
+  note?: string;
 };
 
 const OPENAI_URL = 'https://api.openai.com/v1';
 
-export const PROVIDER_IDS: ProviderId[] = ['anthropic', 'openai', 'gemini', 'compatible'];
+export const PROVIDER_IDS: ProviderId[] = [
+  'anthropic',
+  'openai',
+  'gemini',
+  'gemini-live',
+  'compatible',
+];
 
 export const providers: Record<ProviderId, ProviderInfo> = {
   anthropic: {
@@ -41,6 +56,16 @@ export const providers: Record<ProviderId, ProviderInfo> = {
     needsKey: true,
     defaultBaseUrl: GEMINI_BASE_URL,
     defaultModel: '',
+  },
+  'gemini-live': {
+    id: 'gemini-live',
+    provider: createGeminiLiveProvider(),
+    label: 'Gemini Live',
+    needsKey: true,
+    defaultBaseUrl: GEMINI_LIVE_BASE_URL,
+    defaultModel: GEMINI_LIVE_MODEL,
+    keyFallback: 'gemini',
+    note: 'Answers are transcripts of spoken replies; expect about 4 s per step.',
   },
   compatible: {
     id: 'compatible',

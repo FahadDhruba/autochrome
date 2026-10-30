@@ -19,7 +19,7 @@ export type Part =
       target?: TargetHint;
     };
 
-export type ProviderId = 'anthropic' | 'openai' | 'gemini' | 'compatible';
+export type ProviderId = 'anthropic' | 'openai' | 'gemini' | 'gemini-live' | 'compatible';
 
 /** `signature` is provider-opaque (Gemini thought signatures); it is stored and sent back as is. */
 export type ChatMessage = { role: 'user' | 'assistant'; parts: Part[] };

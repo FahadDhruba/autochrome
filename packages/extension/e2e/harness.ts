@@ -7,7 +7,7 @@ import { chromium, test as base, type BrowserContext, type Page } from '@playwri
 import type { ToolName, ToolResult } from '@autochrome/shared';
 import type { SafetyMode } from '../src/safety/settings';
 import { MockAnthropic } from './mockAnthropic';
-import { MockGemini, MockOpenAi } from './mockProviders';
+import { MockGemini, MockGeminiLive, MockOpenAi } from './mockProviders';
 
 const extensionPath = path.resolve(import.meta.dirname, '../.output-e2e/chrome-mv3-e2e');
 const fixturesPath = path.resolve(import.meta.dirname, 'fixtures');
@@ -40,6 +40,7 @@ type Fixtures = {
   mockOpenAi: MockOpenAi;
   /** Local Gemini-style server; not configured in the extension until a test points it there. */
   mockGemini: MockGemini;
+  mockGeminiLive: MockGeminiLive;
   /** Opens the side panel UI as a normal tab (Playwright cannot drive the real side panel). */
   openSidePanel: () => Promise<Page>;
   /** The extension's debug page; tools run from here exactly as the debugger UI does. */
@@ -104,6 +105,13 @@ export const test = base.extend<Fixtures>({
 
   mockGemini: async ({}, use) => {
     const mock = new MockGemini();
+    await mock.start();
+    await use(mock);
+    await mock.stop();
+  },
+
+  mockGeminiLive: async ({}, use) => {
+    const mock = new MockGeminiLive();
     await mock.start();
     await use(mock);
     await mock.stop();

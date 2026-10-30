@@ -25,9 +25,22 @@ function fromStored(id: ProviderId, stored: Record<string, unknown>): ProviderSe
   };
 }
 
+/** Providers with no key of their own use their fallback's key (Gemini Live uses Gemini's). */
+export function withKeyFallbacks(all: AllProviderSettings): AllProviderSettings {
+  return Object.fromEntries(
+    PROVIDER_IDS.map((id) => {
+      const fallback = providers[id].keyFallback;
+      const apiKey = all[id].apiKey || (fallback ? all[fallback].apiKey : '');
+      return [id, { ...all[id], apiKey }];
+    }),
+  ) as AllProviderSettings;
+}
+
 export async function loadProviderSettings(id: ProviderId): Promise<ProviderSettings> {
-  const k = keys(id);
-  return fromStored(id, await browser.storage.local.get([k.apiKey, k.baseUrl, k.model]));
+  const own = fromStored(id, await browser.storage.local.get(Object.values(keys(id))));
+  const fallback = providers[id].keyFallback;
+  if (own.apiKey || !fallback) return own;
+  return { ...own, apiKey: (await loadProviderSettings(fallback)).apiKey };
 }
 
 export async function loadAllProviderSettings(): Promise<AllProviderSettings> {

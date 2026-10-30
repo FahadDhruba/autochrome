@@ -9,6 +9,7 @@ import {
   loadDefaultProvider,
   saveDefaultProvider,
   saveProviderSettings,
+  withKeyFallbacks,
   type AllProviderSettings,
 } from '@/src/settings';
 import BridgeSettings from './BridgeSettings';
@@ -19,6 +20,7 @@ const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
   anthropic: 'sk-ant-…',
   openai: 'sk-…',
   gemini: 'AIza…',
+  'gemini-live': 'AIza… (empty uses the Gemini key)',
   compatible: 'Optional',
 };
 
@@ -48,7 +50,10 @@ export default function SettingsView() {
   const info = providers[selected];
   const draft = drafts?.[selected];
   // Suggestions follow what is saved, not every keystroke.
-  const models = useModelOptions(selected, saved?.[selected] ?? emptySettings);
+  const models = useModelOptions(
+    selected,
+    (saved && withKeyFallbacks(saved)[selected]) || emptySettings,
+  );
   if (!drafts || !draft) return null;
 
   const change = (patch: Partial<ProviderSettings>) => {
@@ -141,6 +146,7 @@ export default function SettingsView() {
             ? 'Stored on this device and sent only to the server above.'
             : `Stored on this device and sent only to the ${info.label} API.`}
         </p>
+        {info.note && <p className="muted">{info.note}</p>}
         <label>
           Model
           <input
