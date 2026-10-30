@@ -82,6 +82,71 @@ a {
 
 .bubble-assistant {
   background: var(--surface);
+  white-space: normal;
+}
+
+.md > * {
+  margin: 0 0 8px;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md ul,
+.md ol {
+  padding-left: 20px;
+}
+
+.md li > p,
+.md li > ul,
+.md li > ol {
+  margin: 0;
+}
+
+.md-heading {
+  font-weight: 600;
+}
+
+.md-h1 {
+  font-size: 15px;
+}
+
+.md-h2,
+.md-h3 {
+  font-size: 14px;
+}
+
+.md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--user-bg);
+}
+
+.md pre {
+  overflow-x: auto;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--user-bg);
+  white-space: pre;
+}
+
+.md pre code {
+  padding: 0;
+  background: none;
+}
+
+.md blockquote {
+  padding-left: 10px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.md a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .working,

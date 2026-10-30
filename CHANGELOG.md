@@ -11,6 +11,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
   tasks in the same chat are shortened the same way. The chat you see is unchanged. On real runs
   this cut the history sent by up to 31%.
 - `read_page` returns at most 20,000 characters (was 50,000) and suggests `find` for the rest.
+- Answers in the side panel render markdown (bold, lists, code, links) instead of showing the raw
+  symbols.
 
 ## [1.2.0] - 2026-10-30
 
