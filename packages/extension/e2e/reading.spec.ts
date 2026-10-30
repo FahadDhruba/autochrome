@@ -101,6 +101,8 @@ test('wait for a fixed time and for text', async ({ callText, openFixture }) => 
 
   await page.click('#later');
   expect(await callText('wait', { text: 'Loaded later' })).toContain('Loaded later');
+  // Case does not matter: the model cannot know how the page capitalises it.
+  expect(await callText('wait', { text: 'LOADED LATER' })).toContain('LOADED LATER');
 });
 
 test('wait times out when the text never appears', async ({ callTool, openFixture }) => {

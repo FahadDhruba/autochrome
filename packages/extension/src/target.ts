@@ -21,9 +21,8 @@ async function exists(tabId: number): Promise<boolean> {
   }
 }
 
-/** Explicit tabId, else the current tab, else the active web tab of the last focused window. */
-export async function resolveTabId(tabId?: number): Promise<number> {
-  if (tabId !== undefined) return tabId;
+/** The current tab, else the active web tab of the last focused window, else undefined. */
+export async function findTargetTabId(): Promise<number | undefined> {
   if (currentTabId !== undefined && (await exists(currentTabId))) return currentTabId;
 
   const window = await browser.windows
@@ -33,5 +32,13 @@ export async function resolveTabId(tabId?: number): Promise<number> {
     const [active] = await browser.tabs.query({ active: true, windowId: window.id });
     if (active?.id !== undefined && isPageUrl(active.url)) return active.id;
   }
-  throw new Error('No target tab. Use tab_open or tab_switch first.');
+  return undefined;
+}
+
+/** Explicit tabId, else the default target tab; throws when there is none. */
+export async function resolveTabId(tabId?: number): Promise<number> {
+  if (tabId !== undefined) return tabId;
+  const target = await findTargetTabId();
+  if (target === undefined) throw new Error('No target tab. Use tab_open or tab_switch first.');
+  return target;
 }

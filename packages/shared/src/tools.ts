@@ -118,7 +118,10 @@ export const toolDefinitions = {
     z
       .object({
         ms: z.number().min(0).max(10_000).optional(),
-        text: z.string().optional().describe('Resolve as soon as this text is in the page.'),
+        text: z
+          .string()
+          .optional()
+          .describe('Resolve as soon as this text is in the page (case-insensitive).'),
         timeoutMs: z.number().positive().max(30_000).default(10_000),
         tabId,
       })

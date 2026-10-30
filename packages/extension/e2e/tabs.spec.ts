@@ -8,6 +8,22 @@ test('errors when there is no target tab', async ({ callTool }) => {
   ]);
 });
 
+test('navigate with no target tab opens a new agent tab instead of failing', async ({
+  baseUrl,
+  callText,
+  callTool,
+  context,
+}) => {
+  const [page, result] = await Promise.all([
+    context.waitForEvent('page'),
+    callTool('navigate', { url: `${baseUrl}/form.html` }),
+  ]);
+  expect(result.ok).toBe(true);
+  expect(JSON.stringify(result.content)).toContain('Opened tab');
+  await expect(page).toHaveURL(/form\.html/);
+  expect(await callText('tabs_list', { agentOnly: true })).toContain('form.html');
+});
+
 test('tab_open puts the tab in the autochrome group and makes it current', async ({
   baseUrl,
   callText,

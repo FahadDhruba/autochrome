@@ -57,6 +57,7 @@ export function setValue(ref: string, value: string | boolean): string {
   throw new Error(`${ref} is not a form field.`);
 }
 
+/** Case-insensitive: the model cannot know how a page capitalises the text it waits for. */
 export function hasText(text: string): boolean {
-  return document.body.innerText.includes(text);
+  return document.body.innerText.toLowerCase().includes(text.toLowerCase());
 }

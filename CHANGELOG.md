@@ -2,6 +2,20 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.1.1] - 2026-10-30
+
+### Changed
+
+- `navigate` with no tab to work in (a fresh task) now opens a new tab in the agent group instead
+  of failing, so the model's natural first step works.
+- `wait` for text matches case-insensitively; the model cannot know how a page capitalises it.
+
+### Verified
+
+- First run against a real provider: Gemini (`gemini-3.5-flash-lite`) handled streaming, tool
+  calls with thought signatures, screenshots in tool results, a side-panel form task with
+  approvals, and a workflow step repaired by the AI.
+
 ## [1.1.0] - 2026-10-29
 
 ### Added
@@ -86,5 +100,6 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.1.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.1
 [1.1.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.0
 [1.0.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.0.0

@@ -2,7 +2,8 @@ import { browser } from 'wxt/browser';
 import { cdp } from '../debugger';
 import { loadPage, waitForLoad } from '../navigation';
 import { addToAgentGroup, listTabs } from '../tabGroup';
-import { getCurrentTabId, resolveTabId, setCurrentTab } from '../target';
+import { findTargetTabId, getCurrentTabId, resolveTabId, setCurrentTab } from '../target';
+import type { ToolSource } from '../safety/types';
 import { text, type ToolHandlers } from './types';
 
 async function describeTab(tabId: number): Promise<string> {
@@ -30,6 +31,23 @@ async function finishNavigation(tabId: number, verb: string): Promise<string> {
   return `${verb} ${await describeTab(tabId)}`;
 }
 
+/** Opens a tab in the agent group and, unless in the background, makes it the current tab. */
+async function openAgentTab(
+  url: string | undefined,
+  background: boolean,
+  source: ToolSource,
+): Promise<string> {
+  // Open straight at the URL: navigating a blank tab afterwards races with the blank page's own load.
+  const tab = await browser.tabs.create({ active: !background, url });
+  const tabId = tab.id!;
+  await addToAgentGroup(tabId, source);
+  if (!background) setCurrentTab(tabId);
+  const where = background ? ' in the background' : '';
+  if (!url) return `Opened tab ${tabId}${where}.`;
+  await waitForLoad(tabId);
+  return `Opened tab ${tabId}${where}: ${await describeTab(tabId)}`;
+}
+
 export const tabHandlers: Pick<
   ToolHandlers,
   'tabs_list' | 'tab_open' | 'tab_switch' | 'tab_close' | 'navigate' | 'go_back' | 'go_forward'
@@ -49,15 +67,7 @@ export const tabHandlers: Pick<
   },
 
   async tab_open({ url, background }, { source }) {
-    // Open straight at the URL: navigating a blank tab afterwards races with the blank page's own load.
-    const tab = await browser.tabs.create({ active: !background, url });
-    const tabId = tab.id!;
-    await addToAgentGroup(tabId, source);
-    if (!background) setCurrentTab(tabId);
-    const where = background ? ' in the background' : '';
-    if (!url) return text(`Opened tab ${tabId}${where}.`);
-    await waitForLoad(tabId);
-    return text(`Opened tab ${tabId}${where}: ${await describeTab(tabId)}`);
+    return text(await openAgentTab(url, background, source));
   },
 
   async tab_switch({ tabId }, { source }) {
@@ -74,8 +84,10 @@ export const tabHandlers: Pick<
     return text(`Closed tab ${tabId}.`);
   },
 
-  async navigate({ url, tabId }) {
-    const id = await resolveTabId(tabId);
+  async navigate({ url, tabId }, { source }) {
+    // With no tab to navigate yet (a fresh task), open one rather than fail the model's first step.
+    const id = tabId ?? (await findTargetTabId());
+    if (id === undefined) return text(await openAgentTab(url, false, source));
     await loadPage(id, () => browser.tabs.update(id, { url }));
     return text(await finishNavigation(id, 'Loaded'));
   },
