@@ -2,88 +2,134 @@
 
 # autochrome
 
-An open-source Chrome extension that lets an AI control your real browser, from a side panel chat or from outside tools like Claude Code and Cursor.
+An open-source Chrome extension that lets an AI use your real browser. Tell it what to do in a side panel chat, and it clicks, types and reads pages in your tabs while you watch. Tools like Claude Code and Cursor can drive it too.
 
 ![autochrome filling in and submitting a signup form](docs/demo.gif)
 
 _The demo is recorded by a script (`pnpm demo`) with a scripted model on a local test page. It shows the real extension UI, not a real model._
 
+**Contents:** [Get started](#get-started) · [Using autochrome](#using-autochrome) · [Safety](#safety) · [Workflows](#workflows) · [Schedules](#schedules) · [Claude Code and Cursor](#use-from-claude-code-or-cursor) · [Troubleshooting](#troubleshooting) · [For developers](#for-developers)
+
 ## What it does
 
-- **Side panel agent.** Describe a task and the agent works in your tabs, showing every step. Providers: Anthropic (Claude), OpenAI, Gemini, Gemini Live, and any OpenAI-compatible server (Ollama, LM Studio, OpenRouter). Switch provider and model per chat.
-- **Bridge.** `autochrome-bridge` is an MCP server (stdio) plus a local HTTP/WebSocket API, so Claude Code, Cursor or your own scripts can drive the same browser with the same tools.
-- **Safety modes.** Ask every action, per-site approval (default) or auto. Risky actions always ask.
-- **Debug tools.** Read the console, list network requests and their responses, run JavaScript in a page (always asks first).
+- **An AI agent in a side panel.** Describe a task ("fill in this form", "find the cheapest flight on this page", "summarize my open tabs") and watch it work, step by step.
+- **Your choice of AI.** Claude (Anthropic), OpenAI, Gemini, Gemini Live, or a model on your own computer (Ollama, LM Studio) or through OpenRouter. Switch per chat.
+- **You stay in control.** By default it asks before acting on a new site, and always asks before buying, sending, deleting or typing a password or card number.
+- **Workflows and schedules.** Record a task once and replay it without the AI, or run it on a timer.
+- **Works with Claude Code and Cursor**, which can use the same browser through the `autochrome-bridge` add-on.
 
-The agent works on your real tabs and sessions, in its own colored tab group. Pages are read as a compact accessibility tree with short element IDs; screenshots and x/y clicks are the fallback.
+The agent works in your real tabs, signed in as you, inside its own colored tab group so you can see which tabs it is using.
 
-## Status
+# Get started
 
-Version 1.2.0. Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against **local mock provider servers**. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
+You need Google Chrome and an API key from an AI provider. No coding or extra software is needed.
 
-**Tested against a real provider: Gemini** (`gemini-3.5-flash-lite`): streaming, tool calls with thought signatures, screenshots in tool results, a real side-panel task (fill and submit a form, with approvals) and a workflow step repaired by the AI. **Gemini Live** (`gemini-3.8-live`) passed the same side-panel form task and workflow repair; expect about 4 s per step. **Not yet tested against the real APIs** of Anthropic, OpenAI, Ollama, LM Studio or OpenRouter; their request and response handling was written from each provider's API reference, so expect rough edges on the first real run and please [open an issue](https://github.com/FahadDhruba/autochrome/issues) if you hit one. Chrome is the target browser; Edge and Brave should work but are untested.
+## 1. Install the extension
 
-## Install the extension
+autochrome is not on the Chrome Web Store yet, so you add it yourself:
 
-Requires Node 22+ and [pnpm](https://pnpm.io) 10.
+1. Download the latest `autochrome-<version>-chrome.zip` from the [Releases page](https://github.com/FahadDhruba/autochrome/releases/latest).
+2. Unzip it into a folder you will keep, for example `Documents/autochrome`. Chrome loads the extension from this folder, so do not delete or move it.
+3. Open `chrome://extensions` in Chrome.
+4. Turn on **Developer mode** (top right).
+5. Click **Load unpacked** and choose the unzipped folder.
+6. Click the puzzle-piece icon in the toolbar and pin **autochrome**, so its icon stays visible.
 
-**From source**
+## 2. Get an API key
 
-```sh
-git clone https://github.com/FahadDhruba/autochrome.git
-cd autochrome
-pnpm install
-pnpm build
-```
+The AI runs at a provider you choose, with your own key. Pick one:
 
-Open `chrome://extensions`, turn on Developer mode, click **Load unpacked** and choose `packages/extension/.output/chrome-mv3`.
+| Provider                 | Where to get a key                                                                             | Notes                                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **Gemini** (recommended) | [Google AI Studio](https://aistudio.google.com/apikey)                                         | Free tier available. Tested with real tasks.                                                 |
+| Gemini Live              | Same key as Gemini                                                                             | For Live-only models such as `gemini-3.8-live`. Slower, see below.                           |
+| Claude (Anthropic)       | [Anthropic Console](https://console.anthropic.com/settings/keys)                               | Paid.                                                                                        |
+| OpenAI                   | [OpenAI Platform](https://platform.openai.com/api-keys)                                        | Paid.                                                                                        |
+| Ollama or LM Studio      | No key; runs on your computer ([Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai)) | Free. Use the OpenAI-compatible provider with base URL `http://localhost:11434/v1` (Ollama). |
+| OpenRouter               | [OpenRouter](https://openrouter.ai/keys)                                                       | Many models behind one key. Use the OpenAI-compatible provider.                              |
 
-**From a release zip** (once a release exists)
+## 3. Set it up
 
-Download `autochrome-<version>-chrome.zip` from the [Releases page](https://github.com/FahadDhruba/autochrome/releases) and unzip it. Then **Load unpacked** on the unzipped folder, as above. It is not on the Chrome Web Store.
+1. Click the autochrome icon in the toolbar. The side panel opens on the right.
+2. Click **Settings** (gear icon). Every icon shows its name when you hover over it.
+3. Choose your provider, paste the API key and pick a model.
 
-Chrome shows a "started debugging this browser" banner while the agent works. That is expected: input and debugging tools use `chrome.debugger`.
+Your key is stored only in this Chrome profile and is sent only to the provider you chose.
 
-## Use the side panel
+## 4. Give it a task
 
-1. Click the autochrome toolbar icon to open the side panel.
-2. Open **Settings**, pick a provider and paste its API key. For OpenAI, enter a model name. For Ollama, LM Studio or OpenRouter choose the OpenAI-compatible provider and set its base URL (for example `http://localhost:11434/v1`).
-3. Back in the chat, give it a task. Use **Stop** to cancel at any time.
+Type what you want in the box at the bottom and press **Send**. For example:
 
-**Gemini Live** (`gemini-3.8-live` and similar) works over the Live API's WebSocket and can only answer in audio, so the extension asks for a spoken reply with a transcript and shows the transcript. Trade-offs: about 4 seconds per agent step, no thought signatures, and tool results are replayed to the model as text because the Live API ignores structured function responses when history is replayed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes speaks and stops without calling a tool. Gemini Live uses your Gemini API key unless you set a separate one.
+- "Open wikipedia.org and tell me when Ada Lovelace was born."
+- "Fill in this form with my name, Ada Lovelace, and ada@example.com, then submit it."
+- "List my open tabs and group them by topic."
+- "On this page, find the contact email."
 
-API keys are stored in `chrome.storage.local` in your browser profile. They are sent only to the provider you configured, and never to the bridge. Chat history is stored locally too.
+Each step appears as a card in the chat; click a card to see exactly what was sent and what came back. Press **Stop** at any time. When it needs permission, an approval card appears: read it, then choose **Allow once**, **Allow on this site** or **Deny**.
+
+While the agent works, Chrome shows a bar saying autochrome "started debugging this browser". That is normal: it is how the extension clicks and types for you.
+
+# Using autochrome
+
+## Chats and models
+
+- **New chat** starts over. **Chats** lists your earlier chats; they are saved in this browser only.
+- The chip under the message box (for example `Gemini · gemini-3.5-flash-lite`) switches provider and model for the current chat.
+- **Save as workflow** under a finished chat turns what the AI did into a replayable [workflow](#workflows).
+
+**Gemini Live** (`gemini-3.8-live` and similar) can only answer by voice, so autochrome shows the transcript of the spoken reply. It works for real tasks but is slower: about 1 to 2 seconds per action, and long final answers can take 10 to 20 seconds because the transcript arrives at speaking speed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes stops without doing anything. Gemini Live uses your Gemini key unless you set a separate one.
+
+## Safety
+
+Choose how much the AI may do without asking in **Settings → Safety**:
+
+| Mode               | Behaviour                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| Ask every action   | Every action asks first. Reading a site you have not allowed also asks.            |
+| Per-site (default) | Approve a site once with Allow on this site. Risky actions still ask every time.   |
+| Auto               | No prompts. The side panel shows an "Auto" badge. Only use it for tasks you trust. |
+
+Risky actions are clicking or pressing Enter on buttons or links that buy or pay (buy, checkout, place order, donate), send or publish (send, post, submit, reply) or delete (delete, remove, close account), and typing into password or card fields. They ask every time, except in Auto mode.
+
+Always on, in every mode:
+
+- Running JavaScript in a page (`js_eval`) asks every time, even in Auto mode.
+- Text from web pages is treated as untrusted data, and the AI is told never to follow instructions found in it.
+- `chrome://` pages, extension pages and the Chrome Web Store are off limits.
+- A prompt left unanswered for 2 minutes counts as Deny.
+
+**Be careful.** Models can make things up: in testing, a model asked to "place the order" typed an invented email, password and card number before clicking. The approval prompts caught each one, which is why Per-site mode is the default. A malicious web page can also try to trick the AI, and keyword-based risk detection will miss some actions. Read each approval before you click Allow, use Auto mode only for tasks you trust, and avoid running the agent on untrusted pages while signed in to sensitive accounts. See [SECURITY.md](SECURITY.md).
 
 ## Workflows
 
-A workflow is a list of steps you can replay without the AI.
+A workflow is a list of steps you can replay without the AI: quick, free and the same every time. Open **Workflows**:
 
-- **Record** in the **Workflows** view, do the task yourself, then press **Stop**. Clicks, typed values, selects, checkboxes and Enter become steps. A password field becomes a `{{password}}` variable; the value you typed never leaves the page.
-- **Save as workflow** appears under a finished chat. Its successful actions become steps; reads such as `read_page` are dropped.
-- **Edit** a workflow to rename it, reorder or delete steps, change values, and select text in a value and press **Make variable** to ask for it on each run. **Export** and **Import** share workflows as JSON.
-- **Run** asks for the variables, opens a tab of its own and replays the steps. Each step finds its element again by role and name, then visible text, then CSS selector. If a step fails, the AI (your default provider) gets up to 8 tool calls to do just that step, and the run log offers **Update workflow with repaired step**. With no provider set up, the run stops at that step with a clear message and a screenshot.
+- **Record**, do the task yourself, then press **Stop**. Clicks, typed text, dropdowns, checkboxes and Enter become steps. A password becomes a `{{password}}` variable that you fill in on each run; what you typed is never saved.
+- **Save as workflow** under a finished chat does the same from what the AI did.
+- **Edit** to rename, reorder or delete steps and change values. Select part of a value and press **Make variable** to be asked for it on each run.
+- **Run** asks for the variables, opens its own tab and replays the steps. If the page changed and a step fails, the AI tries to do just that step (up to 8 actions), and the run log offers **Update workflow with repaired step**.
+- **Export** and **Import** share workflows as JSON files.
 
-A replay goes through the same permission checks as the agent. The bridge exposes `workflows_list` and `workflow_run`, so Claude Code can run your workflows.
+Replays follow the same safety rules as the chat.
 
 ## Schedules
 
-A schedule runs a saved workflow or a plain AI prompt on a timer, with no side panel open.
+A schedule runs a workflow or an AI prompt on a timer, without the side panel open. Open **Schedules → New schedule**, pick a workflow (and fill its variables) or write a prompt, then choose when: every N minutes (15 or more), daily at a time (optionally only on some weekdays), or weekly.
 
-- **Schedules** view: **New schedule**, then pick a workflow (and fill its variables) or write a prompt with a provider and model. Choose when: every N minutes (15 or more), every day at a time (optionally only on some weekdays), or every week on a day. Times use this computer's time zone and stay at the same local time across daylight saving changes. Each schedule has an on/off switch, **Run now**, **Edit** and **Delete**, and shows its next run and last result.
-- Runs use `chrome.alarms`, so they happen **while Chrome is open**. If a run time passed while Chrome was closed, the schedule runs once at the next start (never a backlog) and then goes back to its timer. One run happens at a time, a schedule never queues itself twice, and a run is stopped after 10 minutes.
-- Each run works in its own tab group, `autochrome · <schedule name>`. Its tabs are closed when the run succeeds and left open when it fails, so you can look at what happened.
-- A prompt run is saved as a chat (titled `<schedule name>: …`) that the run links to. A workflow run logs each step like a manual replay, and the AI repairs a failed step the same way.
-- The **Runs** view lists the last 200 runs: yours, scheduled ones and ones started from the bridge, each with its log. Every run also raises one Chrome notification, "✓ name finished" or "✗ name failed at step 3". Clicking it opens that run in the side panel (or in a tab if Chrome will not open the panel from a notification).
+- Schedules run **only while Chrome is open**. If Chrome was closed at a run time, it runs once when Chrome starts again.
+- Each run works in its own tab group. Tabs are closed when the run succeeds and left open when it fails, so you can see what happened.
+- You get a Chrome notification for every run ("✓ finished" or "✗ failed at step 3"); click it to see the run. **Runs** lists the last 200 runs with their logs.
+- One run at a time; a run is stopped after 10 minutes.
 
-**Scheduled runs are full auto.** Nobody is there to answer, so a scheduled run acts as in Auto mode whatever your safety setting is: it does not ask before purchases, sending, deleting or password and payment fields, and the allowed-sites list does not apply. Only schedule tasks you trust, on sites where you are happy for the AI to act on your behalf. Settings → Safety shows a warning while any schedule is on. Two limits stay: `chrome://`, extension and Chrome Web Store pages are still refused, and `js_eval` is denied (a scheduled run that needs it reports that instead of running code). Variable values and prompts are stored on this device in plain text, like API keys.
+**Scheduled runs never ask.** Nobody is there to answer, so they act as in Auto mode whatever your safety setting: no prompts before buying, sending, deleting or password and payment fields. Only schedule tasks you trust. `js_eval` is never run by a schedule, and Settings → Safety warns you while any schedule is on.
 
-## Use from Claude Code, Cursor or scripts
+## Use from Claude Code or Cursor
 
-The bridge runs on your machine and only listens on `127.0.0.1`.
+The `autochrome-bridge` add-on lets Claude Code, Cursor or any MCP client use your browser with the same tools and the same safety prompts. It needs [Node.js](https://nodejs.org) 22 or newer and runs only on your computer (`127.0.0.1`).
 
 1. Get the pairing token: `npx -y autochrome-bridge token`
 2. Paste it in the side panel under **Settings → Bridge**. The status dot turns green when connected.
-3. Add it to your MCP client.
+3. Add it to your client.
 
 Claude Code:
 
@@ -101,7 +147,81 @@ Cursor (`~/.cursor/mcp.json`):
 }
 ```
 
-Scripts (HTTP API; start the hub with `npx -y autochrome-bridge serve`):
+Approvals for bridge actions appear in Chrome: in the side panel, or in a small popup window if the panel is closed. Your saved workflows are available to the client as `workflows_list` and `workflow_run`.
+
+## Update to a new version
+
+Download the new zip from [Releases](https://github.com/FahadDhruba/autochrome/releases/latest), unzip it **over the same folder** (replace the files), then click the reload icon on autochrome's card in `chrome://extensions`. Using the same folder keeps your settings, chats and workflows.
+
+## Privacy
+
+API keys, chats, workflows and schedules are stored in your Chrome profile on this computer. Page content is sent only to the AI provider you chose (and to your MCP client when you use the bridge), and only while the agent works. API keys are never sent to the bridge. autochrome has no server and collects no data.
+
+## Troubleshooting
+
+- **"No API key set"**: add a key in Settings for the provider shown on the chip under the message box.
+- **The AI says it cannot act on a page**: `chrome://` pages, extension pages and the Chrome Web Store are blocked on purpose.
+- **Nothing happens after a prompt**: look for an approval card in the side panel (or a popup window). Unanswered prompts are denied after 2 minutes.
+- **Gemini Live feels slow**: that is expected (see [Chats and models](#chats-and-models)). Use Gemini for faster answers.
+- **The bridge status dot does not turn green**: check that the token in Settings → Bridge matches `npx -y autochrome-bridge token`, and that your MCP client is running.
+
+Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues).
+
+## Status
+
+Version 1.2.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
+
+# For developers
+
+## Build from source
+
+Requires Node 22+ and [pnpm](https://pnpm.io) 10.
+
+```sh
+git clone https://github.com/FahadDhruba/autochrome.git
+cd autochrome
+pnpm install
+pnpm build
+```
+
+Then **Load unpacked** `packages/extension/.output/chrome-mv3` in `chrome://extensions`.
+
+Everything is covered by unit tests and Playwright end-to-end tests that run the built extension in Chromium against local mock provider servers. The bridge was also verified with the real Claude Code CLI (over MCP) driving headless Chromium.
+
+## How it works
+
+```
+┌──────────── Chrome extension (MV3) ────────────┐
+│ Side panel (React)  ←→  Background worker      │
+│   chat, settings        agent loop, providers, │
+│                         tool executor, safety  │
+│                    ↕ chrome.debugger / scripts │
+│                    Your real tabs              │
+└────────────────────────↕───────────────────────┘
+                  WebSocket (localhost + pairing token)
+┌────────────── Bridge (Node, separate) ─────────┐
+│  MCP server (stdio)  →  Claude Code, Cursor…   │
+│  WebSocket/HTTP API  →  your own scripts       │
+└────────────────────────────────────────────────┘
+```
+
+Pages are read as a compact accessibility tree with short element IDs; screenshots and x/y clicks are the fallback. Input and debugging tools use `chrome.debugger`. All tool calls, from the side panel, the bridge, workflows or schedules, go through one permission gate.
+
+Gemini Live uses the Live API's WebSocket, one session per agent step. The Live API only answers in audio, so the extension asks for audio with a transcript and uses the transcript as text. Tool results are replayed to the model as text, because the Live API ignores structured function responses in replayed history. There are no thought signatures.
+
+| Path                 | Contents                                                             |
+| -------------------- | -------------------------------------------------------------------- |
+| `packages/shared`    | Tool definitions and message protocol types                          |
+| `packages/extension` | WXT + React extension: side panel, background worker, content script |
+| `packages/bridge`    | Node MCP server and HTTP/WebSocket API (`autochrome-bridge`)         |
+| `scripts`            | Maintainer scripts: tools table, icons, demo GIF                     |
+| `docs/plans`         | The design spec for each milestone                                   |
+
+Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first; it builds the extension again with test hooks into `.output-e2e`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, [PLAN.md](PLAN.md) for the design and [RELEASING.md](RELEASING.md) for releases.
+
+## Scripts (HTTP API)
+
+Start the hub with `npx -y autochrome-bridge serve`, then call any tool:
 
 ```sh
 TOKEN=$(npx -y autochrome-bridge token)
@@ -109,33 +229,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
   -d '{"url":"https://example.com"}' http://127.0.0.1:47800/v1/tools/tab_open
 ```
 
-Bridge calls pass through the same safety checks as the side panel, so approvals appear in Chrome (in the side panel, or in a small popup window if it is closed). Details, the WebSocket API and options are in [packages/bridge/README.md](packages/bridge/README.md).
-
-> `autochrome-bridge` is published to npm automatically with each release. If `npx` cannot find it yet, run it from a checkout: `node packages/bridge/dist/cli.js` after `pnpm build`.
-
-## Safety
-
-You choose a mode in Settings → Safety:
-
-| Mode               | Behaviour                                                                          |
-| ------------------ | ---------------------------------------------------------------------------------- |
-| Ask every action   | Every action asks first. Reading a site you have not allowed also asks.            |
-| Per-site (default) | Approve a site once with Allow on this site. Risky actions still ask every time.   |
-| Auto               | No prompts. The side panel shows an "Auto" badge. Only use it for tasks you trust. |
-
-[Scheduled runs](#schedules) always act as in Auto mode, whatever mode is saved.
-
-What counts as risky: clicking or pressing Enter on buttons or links that purchase or pay (buy, checkout, place order, donate), send or publish (send, post, submit, reply), or delete (delete, remove, close account); and typing into password or card fields. In auto mode these do not ask either.
-
-Always on:
-
-- `js_eval` asks before every run, in every mode, including auto. Scheduled runs cannot ask, so they never run it.
-- Page text is wrapped as untrusted data and the system prompt tells the model never to follow instructions found in it.
-- `chrome://`, extension and Chrome Web Store pages are refused.
-- The bridge accepts only local connections with the pairing token and rejects requests that carry a browser `Origin` header.
-- A prompt with no answer after 2 minutes counts as a denial.
-
-Limits: prompt injection cannot be fully prevented. A malicious page can still try to talk the model into harmful but non-obvious actions, and keyword-based risk detection will miss some. Read what an approval prompt says before you click Allow, be careful in auto mode, and avoid running the agent on pages you do not trust while signed in to sensitive accounts. See [SECURITY.md](SECURITY.md).
+The bridge accepts only local connections with the pairing token and rejects requests that carry a browser `Origin` header. The WebSocket API and options are in [packages/bridge/README.md](packages/bridge/README.md).
 
 ## Tools
 
@@ -170,33 +264,6 @@ The side panel agent and bridge clients use the same tools. This table is genera
 | `js_eval`          | Run JavaScript in the page and return the JSON result (or the exception).                                                                            |
 
 <!-- tools:end -->
-
-## Development
-
-```
-┌──────────── Chrome extension (MV3) ────────────┐
-│ Side panel (React)  ←→  Background worker      │
-│   chat, settings        agent loop, providers, │
-│                         tool executor, safety  │
-│                    ↕ chrome.debugger / scripts │
-│                    Your real tabs              │
-└────────────────────────↕───────────────────────┘
-                  WebSocket (localhost + pairing token)
-┌────────────── Bridge (Node, separate) ─────────┐
-│  MCP server (stdio)  →  Claude Code, Cursor…   │
-│  WebSocket/HTTP API  →  your own scripts       │
-└────────────────────────────────────────────────┘
-```
-
-| Path                 | Contents                                                             |
-| -------------------- | -------------------------------------------------------------------- |
-| `packages/shared`    | Tool definitions and message protocol types                          |
-| `packages/extension` | WXT + React extension: side panel, background worker, content script |
-| `packages/bridge`    | Node MCP server and HTTP/WebSocket API (`autochrome-bridge`)         |
-| `scripts`            | Maintainer scripts: tools table, icons, demo GIF                     |
-| `docs/plans`         | The design spec for each milestone                                   |
-
-Common commands: `pnpm dev`, `pnpm build`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (build first; it builds the extension again with test hooks into `.output-e2e`). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and how to add a tool or provider, and [PLAN.md](PLAN.md) for the design.
 
 ## License
 
