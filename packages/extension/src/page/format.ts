@@ -8,7 +8,7 @@ export type PageNode = {
   level?: number;
 };
 
-export const MAX_PAGE_CHARS = 50_000;
+export const MAX_PAGE_CHARS = 20_000;
 
 /** `[e3] textbox "Email" value="a@b.c"`, `heading "Pricing" level=2`, `[e4] checkbox "Remember" checked` */
 export function formatNode(node: PageNode): string {
@@ -24,5 +24,7 @@ export function formatNode(node: PageNode): string {
 
 export function formatNodes(nodes: PageNode[], maxChars = MAX_PAGE_CHARS): string {
   const text = nodes.map(formatNode).join('\n');
-  return text.length > maxChars ? `${text.slice(0, maxChars)}\n… truncated` : text;
+  return text.length > maxChars
+    ? `${text.slice(0, maxChars)}\n… truncated; use find to locate other elements`
+    : text;
 }

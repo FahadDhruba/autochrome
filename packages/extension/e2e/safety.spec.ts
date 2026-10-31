@@ -381,7 +381,7 @@ test.describe('bridge', () => {
     await openFixture('checkout.html');
     const opened = context.waitForEvent('page', isApprovePage);
     const call = hub.callTool('get_text');
-    await (await opened).getByRole('button', { name: 'Deny' }).click();
+    await answerPopup(await opened, 'Deny');
     expect(await call).toMatchObject({
       ok: false,
       content: [{ type: 'text', text: 'The user denied this action.' }],

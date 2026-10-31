@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import type { ChatMessage, Part, Usage } from '@/src/providers/types';
+import Markdown from './Markdown';
 import ToolCard from './ToolCard';
 
 type ToolResult = Extract<Part, { type: 'tool_result' }>;
@@ -64,7 +65,7 @@ export default function MessageList({
                 className={`bubble bubble-${message.role}`}
                 data-testid={`${message.role}-text`}
               >
-                {part.text}
+                {message.role === 'assistant' ? <Markdown text={part.text} /> : part.text}
               </div>
             );
           }

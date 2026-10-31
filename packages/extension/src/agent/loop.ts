@@ -8,7 +8,7 @@ import type {
   Usage,
 } from '../providers/types';
 import { MAX_STEPS, type AgentEvent } from './protocol';
-import { pruneScreenshots } from './prune';
+import { pruneScreenshots, pruneStaleResults } from './prune';
 
 export type AgentRun = {
   provider: Provider;
@@ -84,7 +84,7 @@ export async function runAgent(run: AgentRun): Promise<void> {
       settings: run.settings,
       model: run.model,
       system: run.system,
-      messages: withStateNote(pruneScreenshots(messages), note),
+      messages: withStateNote(pruneScreenshots(pruneStaleResults(messages)), note),
       tools: run.tools,
       signal,
     })) {

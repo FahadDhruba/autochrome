@@ -38,6 +38,8 @@ describe('formatNodes', () => {
       { depth: 1, role: 'link', name: 'Home', ref: 'e1' },
     ];
     expect(formatNodes(nodes)).toBe('navigation\n  [e1] link "Home"');
-    expect(formatNodes(nodes, 10)).toBe('navigation\n… truncated');
+    expect(formatNodes(nodes, 10)).toBe(
+      'navigation\n… truncated; use find to locate other elements',
+    );
   });
 });

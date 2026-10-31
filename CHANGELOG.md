@@ -2,6 +2,18 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.1] - 2026-10-30
+
+### Changed
+
+- Fewer tokens per step: in the current task only the newest `read_page` and `get_text` result per
+  tab is sent to the model again; older ones become a one-line note. Long tool results from earlier
+  tasks in the same chat are shortened the same way. The chat you see is unchanged. On real runs
+  this cut the history sent by up to 31%.
+- `read_page` returns at most 20,000 characters (was 50,000) and suggests `find` for the rest.
+- Answers in the side panel render markdown (bold, lists, code, links) instead of showing the raw
+  symbols.
+
 ## [1.2.0] - 2026-10-30
 
 ### Added
@@ -115,6 +127,7 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.2.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.1
 [1.2.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.0
 [1.1.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.1
 [1.1.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.0
