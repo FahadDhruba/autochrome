@@ -195,16 +195,16 @@ test('runs the chat flow against Gemini Live and replays tool results as text', 
   mockGeminiLive: mock,
   openSidePanel,
 }) => {
-  // No Gemini Live key of its own: it uses the Gemini key.
+  // A Live model under the Gemini provider goes over the Live API with the Gemini key.
   await debugPage.evaluate(
     (url) =>
       chrome.storage.local.set({
         'gemini.apiKey': 'gem-key',
-        'gemini-live.baseUrl': url,
-        'gemini-live.model': 'mock-live',
-        defaultProvider: 'gemini-live',
+        'gemini.baseUrl': url,
+        'gemini.model': 'mock-live',
+        defaultProvider: 'gemini',
       }),
-    mock.baseUrl,
+    mock.baseUrl.replace(/^ws/, 'http'),
   );
   mock.play(
     {
@@ -228,7 +228,7 @@ test('runs the chat flow against Gemini Live and replays tool results as text', 
 
   const panel = await openSidePanel();
   await openModelChip(panel);
-  await expect(panel.getByLabel('Provider')).toHaveValue('gemini-live');
+  await expect(panel.getByLabel('Provider')).toHaveValue('gemini');
   await expect(panel.getByLabel('Model')).toHaveValue('mock-live');
   await expect(panel.getByText('about 4 s per step')).toBeVisible();
   await panel.getByLabel('Message').fill('Open the form and click Count');
@@ -389,21 +389,22 @@ test('configures the compatible provider in Settings and makes it the default', 
   await expect(panel.getByLabel('Provider').locator('option')).toHaveText(['OpenAI-compatible']);
 });
 
-test('shows Gemini Live in Settings with its note and lists only Live models', async ({
+test('lists Live models under Gemini in Settings, with their note', async ({
   debugPage,
   mockGeminiLive: mock,
   openSidePanel,
 }) => {
   await debugPage.evaluate(
-    (url) => chrome.storage.local.set({ 'gemini.apiKey': 'gem-key', 'gemini-live.baseUrl': url }),
-    mock.baseUrl,
+    (url) => chrome.storage.local.set({ 'gemini.apiKey': 'gem-key', 'gemini.baseUrl': url }),
+    mock.baseUrl.replace(/^ws/, 'http'),
   );
   const panel = await openSidePanel();
   await panel.getByRole('button', { name: 'Settings', exact: true }).click();
-  await panel.getByLabel('Provider').selectOption('gemini-live');
-  const section = panel.getByRole('region', { name: 'Gemini Live settings' });
+  await panel.getByLabel('Provider').selectOption('gemini');
+  const section = panel.getByRole('region', { name: 'Gemini settings' });
+  // One list: the mock's regular model and its Live model.
+  await expect(panel.locator('#settings-models option')).toHaveCount(2);
+  await expect(panel.locator('#settings-models option[value="mock-live"]')).toHaveCount(1);
+  await section.getByLabel('Model').fill('mock-live');
   await expect(section.getByText('about 4 s per step')).toBeVisible();
-  await expect(section.getByLabel('API key')).toHaveValue('');
-  await expect(panel.locator('#settings-models option')).toHaveCount(1);
-  await expect(panel.locator('#settings-models option')).toHaveAttribute('value', 'mock-live');
 });

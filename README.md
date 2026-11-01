@@ -13,7 +13,7 @@ _A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: th
 ## What it does
 
 - **An AI agent in a side panel.** Describe a task ("fill in this form", "find the cheapest flight on this page", "summarize my open tabs") and watch it work, step by step.
-- **Your choice of AI.** Claude (Anthropic), OpenAI, Gemini, Gemini Live, or a model on your own computer (Ollama, LM Studio) or through OpenRouter. Switch per chat.
+- **Your choice of AI.** Claude (Anthropic), OpenAI, Gemini (including Live models), or a model on your own computer (Ollama, LM Studio) or through OpenRouter. Switch per chat.
 - **You stay in control.** By default it asks before acting on a new site, and always asks before buying, sending, deleting or typing a password or card number.
 - **Workflows and schedules.** Record a task once and replay it without the AI, or run it on a timer.
 - **Works with Claude Code and Cursor**, which can use the same browser through the `autochrome-bridge` add-on.
@@ -42,7 +42,6 @@ The AI runs at a provider you choose, with your own key. Pick one:
 | Provider                 | Where to get a key                                                                             | Notes                                                                                        |
 | ------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | **Gemini** (recommended) | [Google AI Studio](https://aistudio.google.com/apikey)                                         | Free tier available. Tested with real tasks.                                                 |
-| Gemini Live              | Same key as Gemini                                                                             | For Live-only models such as `gemini-3.8-live`. Slower, see below.                           |
 | Claude (Anthropic)       | [Anthropic Console](https://console.anthropic.com/settings/keys)                               | Paid.                                                                                        |
 | OpenAI                   | [OpenAI Platform](https://platform.openai.com/api-keys)                                        | Paid.                                                                                        |
 | Ollama or LM Studio      | No key; runs on your computer ([Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai)) | Free. Use the OpenAI-compatible provider with base URL `http://localhost:11434/v1` (Ollama). |
@@ -77,7 +76,7 @@ While the agent works, Chrome shows a bar saying autochrome "started debugging t
 - The chip under the message box (for example `Gemini · gemini-3.5-flash-lite`) switches provider and model for the current chat.
 - **Save as workflow** under a finished chat turns what the AI did into a replayable [workflow](#workflows).
 
-**Gemini Live** (`gemini-3.8-live` and similar) can only answer by voice, so autochrome shows the transcript of the spoken reply. It works for real tasks but is slower: about 1 to 2 seconds per action, and long final answers can take 10 to 20 seconds because the transcript arrives at speaking speed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes stops without doing anything. Gemini Live uses your Gemini key unless you set a separate one.
+**Gemini Live models** (`gemini-3.8-live`, `gemini-3.1-flash-live-preview` and similar) are listed with the other Gemini models and use the same key. They can only answer by voice, so autochrome shows the transcript of the spoken reply. It works for real tasks but is slower: about 1 to 2 seconds per action, and long final answers can take 10 to 20 seconds because the transcript arrives at speaking speed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes stops without doing anything.
 
 ## Safety
 
@@ -162,7 +161,7 @@ API keys, chats, workflows and schedules are stored in your Chrome profile on th
 - **"No API key set"**: add a key in Settings for the provider shown on the chip under the message box.
 - **The AI says it cannot act on a page**: `chrome://` pages, extension pages and the Chrome Web Store are blocked on purpose.
 - **Nothing happens after a prompt**: look for an approval card in the side panel (or a popup window). Unanswered prompts are denied after 2 minutes.
-- **Gemini Live feels slow**: that is expected (see [Chats and models](#chats-and-models)). Use Gemini for faster answers.
+- **A Gemini Live model feels slow**: that is expected (see [Chats and models](#chats-and-models)). Pick a regular Gemini model for faster answers.
 - **The bridge status dot does not turn green**: check that the token in Settings → Bridge matches `npx -y autochrome-bridge token`, and that your MCP client is running.
 
 Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues).
@@ -213,7 +212,7 @@ Everything is covered by unit tests and Playwright end-to-end tests that run the
 
 Pages are read as a compact accessibility tree with short element IDs; screenshots and x/y clicks are the fallback. Input and debugging tools use `chrome.debugger`. All tool calls, from the side panel, the bridge, workflows or schedules, go through one permission gate.
 
-Gemini Live uses the Live API's WebSocket, one session per agent step. The Live API only answers in audio, so the extension asks for audio with a transcript and uses the transcript as text. Tool results are replayed to the model as text, because the Live API ignores structured function responses in replayed history. There are no thought signatures.
+Gemini Live models (any model id containing `live`) go over the Live API's WebSocket, one session per agent step; other Gemini models use the REST API. The Live API only answers in audio, so the extension asks for audio with a transcript and uses the transcript as text. Tool results are replayed to the model as text, because the Live API ignores structured function responses in replayed history. There are no thought signatures.
 
 | Path                 | Contents                                                             |
 | -------------------- | -------------------------------------------------------------------- |

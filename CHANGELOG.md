@@ -2,6 +2,15 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Changed
+
+- Gemini Live is no longer a separate provider. Live models such as `gemini-3.8-live` and
+  `gemini-3.1-flash-live-preview` appear in the Gemini model list and use the Gemini key; they are
+  sent over the Live API automatically. Settings, chats and schedules that used Gemini Live move to
+  Gemini when the extension updates.
+
 ## [1.2.1] - 2026-10-30
 
 ### Changed
