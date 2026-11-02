@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CircleCheck, LoaderCircle } from 'lucide-react';
 import Logo from '@/src/ui/Logo';
 import { providers } from '@/src/providers';
+import { STATIC_MODELS } from '@/src/providers/anthropic';
 import { recommendedModel } from '@/src/providers/recommend';
 import type { ProviderId } from '@/src/providers/types';
 import { loadProviderSettings, saveDefaultProvider, saveProviderSettings } from '@/src/settings';
@@ -46,8 +47,9 @@ export default function SetupCard({ onOpenSettings, children }: Props) {
     // A base URL saved earlier (a proxy, or a test server) is kept.
     const { baseUrl } = await loadProviderSettings(choice);
     const models = await info.provider.listModels({ apiKey: key, baseUrl, model: '' });
-    // Anthropic offers a fixed list, so an empty list means the key or the network failed.
-    if (models.length === 0) {
+    // No models means the key or the network failed. Anthropic answers a failure with its
+    // built-in list (the same array), so that counts as a failure too.
+    if (models.length === 0 || models === STATIC_MODELS) {
       setStatus({
         state: 'error',
         message: `Could not reach ${info.label} with this key. Check it and try again.`,

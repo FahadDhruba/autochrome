@@ -1,8 +1,12 @@
 import type { ModelOption, ProviderId } from './types';
 
-/** Preferred models, best first: fast, cheap and good at tool use. */
+/**
+ * Model families to prefer, best first: fast, cheap and good at tool use. Patterns name families,
+ * never versions, so a newer model is picked as soon as the provider lists it; within a family
+ * the highest version wins. Previews and aliases (`-preview`, `-latest`) are skipped.
+ */
 const PREFERENCES: Partial<Record<ProviderId, RegExp[]>> = {
-  gemini: [/^gemini-3\.5-flash-lite$/, /^gemini-[\d.]+-flash-lite$/, /^gemini-[\d.]+-flash$/],
+  gemini: [/^gemini-[\d.]+-flash-lite$/, /^gemini-[\d.]+-flash$/],
   openai: [/^gpt-[\d.]+-mini$/, /^gpt-[\d.]+$/],
   anthropic: [/sonnet/, /haiku/],
 };
