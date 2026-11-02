@@ -10,6 +10,7 @@ import {
   type LucideProps,
 } from 'lucide-react';
 import type { Part } from '@/src/providers/types';
+import { describeStep } from '@/src/stepLabel';
 import { summarizeInput, summarizeResult, toolGroup, type ToolGroup } from '@/src/toolSummary';
 
 type ToolCall = Extract<Part, { type: 'tool_call' }>;
@@ -31,8 +32,8 @@ type Props = {
 };
 
 /**
- * One tool call as a single row (icon, name, input, result) that opens to the full input and
- * result. Failed and waiting calls start open; a click always wins over that default.
+ * One tool call as a timeline row (icon, what it did in words, tool name, result) that opens to
+ * the full input and result. Failed and waiting calls start open; a click always wins over that.
  */
 export default function ToolCard({ call, result, awaitingApproval = false }: Props) {
   const state = !result ? 'running' : result.isError ? 'error' : 'ok';
@@ -54,8 +55,8 @@ export default function ToolCard({ call, result, awaitingApproval = false }: Pro
         onClick={() => setToggled(!open)}
       >
         <Icon className="tool-icon" size={14} aria-hidden="true" />
+        <span className="tool-label-text">{describeStep(call, result)}</span>
         <span className="tool-name">{call.name}</span>
-        <span className="tool-summary">{input}</span>
         <span className="tool-result-sum">
           {state === 'running' && (
             <>

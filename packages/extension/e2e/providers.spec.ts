@@ -1,4 +1,4 @@
-import { expect, openModelChip, refOf, test } from './harness';
+import { expect, openModelChip, refOf, test, openView } from './harness';
 import type { LiveRequest, ProviderRequest } from './mockProviders';
 
 type GeminiPart = {
@@ -399,7 +399,7 @@ test('lists Live models under Gemini in Settings, with their note', async ({
     mock.baseUrl.replace(/^ws/, 'http'),
   );
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Settings', exact: true }).click();
+  await openView(panel, 'Settings');
   await panel.getByLabel('Provider').selectOption('gemini');
   const section = panel.getByRole('region', { name: 'Gemini settings' });
   // One list: the mock's regular model and its Live model.

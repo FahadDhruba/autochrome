@@ -1,4 +1,4 @@
-import type { ComponentType, MouseEventHandler } from 'react';
+import type { ComponentType, MouseEventHandler, Ref } from 'react';
 import type { LucideProps } from 'lucide-react';
 import Tooltip, { type TipAlign } from './Tooltip';
 import './icon-button.css';
@@ -15,6 +15,9 @@ type Props = {
   align?: TipAlign;
   type?: 'button' | 'submit';
   size?: number;
+  buttonRef?: Ref<HTMLButtonElement>;
+  /** For a button that opens a menu. */
+  expanded?: boolean;
 };
 
 /** An icon-only button or link. `label` is both its accessible name and its hover/focus tooltip. */
@@ -29,6 +32,8 @@ export default function IconButton({
   align,
   type = 'button',
   size = 18,
+  buttonRef,
+  expanded,
 }: Props) {
   const className = `icon-btn${active ? ' icon-btn-active' : ''}${tone === 'danger' ? ' icon-btn-danger' : ''}`;
   const icon = <Icon size={size} strokeWidth={2} aria-hidden="true" />;
@@ -47,10 +52,13 @@ export default function IconButton({
         </a>
       ) : (
         <button
+          ref={buttonRef}
           type={type}
           className={className}
           aria-label={label}
-          aria-current={active ? 'page' : undefined}
+          aria-current={active && expanded === undefined ? 'page' : undefined}
+          aria-haspopup={expanded === undefined ? undefined : 'menu'}
+          aria-expanded={expanded}
           disabled={disabled}
           onClick={onClick}
         >

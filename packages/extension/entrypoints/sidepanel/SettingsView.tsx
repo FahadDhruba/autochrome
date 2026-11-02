@@ -22,6 +22,8 @@ const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
   compatible: 'Optional',
 };
 
+const SECTIONS = ['Models', 'Safety', 'Bridge', 'Appearance'];
+
 const THEME_LABEL: Record<Theme, string> = { system: 'System', light: 'Light', dark: 'Dark' };
 
 const CUSTOM = 'custom';
@@ -80,6 +82,25 @@ export default function SettingsView() {
 
   return (
     <div className="settings">
+      <nav className="settings-nav" aria-label="Settings sections">
+        {SECTIONS.map((name) => (
+          <button
+            key={name}
+            type="button"
+            className="chip"
+            onClick={() =>
+              document
+                .getElementById(`settings-sec-${name.toLowerCase()}`)
+                ?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+            }
+          >
+            {name}
+          </button>
+        ))}
+      </nav>
+      <h2 id="settings-sec-models" className="settings-heading">
+        Models
+      </h2>
       <label>
         Provider
         <select
@@ -182,7 +203,7 @@ export default function SettingsView() {
       </section>
       <SafetySettings />
       <BridgeSettings />
-      <section aria-label="Appearance settings">
+      <section aria-label="Appearance settings" id="settings-sec-appearance">
         <h2>Appearance</h2>
         <div className="segmented" role="radiogroup" aria-label="Theme">
           {THEMES.map((id) => (

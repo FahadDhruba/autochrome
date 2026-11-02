@@ -1,4 +1,4 @@
-import { expect, openModelChip, test } from './harness';
+import { expect, openModelChip, test, openView } from './harness';
 
 test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
 
@@ -153,7 +153,7 @@ test('the theme choice is saved and applied after a reload', async ({
   void mockAnthropic;
   const panel = await openSidePanel();
   const html = panel.locator('html');
-  await panel.getByRole('button', { name: 'Settings', exact: true }).click();
+  await openView(panel, 'Settings');
   const theme = panel.getByRole('radiogroup', { name: 'Theme' });
   await expect(theme.getByLabel('System')).toBeChecked();
 
@@ -166,7 +166,7 @@ test('the theme choice is saved and applied after a reload', async ({
 
   await panel.reload();
   await expect(html).toHaveAttribute('data-theme', 'dark');
-  await panel.getByRole('button', { name: 'Settings', exact: true }).click();
+  await openView(panel, 'Settings');
   await expect(panel.getByRole('radiogroup', { name: 'Theme' }).getByLabel('Dark')).toBeChecked();
 
   // Another page (the debug page) follows the same setting.
@@ -197,16 +197,111 @@ test('the first-run chat offers example prompts that fill the input', async ({
 
 test('empty Workflows, Schedules and Runs views say what to do next', async ({ openSidePanel }) => {
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Workflows' }).click();
+  await openView(panel, 'Workflows');
   const workflows = panel.getByTestId('workflows-empty');
   await expect(workflows.getByRole('button', { name: 'Record' })).toBeVisible();
   await expect(workflows.getByRole('button', { name: 'Import' })).toBeVisible();
 
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
   await expect(
     panel.getByTestId('schedules-empty').getByRole('button', { name: 'New schedule' }),
   ).toBeVisible();
 
-  await panel.getByRole('button', { name: 'Runs' }).click();
+  await openView(panel, 'Runs');
   await expect(panel.getByTestId('runs-empty')).toContainText('No runs yet');
+});
+
+test('first run: Connect tests the key, picks a model and opens the chat', async ({
+  debugPage,
+  mockGemini: mock,
+  openSidePanel,
+}) => {
+  await debugPage.evaluate(
+    (url) => chrome.storage.local.set({ 'gemini.baseUrl': url }),
+    mock.baseUrl,
+  );
+  const panel = await openSidePanel();
+  const setup = panel.getByTestId('empty-state');
+  await expect(setup.getByRole('heading', { name: 'Set up autochrome' })).toBeVisible();
+  await expect(setup.getByRole('radio', { name: /Google Gemini/ })).toBeChecked();
+  await setup.getByLabel('API key').fill('gem-key');
+  await setup.getByRole('button', { name: 'Connect' }).click();
+
+  await expect(panel.getByTestId('chat-empty')).toBeVisible();
+  await expect(panel.getByTestId('model-chip')).toContainText('Gemini · mock-gemini');
+});
+
+test('the safety chip changes the mode, and Auto needs a confirmation', async ({
+  mockAnthropic,
+  openSidePanel,
+  setSafety,
+}) => {
+  void mockAnthropic;
+  await setSafety({ mode: 'per-site' });
+  const panel = await openSidePanel();
+  const chip = panel.getByRole('button', { name: 'Safety: Per-site' });
+  await chip.click();
+  await panel.getByRole('dialog', { name: 'Safety mode' }).getByText('Ask every action').click();
+  await expect(panel.getByRole('button', { name: 'Safety: Ask' })).toBeVisible();
+
+  await panel.getByRole('button', { name: 'Safety: Ask' }).click();
+  await panel
+    .getByRole('dialog', { name: 'Safety mode' })
+    .getByText('Never ask. Use only if you trust the task.')
+    .click();
+  await expect(panel.getByTestId('auto-badge')).toBeHidden();
+  await panel.getByRole('button', { name: 'Turn on Auto' }).click();
+  await expect(panel.getByTestId('auto-badge')).toBeVisible();
+  await expect(panel.getByRole('button', { name: 'Safety: Auto' })).toBeVisible();
+});
+
+test('steps show as a plain-language timeline that folds', async ({
+  baseUrl,
+  mockAnthropic: mock,
+  openSidePanel,
+  setSafety,
+}) => {
+  await setSafety({ mode: 'auto' });
+  mock.play(
+    [
+      {
+        type: 'tool_use',
+        id: 'toolu_open',
+        name: 'tab_open',
+        input: { url: `${baseUrl}/form.html` },
+      },
+    ],
+    [{ type: 'tool_use', id: 'toolu_read', name: 'read_page', input: {} }],
+    [{ type: 'text', text: 'Done **reading**.' }],
+  );
+  const panel = await openSidePanel();
+  await panel.getByLabel('Message').fill('Read the form');
+  await panel.getByLabel('Message').press('Enter');
+
+  const steps = panel.getByRole('region', { name: 'Agent steps' });
+  await expect(steps.getByRole('button', { name: /2 steps/ })).toBeVisible();
+  await expect(panel.getByTestId('tool-card').first()).toContainText('Opened 127.0.0.1');
+  await expect(panel.getByTestId('tool-card').nth(1)).toContainText('Read the page');
+  await expect(panel.getByTestId('assistant-text').locator('strong')).toHaveText('reading');
+  await expect(panel.getByRole('button', { name: 'Copy answer' })).toBeVisible();
+
+  await steps.getByRole('button', { name: /2 steps/ }).click();
+  await expect(panel.getByTestId('tool-card')).toHaveCount(0);
+});
+
+test('the page shows what the agent acts on, but page reads and screenshots do not', async ({
+  callText,
+  openFixture,
+  setSafety,
+}) => {
+  await setSafety({ mode: 'auto' });
+  const page = await openFixture('form.html');
+  const tree = await callText('read_page');
+  const ref = /\[(e\d+)\] button "Count"/.exec(tree)![1]!;
+  await callText('click', { ref });
+  await expect(page.locator('autochrome-overlay')).toHaveCount(1);
+  expect(await callText('read_page')).not.toContain('autochrome is working');
+  expect(await callText('get_text')).not.toContain('autochrome is working');
+  await callText('screenshot').catch(() => undefined);
+  await expect(page.locator('autochrome-overlay')).toBeHidden();
 });

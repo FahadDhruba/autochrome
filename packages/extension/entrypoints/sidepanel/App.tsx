@@ -1,15 +1,9 @@
 import { useCallback, useState } from 'react';
-import {
-  CalendarClock,
-  History,
-  MessagesSquare,
-  Settings,
-  SquarePen,
-  Workflow,
-} from 'lucide-react';
+import { MessagesSquare, SquarePen } from 'lucide-react';
 import IconButton from '@/src/ui/IconButton';
 import Logo from '@/src/ui/Logo';
 import Tooltip from '@/src/ui/Tooltip';
+import HeaderMenu from './HeaderMenu';
 import RecordingBar from './RecordingBar';
 import ChatDrawer from './ChatDrawer';
 import ChatView from './ChatView';
@@ -114,33 +108,12 @@ export default function App() {
               show('chat');
             }}
           />
-          <IconButton
-            label="Workflows"
-            icon={Workflow}
-            active={activeView === 'workflows'}
-            onClick={() => show('workflows')}
-          />
-          <IconButton
-            label="Schedules"
-            icon={CalendarClock}
-            active={activeView === 'schedules'}
-            onClick={() => show('schedules')}
-          />
-          <IconButton
-            label="Runs"
-            icon={History}
-            active={activeView === 'runs'}
-            onClick={() => {
-              setSelectedRun(undefined);
-              show('runs');
+          <HeaderMenu
+            active={activeView === 'chat' ? undefined : activeView}
+            onSelect={(next) => {
+              if (next === 'runs') setSelectedRun(undefined);
+              show(next);
             }}
-          />
-          <IconButton
-            label="Settings"
-            icon={Settings}
-            align="end"
-            active={activeView === 'settings'}
-            onClick={() => show('settings')}
           />
         </nav>
       </header>
@@ -179,6 +152,7 @@ export default function App() {
           <ChatView
             chat={chat}
             providers={settings}
+            safetyMode={safety?.mode}
             onOpenSettings={() => show('settings')}
             onSavedWorkflow={openEditor}
           />

@@ -6,7 +6,7 @@ An open-source Chrome extension that lets an AI use your real browser. Tell it w
 
 ![autochrome searching Wikipedia with Gemini and answering in the side panel](docs/real/gemini-wikipedia.gif)
 
-_A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: the task took 28 seconds, shown at 2× speed. Approval prompts were answered by the recording script._
+_A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: the task took 11 seconds, shown at 2× speed. Approval prompts were answered by the recording script._
 
 **Contents:** [Get started](#get-started) · [Using autochrome](#using-autochrome) · [Safety](#safety) · [Workflows](#workflows) · [Schedules](#schedules) · [Claude Code and Cursor](#use-from-claude-code-or-cursor) · [Troubleshooting](#troubleshooting) · [For developers](#for-developers)
 
@@ -49,9 +49,9 @@ The AI runs at a provider you choose, with your own key. Pick one:
 
 ## 3. Set it up
 
-1. Click the autochrome icon in the toolbar. The side panel opens on the right.
-2. Click **Settings** (gear icon). Every icon shows its name when you hover over it.
-3. Choose your provider, paste the API key and pick a model.
+1. Click the autochrome icon in the toolbar. The side panel opens on the right with a setup screen.
+2. Choose a provider, paste its API key and click **Connect**. autochrome checks the key and picks a good model for you.
+3. That's it. You can change the model any time with the chip under the message box, and find everything else (Workflows, Schedules, Runs, Settings) in the **menu** (☰) at the top right.
 
 Your key is stored only in this Chrome profile and is sent only to the provider you chose.
 
@@ -64,7 +64,7 @@ Type what you want in the box at the bottom and press **Send**. For example:
 - "List my open tabs and group them by topic."
 - "On this page, find the contact email."
 
-Each step appears as a card in the chat; click a card to see exactly what was sent and what came back. Press **Stop** at any time. When it needs permission, an approval card appears: read it, then choose **Allow once**, **Allow on this site** or **Deny**.
+The agent's steps appear as a timeline in plain words ("Opened wikipedia.org", "Typed “Ada Lovelace” into “Search”"); click a step to see exactly what was sent and what came back, and click the header to fold the timeline. On the page itself, the element the agent is about to use is outlined and the tab gets a thin "autochrome is working" frame. Press **Stop** at any time. The shield chip under the message box shows the [safety mode](#safety) and changes it. When it needs permission, an approval card appears: read it, then choose **Allow once**, **Allow on this site** or **Deny**.
 
 While the agent works, Chrome shows a bar saying autochrome "started debugging this browser". That is normal: it is how the extension clicks and types for you.
 
@@ -168,13 +168,13 @@ Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues
 
 ## Status
 
-Version 1.2.1. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
+Version 1.3.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
 
-Screenshots from real Gemini Live (`gemini-3.8-live`) test runs:
+Screens from real runs with Gemini (`gemini-3.5-flash-lite`):
 
-| Reading Hacker News (real site, 31 s)                                                     | A risky click waits for approval (local test page)                                      |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| ![Gemini Live listing the top Hacker News stories](docs/real/gemini-live-hacker-news.png) | ![Approval card asking before clicking Place order](docs/real/gemini-live-approval.png) |
+| First run                                                                | Asking before acting                                              | Answer and steps                                                           | Dark theme                                                         |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ![Setup screen: pick a provider and paste a key](docs/screens/setup.png) | ![Approval card asking to open a page](docs/screens/approval.png) | ![A folded step timeline above a markdown answer](docs/screens/answer.png) | ![The same answer in the dark theme](docs/screens/answer-dark.png) |
 
 # For developers
 

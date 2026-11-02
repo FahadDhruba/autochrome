@@ -164,14 +164,8 @@ a {
 
 .tool-card {
   flex: none;
-  border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 12px;
-  transition: border-color 0.12s ease;
-}
-
-.tool-card:hover {
-  border-color: var(--muted);
+  font-size: 12.5px;
 }
 
 /* The header never changes size, so opening a card only adds the body underneath. */
@@ -207,19 +201,23 @@ a {
   transform: rotate(90deg);
 }
 
-.tool-name {
-  flex: none;
-  font-weight: 600;
-  font-family: ui-monospace, monospace;
-}
-
-.tool-summary {
+.tool-label-text {
   flex: 1 1 0;
   min-width: 0;
   overflow: hidden;
-  color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The raw tool name stays visible, small, for people who want to know exactly what ran. */
+.tool-name {
+  flex: none;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 10.5px;
 }
 
 .tool-result-sum {
@@ -257,15 +255,7 @@ a {
   }
 }
 
-.tool-error {
-  border-color: var(--danger);
-}
-
-.tool-error:hover {
-  border-color: var(--danger);
-}
-
-.tool-error .tool-name,
+.tool-error .tool-label-text,
 .tool-error .tool-result-sum,
 .tool-error .tool-result {
   color: var(--danger);
@@ -463,13 +453,15 @@ a {
   vertical-align: middle;
 }
 
-.settings .radio-option {
+.settings .radio-option,
+.model-pop .radio-option {
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
 
-.settings .radio-option input {
+.settings .radio-option input,
+.model-pop .radio-option input {
   display: inline-block;
   width: auto;
   margin-top: 2px;
@@ -880,8 +872,16 @@ select:focus-visible {
 }
 
 .composer-tools {
+  display: flex;
   flex: 1;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
+}
+
+.composer-tools > .model-chip-wrap:first-child {
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .btn-send,
@@ -1092,4 +1092,280 @@ select:focus-visible {
   .segmented label {
     transition: none;
   }
+}
+
+/* Agent activity: one folding timeline per turn. */
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.activity {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.activity-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.activity-head:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.activity-head span {
+  flex: 1;
+}
+
+.activity-chevron {
+  transition: transform 0.15s ease;
+}
+
+.activity-head[aria-expanded='true'] .activity-chevron {
+  transform: rotate(90deg);
+}
+
+.activity-list {
+  position: relative;
+  margin: 0;
+  padding: 0 4px 6px 4px;
+  list-style: none;
+}
+
+/* The thread line that ties the steps together. */
+.activity-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 14px;
+  left: 18px;
+  width: 1px;
+  background: var(--border);
+}
+
+.activity-list > li {
+  position: relative;
+}
+
+.activity-list .tool-icon {
+  background: var(--bg);
+  box-sizing: content-box;
+  padding: 2px 0;
+}
+
+.activity-note {
+  padding: 4px 8px 4px 32px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.answer-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.icon-link {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+}
+
+.icon-link:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.working {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 2px;
+}
+
+/* Header menu */
+.menu-wrap {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: none;
+  color: var(--text);
+  font-weight: 500;
+  text-align: left;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--surface);
+}
+
+.menu-item-active {
+  background: var(--surface-hover);
+}
+
+/* Safety chip */
+.safety-chip {
+  flex: none;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.safety-chip-auto {
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+/* First-run setup */
+.setup {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 18px;
+  text-align: center;
+}
+
+.setup h2 {
+  margin: 4px 0 0;
+  font-size: 1.125rem;
+}
+
+.setup > .muted {
+  margin: 0;
+  max-width: 320px;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+  text-align: left;
+}
+
+.setup-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.setup-choice {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.setup-choice.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.setup-choice-label {
+  font-weight: 600;
+}
+
+.setup-link {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.setup-done {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ok);
+}
+
+.setup-foot {
+  font-size: 12px;
+}
+
+/* Settings: jump links to each section; the panel scrolls, the links stay on top. */
+.settings-nav {
+  position: sticky;
+  top: -4px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -4px -16px 4px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.settings-heading {
+  margin-bottom: 0;
+}
+
+.settings section {
+  scroll-margin-top: 52px;
+}
+
+.setup-form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.setup-form > label input {
+  width: 100%;
+}
+
+/* In the timeline the words say what happened; the raw result is one click away. */
+.activity .tool-ok .tool-result-text {
+  display: none;
 }

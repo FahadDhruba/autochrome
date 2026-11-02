@@ -1,4 +1,5 @@
 import type { Point } from './messages';
+import { highlight } from './overlay';
 import { elementForRef } from './refs';
 
 /** Scroll the element to the middle of the viewport and return its center in viewport CSS px. */
@@ -6,6 +7,7 @@ export function locate(ref: string, focus = false): Point {
   const el = elementForRef(ref);
   el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
   if (focus && el instanceof HTMLElement) el.focus();
+  highlight(el);
   const rect = el.getBoundingClientRect();
   const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max - 1);
   return {
@@ -28,6 +30,7 @@ function setNativeValue(el: HTMLInputElement | HTMLTextAreaElement, value: strin
 
 export function setValue(ref: string, value: string | boolean): string {
   const el = elementForRef(ref);
+  highlight(el);
 
   if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) {
     if (typeof value !== 'boolean') throw new Error(`${ref} is a ${el.type}; pass true or false.`);

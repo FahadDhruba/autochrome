@@ -185,6 +185,15 @@ export function refOf(tree: string, pattern: RegExp): string {
   return ref;
 }
 
+/** Opens Workflows, Schedules, Runs or Settings from the header menu. */
+export async function openView(
+  panel: Page,
+  name: 'Workflows' | 'Schedules' | 'Runs' | 'Settings',
+): Promise<void> {
+  await panel.getByRole('button', { name: 'Menu', exact: true }).click();
+  await panel.getByRole('menuitem', { name, exact: true }).click();
+}
+
 /** Opens the model chip's popover (provider select and model input) if it is closed. */
 export async function openModelChip(panel: Page): Promise<void> {
   const chip = panel.getByTestId('model-chip');
