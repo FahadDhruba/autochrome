@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { titleFor } from '@/src/history';
-import { KeyRound, Workflow } from 'lucide-react';
+import { Workflow } from 'lucide-react';
 import ApprovalCard from '@/src/ui/ApprovalCard';
 import EmptyState from '@/src/ui/EmptyState';
+import type { SafetyMode } from '@/src/safety/settings';
 import Logo from '@/src/ui/Logo';
 import { stepsFromMessages, workflowFromChat } from '@/src/workflows/fromChat';
 import { saveWorkflow } from '@/src/workflows/store';
@@ -10,44 +11,36 @@ import type { useChat } from './useChat';
 import Composer from './Composer';
 import MessageList from './MessageList';
 import ModelChip from './ModelChip';
+import SafetyChip from './SafetyChip';
+import SetupCard from './SetupCard';
+import { suggestionsFor, useActiveTab } from './useActiveTab';
 import type { ProviderState } from './useProviderSettings';
 
 type Props = {
   chat: ReturnType<typeof useChat>;
   providers: ProviderState;
+  safetyMode?: SafetyMode;
   onOpenSettings: () => void;
   /** Called with the id of the workflow a finished chat was saved as. */
   onSavedWorkflow: (workflowId: string) => void;
 };
 
-const EXAMPLES = [
-  'Summarize the page I have open',
-  'List my open tabs and group them by topic',
-  'Find the contact email on this site',
-];
-
-export default function ChatView({ chat, providers, onOpenSettings, onSavedWorkflow }: Props) {
+export default function ChatView({
+  chat,
+  providers,
+  safetyMode,
+  onOpenSettings,
+  onSavedWorkflow,
+}: Props) {
   const { target } = chat;
+  const activeTab = useActiveTab();
   const [draft, setDraft] = useState('');
   const input = useRef<HTMLTextAreaElement>(null);
   const approval = chat.approval && (
     <ApprovalCard request={chat.approval} onAnswer={chat.answerApproval} />
   );
   if (providers.ready.length === 0 && chat.messages.length === 0) {
-    return (
-      <EmptyState
-        testId="empty-state"
-        visual={<KeyRound size={40} strokeWidth={1.5} />}
-        actions={
-          <>
-            <button onClick={onOpenSettings}>Open settings</button>
-            {approval}
-          </>
-        }
-      >
-        Add an API key, or connect a local server such as Ollama, to run tasks in your browser.
-      </EmptyState>
-    );
+    return <SetupCard onOpenSettings={onOpenSettings}>{approval}</SetupCard>;
   }
 
   const canSave = !chat.running && stepsFromMessages(chat.messages).length > 0;
@@ -69,7 +62,7 @@ export default function ChatView({ chat, providers, onOpenSettings, onSavedWorkf
           actions={
             <>
               <div className="example-chips">
-                {EXAMPLES.map((example) => (
+                {suggestionsFor(activeTab).map((example) => (
                   <button
                     key={example}
                     type="button"
@@ -117,12 +110,15 @@ export default function ChatView({ chat, providers, onOpenSettings, onSavedWorkf
         onStop={chat.stop}
         tools={
           target && (
-            <ModelChip
-              target={target}
-              state={providers}
-              disabled={chat.running}
-              onChange={chat.changeTarget}
-            />
+            <>
+              <ModelChip
+                target={target}
+                state={providers}
+                disabled={chat.running}
+                onChange={chat.changeTarget}
+              />
+              {safetyMode && <SafetyChip mode={safetyMode} disabled={chat.running} />}
+            </>
           )
         }
       />

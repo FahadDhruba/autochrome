@@ -7,6 +7,7 @@ import { executeTool } from '@/src/executor';
 import { handleApprovalMessage, isExtensionPage, startApprovalUi } from '@/src/safety/approvalUi';
 import { handleScheduleMessage, startSchedules } from '@/src/schedules/start';
 import { handleTestMessage } from '@/src/schedules/testHook';
+import { runStorageMigrations } from '@/src/settings';
 import { handleRecordMessage, startRecorder } from '@/src/workflows/recorder';
 
 export default defineBackground(() => {
@@ -14,6 +15,7 @@ export default defineBackground(() => {
     console.error('autochrome: failed to set side panel behavior', error);
   });
 
+  browser.runtime.onInstalled.addListener(() => void runStorageMigrations());
   watchDebugger();
   startBridge();
   startApprovalUi();

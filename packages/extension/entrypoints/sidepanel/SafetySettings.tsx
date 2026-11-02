@@ -6,7 +6,7 @@ import { scheduleStore } from '@/src/schedules/store';
 import { useSafety } from './useSafety';
 import { useStorageList } from './useStorageList';
 
-const MODES: { id: SafetyMode; label: string; description: string }[] = [
+export const MODES: { id: SafetyMode; label: string; description: string }[] = [
   {
     id: 'ask',
     label: 'Ask every action',
@@ -36,7 +36,7 @@ export default function SafetySettings() {
   };
 
   return (
-    <section aria-label="Safety settings">
+    <section aria-label="Safety settings" id="settings-sec-safety">
       <h2>Safety</h2>
       <div className="radio-group" role="radiogroup" aria-label="Safety mode">
         {MODES.map(({ id, label, description }) => (

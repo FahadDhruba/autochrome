@@ -6,14 +6,14 @@ An open-source Chrome extension that lets an AI use your real browser. Tell it w
 
 ![autochrome searching Wikipedia with Gemini and answering in the side panel](docs/real/gemini-wikipedia.gif)
 
-_A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: the task took 28 seconds, shown at 2× speed. Approval prompts were answered by the recording script._
+_A real, unedited run with Gemini (`gemini-3.5-flash-lite`) on wikipedia.org: the task took 11 seconds, shown at 2× speed. Approval prompts were answered by the recording script._
 
 **Contents:** [Get started](#get-started) · [Using autochrome](#using-autochrome) · [Safety](#safety) · [Workflows](#workflows) · [Schedules](#schedules) · [Claude Code and Cursor](#use-from-claude-code-or-cursor) · [Troubleshooting](#troubleshooting) · [For developers](#for-developers)
 
 ## What it does
 
 - **An AI agent in a side panel.** Describe a task ("fill in this form", "find the cheapest flight on this page", "summarize my open tabs") and watch it work, step by step.
-- **Your choice of AI.** Claude (Anthropic), OpenAI, Gemini, Gemini Live, or a model on your own computer (Ollama, LM Studio) or through OpenRouter. Switch per chat.
+- **Your choice of AI.** Claude (Anthropic), OpenAI, Gemini (including Live models), or a model on your own computer (Ollama, LM Studio) or through OpenRouter. Switch per chat.
 - **You stay in control.** By default it asks before acting on a new site, and always asks before buying, sending, deleting or typing a password or card number.
 - **Workflows and schedules.** Record a task once and replay it without the AI, or run it on a timer.
 - **Works with Claude Code and Cursor**, which can use the same browser through the `autochrome-bridge` add-on.
@@ -42,7 +42,6 @@ The AI runs at a provider you choose, with your own key. Pick one:
 | Provider                 | Where to get a key                                                                             | Notes                                                                                        |
 | ------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | **Gemini** (recommended) | [Google AI Studio](https://aistudio.google.com/apikey)                                         | Free tier available. Tested with real tasks.                                                 |
-| Gemini Live              | Same key as Gemini                                                                             | For Live-only models such as `gemini-3.8-live`. Slower, see below.                           |
 | Claude (Anthropic)       | [Anthropic Console](https://console.anthropic.com/settings/keys)                               | Paid.                                                                                        |
 | OpenAI                   | [OpenAI Platform](https://platform.openai.com/api-keys)                                        | Paid.                                                                                        |
 | Ollama or LM Studio      | No key; runs on your computer ([Ollama](https://ollama.com), [LM Studio](https://lmstudio.ai)) | Free. Use the OpenAI-compatible provider with base URL `http://localhost:11434/v1` (Ollama). |
@@ -50,9 +49,9 @@ The AI runs at a provider you choose, with your own key. Pick one:
 
 ## 3. Set it up
 
-1. Click the autochrome icon in the toolbar. The side panel opens on the right.
-2. Click **Settings** (gear icon). Every icon shows its name when you hover over it.
-3. Choose your provider, paste the API key and pick a model.
+1. Click the autochrome icon in the toolbar. The side panel opens on the right with a setup screen.
+2. Choose a provider, paste its API key and click **Connect**. autochrome checks the key and picks a good model for you.
+3. That's it. You can change the model any time with the chip under the message box, and find everything else (Workflows, Schedules, Runs, Settings) in the **menu** (☰) at the top right.
 
 Your key is stored only in this Chrome profile and is sent only to the provider you chose.
 
@@ -65,7 +64,7 @@ Type what you want in the box at the bottom and press **Send**. For example:
 - "List my open tabs and group them by topic."
 - "On this page, find the contact email."
 
-Each step appears as a card in the chat; click a card to see exactly what was sent and what came back. Press **Stop** at any time. When it needs permission, an approval card appears: read it, then choose **Allow once**, **Allow on this site** or **Deny**.
+The agent's steps appear as a timeline in plain words ("Opened wikipedia.org", "Typed “Ada Lovelace” into “Search”"); click a step to see exactly what was sent and what came back, and click the header to fold the timeline. On the page itself, the element the agent is about to use is outlined and the tab gets a thin "autochrome is working" frame. Press **Stop** at any time. The shield chip under the message box shows the [safety mode](#safety) and changes it. When it needs permission, an approval card appears: read it, then choose **Allow once**, **Allow on this site** or **Deny**.
 
 While the agent works, Chrome shows a bar saying autochrome "started debugging this browser". That is normal: it is how the extension clicks and types for you.
 
@@ -77,7 +76,7 @@ While the agent works, Chrome shows a bar saying autochrome "started debugging t
 - The chip under the message box (for example `Gemini · gemini-3.5-flash-lite`) switches provider and model for the current chat.
 - **Save as workflow** under a finished chat turns what the AI did into a replayable [workflow](#workflows).
 
-**Gemini Live** (`gemini-3.8-live` and similar) can only answer by voice, so autochrome shows the transcript of the spoken reply. It works for real tasks but is slower: about 1 to 2 seconds per action, and long final answers can take 10 to 20 seconds because the transcript arrives at speaking speed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes stops without doing anything. Gemini Live uses your Gemini key unless you set a separate one.
+**Gemini Live models** (`gemini-3.8-live`, `gemini-3.1-flash-live-preview` and similar) are listed with the other Gemini models and use the same key. They can only answer by voice, so autochrome shows the transcript of the spoken reply. It works for real tasks but is slower: about 1 to 2 seconds per action, and long final answers can take 10 to 20 seconds because the transcript arrives at speaking speed. `gemini-3.8-live-extended-thinking` is experimental: it sometimes stops without doing anything.
 
 ## Safety
 
@@ -162,20 +161,20 @@ API keys, chats, workflows and schedules are stored in your Chrome profile on th
 - **"No API key set"**: add a key in Settings for the provider shown on the chip under the message box.
 - **The AI says it cannot act on a page**: `chrome://` pages, extension pages and the Chrome Web Store are blocked on purpose.
 - **Nothing happens after a prompt**: look for an approval card in the side panel (or a popup window). Unanswered prompts are denied after 2 minutes.
-- **Gemini Live feels slow**: that is expected (see [Chats and models](#chats-and-models)). Use Gemini for faster answers.
+- **A Gemini Live model feels slow**: that is expected (see [Chats and models](#chats-and-models)). Pick a regular Gemini model for faster answers.
 - **The bridge status dot does not turn green**: check that the token in Settings → Bridge matches `npx -y autochrome-bridge token`, and that your MCP client is running.
 
 Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues).
 
 ## Status
 
-Version 1.2.1. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
+Version 1.3.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
 
-Screenshots from real Gemini Live (`gemini-3.8-live`) test runs:
+Screens from real runs with Gemini (`gemini-3.5-flash-lite`):
 
-| Reading Hacker News (real site, 31 s)                                                     | A risky click waits for approval (local test page)                                      |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| ![Gemini Live listing the top Hacker News stories](docs/real/gemini-live-hacker-news.png) | ![Approval card asking before clicking Place order](docs/real/gemini-live-approval.png) |
+| First run                                                                | Asking before acting                                              | Answer and steps                                                           | Dark theme                                                         |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| ![Setup screen: pick a provider and paste a key](docs/screens/setup.png) | ![Approval card asking to open a page](docs/screens/approval.png) | ![A folded step timeline above a markdown answer](docs/screens/answer.png) | ![The same answer in the dark theme](docs/screens/answer-dark.png) |
 
 # For developers
 
@@ -213,7 +212,7 @@ Everything is covered by unit tests and Playwright end-to-end tests that run the
 
 Pages are read as a compact accessibility tree with short element IDs; screenshots and x/y clicks are the fallback. Input and debugging tools use `chrome.debugger`. All tool calls, from the side panel, the bridge, workflows or schedules, go through one permission gate.
 
-Gemini Live uses the Live API's WebSocket, one session per agent step. The Live API only answers in audio, so the extension asks for audio with a transcript and uses the transcript as text. Tool results are replayed to the model as text, because the Live API ignores structured function responses in replayed history. There are no thought signatures.
+Gemini Live models (any model id containing `live`) go over the Live API's WebSocket, one session per agent step; other Gemini models use the REST API. The Live API only answers in audio, so the extension asks for audio with a transcript and uses the transcript as text. Tool results are replayed to the model as text, because the Live API ignores structured function responses in replayed history. There are no thought signatures.
 
 | Path                 | Contents                                                             |
 | -------------------- | -------------------------------------------------------------------- |

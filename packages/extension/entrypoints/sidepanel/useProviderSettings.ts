@@ -4,7 +4,6 @@ import {
   isProviderReady,
   loadAllProviderSettings,
   loadDefaultProvider,
-  withKeyFallbacks,
   type AllProviderSettings,
 } from '@/src/settings';
 import { PROVIDER_IDS } from '@/src/providers';
@@ -26,7 +25,7 @@ export function useProviderSettings(): ProviderState | undefined {
         loadAllProviderSettings(),
         loadDefaultProvider(),
       ]);
-      const all = withKeyFallbacks(stored);
+      const all = stored;
       const ready = PROVIDER_IDS.filter((id) => isProviderReady(id, all[id])).sort(
         (a, b) => Number(b === defaultProvider) - Number(a === defaultProvider),
       );

@@ -101,8 +101,8 @@ export default function ModelChip({ target, state, disabled, onChange }: Props) 
               </option>
             ))}
           </datalist>
-          {providers[target.providerId].note && (
-            <p className="muted">{providers[target.providerId].note}</p>
+          {providers[target.providerId].modelNote?.(target.model) && (
+            <p className="muted">{providers[target.providerId].modelNote?.(target.model)}</p>
           )}
         </div>
       )}

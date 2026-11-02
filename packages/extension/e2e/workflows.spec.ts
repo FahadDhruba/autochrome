@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import type { Workflow } from '@autochrome/shared';
-import { expect, refOf, test } from './harness';
+import { expect, refOf, test, openView } from './harness';
 import type { RecordedRequest } from './mockAnthropic';
 
 test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
@@ -52,7 +52,7 @@ async function seed(debugPage: Page, workflow: Workflow) {
 
 async function openWorkflows(openSidePanel: () => Promise<Page>): Promise<Page> {
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Workflows' }).click();
+  await openView(panel, 'Workflows');
   return panel;
 }
 

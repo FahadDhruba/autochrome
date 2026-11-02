@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { expect, refOf } from './harness';
+import { expect, refOf, openView } from './harness';
 import { test, TOKEN } from './hub';
 import type { RecordedRequest } from './mockAnthropic';
 
@@ -314,7 +314,7 @@ test.describe('settings', () => {
   }) => {
     await setSafety({ sites: ['https://a.example', 'https://b.example'] });
     const panel = await openSidePanel();
-    await panel.getByRole('button', { name: 'Settings', exact: true }).click();
+    await openView(panel, 'Settings');
     const safety = panel.getByRole('region', { name: 'Safety settings' });
 
     await expect(safety.getByRole('radio', { name: /Per-site/ })).toBeChecked();

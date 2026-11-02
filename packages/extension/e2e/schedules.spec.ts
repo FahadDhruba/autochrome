@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- storage records are read untyped */
 import type { Page } from '@playwright/test';
 import type { Workflow } from '@autochrome/shared';
-import { expect, test } from './harness';
+import { expect, test, openView } from './harness';
 import type { RecordedRequest } from './mockAnthropic';
 
 type Seed = {
@@ -112,7 +112,7 @@ const pagesWith = (page: Page, file: string) =>
 
 async function openRuns(openSidePanel: () => Promise<Page>): Promise<Page> {
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Runs' }).click();
+  await openView(panel, 'Runs');
   return panel;
 }
 
@@ -406,7 +406,7 @@ test('create, run now, toggle and delete a schedule from the side panel', async 
 }) => {
   await seedWorkflow(debugPage, loginWorkflow(baseUrl));
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
   await expect(panel.getByText('No schedules yet.')).toBeVisible();
 
   await panel.getByRole('button', { name: 'New schedule' }).click();
@@ -436,11 +436,11 @@ test('create, run now, toggle and delete a schedule from the side panel', async 
   await expect.poll(() => alarmNames(debugPage)).toEqual([expect.stringMatching(/^schedule:/)]);
 
   // Settings warns while a schedule is on.
-  await panel.getByRole('button', { name: 'Settings' }).click();
+  await openView(panel, 'Settings');
   await expect(panel.getByTestId('schedule-warning')).toContainText(
     'Scheduled runs act in Auto mode',
   );
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
 
   // Run now works while it is on and shows the result.
   await panel.getByRole('button', { name: 'Run Weekday sign-in now' }).click();
@@ -449,15 +449,15 @@ test('create, run now, toggle and delete a schedule from the side panel', async 
   await expect(panel.getByTestId('run-status')).toHaveText('Finished');
   await expect(panel.getByTestId('run-origin')).toContainText('Schedule · Weekday sign-in');
   await panel.getByRole('button', { name: 'Back to runs' }).click();
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
 
   // Turning it off removes the alarm and the Safety warning.
   await panel.getByLabel('Enable Weekday sign-in').uncheck();
   await expect(panel.getByTestId('schedule-next')).toHaveText('Disabled');
   await expect.poll(() => alarmNames(debugPage)).toEqual([]);
-  await panel.getByRole('button', { name: 'Settings' }).click();
+  await openView(panel, 'Settings');
   await expect(panel.getByTestId('schedule-warning')).toHaveCount(0);
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
 
   await panel.getByLabel('Enable Weekday sign-in').check();
   await expect.poll(() => alarmNames(debugPage)).toHaveLength(1);
@@ -473,7 +473,7 @@ test('a prompt schedule can be created in the editor with a provider and model',
   openSidePanel,
 }) => {
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Schedules' }).click();
+  await openView(panel, 'Schedules');
   await panel.getByRole('button', { name: 'New schedule' }).click();
   const editor = panel.getByRole('form', { name: 'Schedule editor' });
   await editor.getByLabel('Name').fill('Digest');
@@ -542,7 +542,7 @@ test('runs started by hand appear in the Runs view too, and old runs read as man
   await setSafety({ mode: 'auto' });
   await seedWorkflow(debugPage, loginWorkflow(baseUrl));
   const panel = await openSidePanel();
-  await panel.getByRole('button', { name: 'Workflows' }).click();
+  await openView(panel, 'Workflows');
   await panel.getByRole('button', { name: 'Run Sign in to the fixture' }).click();
   await expect(panel.getByTestId('run-status')).toHaveText('Finished');
 
@@ -567,7 +567,7 @@ test('runs started by hand appear in the Runs view too, and old runs read as man
     });
   });
 
-  await panel.getByRole('button', { name: 'Runs' }).click();
+  await openView(panel, 'Runs');
   const items = panel.getByTestId('run-item');
   await expect(items).toHaveCount(2);
   await expect(items.filter({ hasText: 'Manual' })).toHaveCount(2);

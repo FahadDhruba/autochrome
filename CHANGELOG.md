@@ -2,6 +2,31 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.3.0] - 2026-11-02
+
+### Changed
+
+- **Redesigned side panel.**
+  - The header keeps Chats and New chat; Workflows, Schedules, Runs and Settings moved into one
+    menu.
+  - The agent's steps show as a folding timeline in plain words ("Typed “Ada Lovelace” into
+    “Search”"), with the raw tool name as a small tag and the full input and result one click away.
+  - A status line says what the agent is doing right now.
+  - Approval prompts start with a plain sentence ("The AI wants to **click “Place order”**"); the
+    technical details fold away.
+  - A shield chip next to the model chip shows and changes the safety mode (Auto still asks to
+    confirm).
+  - The first run is a setup screen: pick a provider, paste a key, click Connect; the key is tested
+    and a good model is picked.
+  - Starting prompts follow the open tab; answers get a copy button; Settings has section links.
+- On the page, the element the agent is about to use is outlined and the tab shows a thin
+  "autochrome is working" frame. Page reads never see it and screenshots hide it.
+
+- Gemini Live is no longer a separate provider. Live models such as `gemini-3.8-live` and
+  `gemini-3.1-flash-live-preview` appear in the Gemini model list and use the Gemini key; they are
+  sent over the Live API automatically. Settings, chats and schedules that used Gemini Live move to
+  Gemini when the extension updates.
+
 ## [1.2.1] - 2026-10-30
 
 ### Changed
@@ -127,6 +152,7 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.3.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.3.0
 [1.2.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.1
 [1.2.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.0
 [1.1.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.1.1

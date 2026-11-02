@@ -9,7 +9,6 @@ import {
   loadDefaultProvider,
   saveDefaultProvider,
   saveProviderSettings,
-  withKeyFallbacks,
   type AllProviderSettings,
 } from '@/src/settings';
 import BridgeSettings from './BridgeSettings';
@@ -20,9 +19,10 @@ const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
   anthropic: 'sk-ant-…',
   openai: 'sk-…',
   gemini: 'AIza…',
-  'gemini-live': 'AIza… (empty uses the Gemini key)',
   compatible: 'Optional',
 };
+
+const SECTIONS = ['Models', 'Safety', 'Bridge', 'Appearance'];
 
 const THEME_LABEL: Record<Theme, string> = { system: 'System', light: 'Light', dark: 'Dark' };
 
@@ -50,10 +50,7 @@ export default function SettingsView() {
   const info = providers[selected];
   const draft = drafts?.[selected];
   // Suggestions follow what is saved, not every keystroke.
-  const models = useModelOptions(
-    selected,
-    (saved && withKeyFallbacks(saved)[selected]) || emptySettings,
-  );
+  const models = useModelOptions(selected, saved?.[selected] ?? emptySettings);
   if (!drafts || !draft) return null;
 
   const change = (patch: Partial<ProviderSettings>) => {
@@ -85,6 +82,25 @@ export default function SettingsView() {
 
   return (
     <div className="settings">
+      <nav className="settings-nav" aria-label="Settings sections">
+        {SECTIONS.map((name) => (
+          <button
+            key={name}
+            type="button"
+            className="chip"
+            onClick={() =>
+              document
+                .getElementById(`settings-sec-${name.toLowerCase()}`)
+                ?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+            }
+          >
+            {name}
+          </button>
+        ))}
+      </nav>
+      <h2 id="settings-sec-models" className="settings-heading">
+        Models
+      </h2>
       <label>
         Provider
         <select
@@ -146,7 +162,6 @@ export default function SettingsView() {
             ? 'Stored on this device and sent only to the server above.'
             : `Stored on this device and sent only to the ${info.label} API.`}
         </p>
-        {info.note && <p className="muted">{info.note}</p>}
         <label>
           Model
           <input
@@ -156,6 +171,9 @@ export default function SettingsView() {
             spellCheck={false}
             onChange={(e) => change({ model: e.target.value })}
           />
+          {info.modelNote?.(draft.model) && (
+            <span className="muted">{info.modelNote(draft.model)}</span>
+          )}
           <datalist id="settings-models">
             {models.map((model) => (
               <option key={model.id} value={model.id}>
@@ -185,7 +203,7 @@ export default function SettingsView() {
       </section>
       <SafetySettings />
       <BridgeSettings />
-      <section aria-label="Appearance settings">
+      <section aria-label="Appearance settings" id="settings-sec-appearance">
         <h2>Appearance</h2>
         <div className="segmented" role="radiogroup" aria-label="Theme">
           {THEMES.map((id) => (

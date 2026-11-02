@@ -1,4 +1,4 @@
-import { expect } from './harness';
+import { expect, openView } from './harness';
 import { test, TOKEN } from './hub';
 
 test.beforeEach(async ({ setSafety }) => setSafety({ mode: 'auto' }));
@@ -72,7 +72,7 @@ test('the bridge lists and runs workflows', async ({ baseUrl, context, debugPage
   expect(stored).toMatchObject({ trigger: 'bridge', source: 'bridge' });
   const panel = await context.newPage();
   await panel.goto(`chrome-extension://${new URL(debugPage.url()).host}/sidepanel.html`);
-  await panel.getByRole('button', { name: 'Runs' }).click();
+  await openView(panel, 'Runs');
   await expect(panel.getByTestId('run-item')).toContainText('Bridge');
   // The element hint stays inside the extension.
   expect(JSON.stringify(run)).not.toContain('"target"');

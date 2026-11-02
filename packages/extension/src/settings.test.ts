@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isProviderReady, withKeyFallbacks, type AllProviderSettings } from './settings';
+import { isProviderReady, migrateLegacyProviders } from './settings';
 
 const settings = (patch: Partial<{ apiKey: string; baseUrl: string; model: string }>) => ({
   apiKey: '',
@@ -23,19 +23,32 @@ describe('isProviderReady', () => {
   });
 });
 
-describe('withKeyFallbacks', () => {
-  const all = (live: string, gemini: string) =>
-    ({
-      anthropic: settings({}),
-      openai: settings({}),
-      gemini: settings({ apiKey: gemini }),
-      'gemini-live': settings({ apiKey: live }),
-      compatible: settings({}),
-    }) satisfies AllProviderSettings;
+describe('migrateLegacyProviders', () => {
+  it('moves a Gemini Live default, key, chats and schedules to Gemini', () => {
+    const { set, remove } = migrateLegacyProviders({
+      defaultProvider: 'gemini-live',
+      'gemini-live.apiKey': 'live-key',
+      'gemini-live.model': 'gemini-3.8-live',
+      'chat:a': { id: 'a', providerId: 'gemini-live', model: 'gemini-3.8-live' },
+      'chat:b': { id: 'b', providerId: 'openai' },
+      'schedule:s': { id: 's', run: { kind: 'prompt', providerId: 'gemini-live', model: 'x' } },
+    });
+    expect(set).toEqual({
+      defaultProvider: 'gemini',
+      'gemini.model': 'gemini-3.8-live',
+      'gemini.apiKey': 'live-key',
+      'chat:a': { id: 'a', providerId: 'gemini', model: 'gemini-3.8-live' },
+      'schedule:s': { id: 's', run: { kind: 'prompt', providerId: 'gemini', model: 'x' } },
+    });
+    expect(remove).toEqual(['gemini-live.apiKey', 'gemini-live.model']);
+  });
 
-  it('lends the Gemini key to Gemini Live only when it has none', () => {
-    expect(withKeyFallbacks(all('', 'g'))['gemini-live'].apiKey).toBe('g');
-    expect(withKeyFallbacks(all('own', 'g'))['gemini-live'].apiKey).toBe('own');
-    expect(withKeyFallbacks(all('', 'g')).openai.apiKey).toBe('');
+  it('keeps an existing Gemini key and does nothing on migrated storage', () => {
+    expect(migrateLegacyProviders({ 'gemini.apiKey': 'g', 'gemini-live.apiKey': 'l' }).set).toEqual(
+      {},
+    );
+    expect(
+      migrateLegacyProviders({ defaultProvider: 'gemini', 'chat:a': { providerId: 'gemini' } }),
+    ).toEqual({ set: {}, remove: [] });
   });
 });

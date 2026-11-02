@@ -11,10 +11,25 @@
 }
 
 .approval-title {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 6px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.approval-title strong {
+  font-weight: 700;
+}
+
+.approval-more {
   margin: 0 0 6px;
   color: var(--muted);
+  font-size: 12px;
+}
+
+.approval-more summary {
+  cursor: pointer;
 }
 
 .approval-action,

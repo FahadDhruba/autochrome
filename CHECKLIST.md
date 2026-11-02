@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** 1.2.0 with the Gemini Live provider, verified against the real Live API (`gemini-3.8-live`). Next: other real providers, Chrome Web Store
+**Current:** 1.3.0: redesigned side panel, Gemini Live merged into Gemini. Next: real-task benchmark, ask-the-user tool, iframes and dialogs, Claude and OpenAI real runs, Chrome Web Store
 
 ## Planning
 
@@ -118,6 +118,14 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 - [x] e2e mock Live server (`ws`) and chat flow test
 - [x] Real run with `gemini-3.8-live` (side-panel form task, workflow repair; maintainer)
 
+## 1.3.0 — Redesign and one Gemini provider
+
+- [x] Gemini Live merged into Gemini (one key and model list; Live models routed to the Live API; storage migration)
+- [x] Header menu, plain-language step timeline, status line, approval sentence, safety chip
+- [x] First-run setup with key test, tab-aware suggestions, copy answer, Settings section links
+- [x] On-page highlight and working frame (hidden from reads and screenshots)
+- [x] Real-run screenshots (light and dark) and README GIF
+
 ## Session log
 
 | Date       | Session work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -144,3 +152,4 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 | 2026-10-30 | README reorganized for users first (install from zip, API keys, first task, safety, workflows, schedules, bridge, updating, privacy, troubleshooting), developer docs after; live test of `gemini-3.8-live` on 4 tasks (form, Wikipedia, Hacker News, checkout) with per-step screenshots                                                                                                                                                                                                                                                                                                                                                                            |
 | 2026-10-30 | README shows a real recorded Gemini run (Wikipedia GIF) and Gemini Live screenshots from real tests                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-10-30 | Token use: stale `read_page`/`get_text` results and long earlier-task results replaced by stubs before each model call, `read_page` cap 50k → 20k; measured on real runs with `gemini-3.5-flash-lite` and `gemini-3.1-flash-live-preview` (history sent −0 to −31%); version 1.2.1                                                                                                                                                                                                                                                                                                                                                                                   |
+| \n         | 2026-11-02                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | 1.3.0: Gemini Live merged into Gemini; side panel redesign (menu, step timeline, status line, approval sentence, safety chip, setup screen, tab-aware suggestions, copy, Settings links, on-page highlight); verified with a real Gemini run in light and dark; README GIF and screens updated |

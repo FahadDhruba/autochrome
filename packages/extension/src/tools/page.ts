@@ -35,6 +35,8 @@ export const pageHandlers: Pick<
   async screenshot({ tabId }) {
     const id = await resolveTabId(tabId);
     await browser.tabs.update(id, { active: true });
+    // The model should see the page, not autochrome's own highlight.
+    await callPage(id, 'overlay_hide', {}).catch(() => undefined);
     const { width, height } = await viewportSize(id);
     const { data } = await cdp<{ data: string }>(id, 'Page.captureScreenshot', {
       format: 'jpeg',

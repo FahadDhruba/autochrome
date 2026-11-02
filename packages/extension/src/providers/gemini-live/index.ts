@@ -7,7 +7,7 @@ import { toLiveTurns } from './translate';
 
 export const DEFAULT_BASE_URL = 'wss://generativelanguage.googleapis.com';
 export const DEFAULT_MODEL = 'gemini-3.8-live';
-const LABEL = 'Gemini Live';
+const LABEL = 'Gemini';
 const SOCKET_PATH = 'ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 
 const socketRoot = (baseUrl: string) => (baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '');
@@ -19,6 +19,9 @@ type ListedModel = {
   thinking?: boolean;
   supportedGenerationMethods?: string[];
 };
+
+/** Live-only models (`gemini-3.8-live`, `gemini-3.1-flash-live-preview`) need the Live API. */
+export const isLiveModelId = (id: string) => /(^|-)live(-|$)/.test(id);
 
 const isLiveModel = (model: ListedModel) =>
   /live/.test(model.name ?? '') &&
@@ -34,7 +37,7 @@ export function createGeminiLiveProvider(
   const thinkingModels = new Map<string, boolean>();
 
   return {
-    id: 'gemini-live',
+    id: 'gemini',
 
     async listModels(settings): Promise<ModelOption[]> {
       const root = restRoot(settings.baseUrl);

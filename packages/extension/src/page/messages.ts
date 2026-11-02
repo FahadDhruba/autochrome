@@ -35,6 +35,7 @@ export type PageRequests = {
   resolve: { target: TargetHint };
   record_start: Record<string, never>;
   record_stop: Record<string, never>;
+  overlay_hide: Record<string, never>;
 };
 
 export type PageResults = {
@@ -48,6 +49,7 @@ export type PageResults = {
   resolve: ResolvedTarget | undefined;
   record_start: true;
   record_stop: true;
+  overlay_hide: true;
 };
 
 export type PageOp = keyof PageRequests;

@@ -54,7 +54,7 @@ export default function BridgeSettings() {
   };
 
   return (
-    <section aria-label="Bridge settings">
+    <section aria-label="Bridge settings" id="settings-sec-bridge">
       <h2>Bridge</h2>
       <p className="status">
         <span className={`dot dot-${status}`} aria-hidden="true" />
