@@ -1369,3 +1369,108 @@ select:focus-visible {
 .activity .tool-ok .tool-result-text {
   display: none;
 }
+
+/* Questions from the AI and taking over */
+.question,
+.takeover {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.question-title,
+.takeover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.takeover-title {
+  color: var(--text);
+}
+
+.question-text {
+  margin: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.question-hint,
+.takeover p.muted {
+  margin: 0;
+  font-size: 12px;
+}
+
+.question-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.question-choices .chip {
+  padding: 4px 10px;
+}
+
+.question-form {
+  display: flex;
+  gap: 6px;
+}
+
+.question-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Attached files */
+.file-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 12px;
+}
+
+.file-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chip .icon-link {
+  width: 20px;
+  height: 20px;
+}
+
+.composer-error {
+  margin: 0 12px;
+}
+
+.bubble-files {
+  margin-top: 6px;
+}
+
+.bubble-files .file-chip {
+  padding-right: 8px;
+  background: var(--bg);
+}

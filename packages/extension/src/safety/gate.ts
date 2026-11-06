@@ -2,7 +2,7 @@ import type { ToolCall, ToolName } from '@autochrome/shared';
 import type { DescribeTarget, ElementDescription } from '../page/messages';
 import { summarizeInput } from '../toolSummary';
 import { checkUrl } from './origin';
-import { assessRisk } from './risk';
+import { assessRisk, riskOfDialog } from './risk';
 import type { SafetyMode, SafetySettings } from './settings';
 import type { ApprovalRequest, ToolSource } from './types';
 
@@ -27,6 +27,11 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   key: 'action',
   scroll: 'action',
   form_input: 'action',
+  hover: 'action',
+  drag: 'action',
+  upload_file: 'action',
+  dialog: 'action',
+  ask_user: 'free',
   navigate: 'action',
   go_back: 'action',
   go_forward: 'action',
@@ -57,6 +62,8 @@ export type GateEnv = {
   /** The tab with this id, or the default target tab; throws when there is none. */
   tab: (tabId: number | undefined) => Promise<TabInfo>;
   describe: (tabId: number, target: DescribeTarget) => Promise<ElementDescription | undefined>;
+  /** The JavaScript dialog open on the tab, if any. */
+  dialog?: (tabId: number) => { type: string; message: string } | undefined;
 };
 
 export type Verdict =
@@ -127,6 +134,11 @@ export function describeTargetOf(call: ToolCall, input: Input): DescribeTarget |
         : undefined;
     case 'form_input':
       return { ref: input.ref };
+    case 'upload_file':
+      if (input.ref !== undefined) return { ref: input.ref };
+      return input.x !== undefined && input.y !== undefined
+        ? { point: { x: input.x, y: input.y } }
+        : undefined;
     case 'type':
       return input.ref === undefined ? {} : { ref: input.ref };
     case 'key':
@@ -141,6 +153,12 @@ const elementLabel = (el: ElementDescription | undefined): string | undefined =>
   const kind = el.role || el.tag;
   return el.name ? `${kind} "${el.name}"` : kind;
 };
+
+function dialogRisk(call: ToolCall, tab: TabInfo | undefined, env: GateEnv): string | undefined {
+  const dialog = tab && env.dialog?.(tab.id);
+  const accept = (call.input as { accept?: boolean }).accept === true;
+  return dialog ? riskOfDialog(dialog, accept) : undefined;
+}
 
 /** Decides whether a tool call may run, needs the user's answer, or is refused. */
 export async function checkPermission(
@@ -193,9 +211,11 @@ export async function checkPermission(
       ? ALWAYS_ASK_RISK[call.name]
       : group !== 'action'
         ? undefined
-        : uninspectable
-          ? 'Could not inspect the element this acts on'
-          : assessRisk(call, element);
+        : call.name === 'dialog'
+          ? dialogRisk(call, target.tab, env)
+          : uninspectable
+            ? 'Could not inspect the element this acts on'
+            : assessRisk(call, element);
 
   const decision = decide({
     mode,
@@ -214,7 +234,12 @@ export async function checkPermission(
       target: elementLabel(element),
       site,
       risk,
-      detail: call.name === 'js_eval' ? input.code : undefined,
+      detail:
+        call.name === 'js_eval'
+          ? input.code
+          : call.name === 'dialog' && target.tab
+            ? env.dialog?.(target.tab.id)?.message
+            : undefined,
       tabTitle: target.tab?.title ?? '',
     },
   };

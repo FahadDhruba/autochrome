@@ -6,6 +6,8 @@ export type PageNode = {
   value?: string;
   checked?: boolean;
   level?: number;
+  /** For an iframe: the token of the frame it hosts, where that frame's tree goes. */
+  frame?: string;
 };
 
 export const MAX_PAGE_CHARS = 20_000;
@@ -19,6 +21,7 @@ export function formatNode(node: PageNode): string {
   if (node.level !== undefined) parts.push(`level=${node.level}`);
   if (node.value) parts.push(`value=${JSON.stringify(node.value)}`);
   if (node.checked) parts.push('checked');
+  if (node.frame) parts.push(`frame=${node.frame}`);
   return '  '.repeat(node.depth) + parts.join(' ');
 }
 

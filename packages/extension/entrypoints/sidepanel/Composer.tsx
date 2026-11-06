@@ -1,5 +1,6 @@
-import { type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { Send, Square } from 'lucide-react';
+import { useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { Hand, Paperclip, Send, Square, X } from 'lucide-react';
+import IconButton from '@/src/ui/IconButton';
 
 type Props = {
   text: string;
@@ -10,6 +11,13 @@ type Props = {
   onStop: () => void;
   /** Sits at the start of the row under the text box, e.g. the model chip. */
   tools?: ReactNode;
+  /** Pauses the agent so the user can use the page; shown while a task runs. */
+  onTakeOver?: () => void;
+  paused?: boolean;
+  /** Files attached to the next message. */
+  files?: { id: string; name: string }[];
+  onAttach?: (files: FileList) => void;
+  onRemoveFile?: (id: string) => void;
 };
 
 export default function Composer({
@@ -20,8 +28,14 @@ export default function Composer({
   onSend,
   onStop,
   tools,
+  onTakeOver,
+  paused = false,
+  files = [],
+  onAttach,
+  onRemoveFile,
 }: Props) {
   const empty = !text.trim();
+  const picker = useRef<HTMLInputElement>(null);
 
   const submit = () => {
     if (running) return;
@@ -46,6 +60,24 @@ export default function Composer({
         submit();
       }}
     >
+      {files.length > 0 && (
+        <ul className="file-chips" aria-label="Attached files">
+          {files.map((file) => (
+            <li key={file.id} className="file-chip">
+              <Paperclip size={12} aria-hidden="true" />
+              <span>{file.name}</span>
+              <button
+                type="button"
+                className="icon-link"
+                aria-label={`Remove ${file.name}`}
+                onClick={() => onRemoveFile?.(file.id)}
+              >
+                <X size={12} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       <textarea
         ref={inputRef}
         value={text}
@@ -57,6 +89,34 @@ export default function Composer({
       />
       <div className="composer-row">
         <div className="composer-tools">{tools}</div>
+        {onAttach && !running && (
+          <>
+            <IconButton
+              label="Attach files"
+              icon={Paperclip}
+              size={16}
+              align="end"
+              onClick={() => picker.current?.click()}
+            />
+            <input
+              ref={picker}
+              type="file"
+              multiple
+              hidden
+              aria-label="Files to attach"
+              onChange={(event) => {
+                if (event.target.files?.length) onAttach(event.target.files);
+                event.target.value = '';
+              }}
+            />
+          </>
+        )}
+        {running && onTakeOver && !paused && (
+          <button type="button" className="secondary with-icon" onClick={onTakeOver}>
+            <Hand size={14} aria-hidden="true" />
+            Take over
+          </button>
+        )}
         {running ? (
           <button type="button" className="btn-stop with-icon" onClick={onStop}>
             <Square size={14} fill="currentColor" aria-hidden="true" />

@@ -5,13 +5,14 @@ import {
   isToolName,
   toClientMessage,
   toHubMessage,
+  PANEL_TOOLS,
   toolNames,
 } from './index';
 
 describe('describeTools', () => {
   it('describes every tool, leaving defaulted fields optional', () => {
     const tools = describeTools();
-    expect(tools.map((t) => t.name)).toEqual(toolNames);
+    expect(tools.map((t) => t.name)).toEqual(toolNames.filter((n) => !PANEL_TOOLS.has(n)));
     const scroll = tools.find((t) => t.name === 'scroll');
     expect(scroll?.inputSchema.required).toEqual(['direction']);
   });

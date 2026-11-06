@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { WebSocket } from 'ws';
-import { CLOSE_BAD_TOKEN, PROTOCOL_VERSION, toolNames, type ToolResult } from '@autochrome/shared';
+import {
+  CLOSE_BAD_TOKEN,
+  PROTOCOL_VERSION,
+  PANEL_TOOLS,
+  toolNames,
+  type ToolResult,
+} from '@autochrome/shared';
 import type { Hub } from './hub';
 import { NOT_CONNECTED_MESSAGE } from './dispatcher';
 import {
@@ -56,7 +62,7 @@ describe('HTTP API', () => {
       name: string;
       inputSchema: { properties?: Record<string, unknown>; required?: string[] };
     }[];
-    expect(tools.map((t) => t.name)).toEqual(toolNames);
+    expect(tools.map((t) => t.name)).toEqual(toolNames.filter((n) => !PANEL_TOOLS.has(n)));
     const navigate = tools.find((t) => t.name === 'navigate');
     expect(navigate?.inputSchema.required).toEqual(['url']);
     expect(tools.find((t) => t.name === 'read_page')?.inputSchema.required).toBeUndefined();

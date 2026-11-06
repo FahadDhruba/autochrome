@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Frames fixture</title>
+    <style>
+      iframe {
+        display: block;
+        width: 360px;
+        height: 120px;
+        margin: 400px 0 0 40px;
+        border: 4px solid #999;
+        padding: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Frames</h1>
+    <button type="button">Top button</button>
+    <iframe title="Same origin" src="/frame-inner.html?name=same"></iframe>
+    <iframe title="Cross origin" id="cross"></iframe>
+    <script>
+      // localhost and 127.0.0.1 are different origins, so this frame is cross-origin.
+      const url = new URL('/frame-inner.html?name=cross', location.href);
+      url.hostname = url.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+      document.getElementById('cross').src = url.href;
+    </script>
+  </body>
+</html>

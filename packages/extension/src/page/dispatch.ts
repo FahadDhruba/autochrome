@@ -1,5 +1,6 @@
 import { describe } from './describe';
-import { hasText, locate, setValue } from './interact';
+import { announceFrame, frameChildren, frameRect } from './frames';
+import { hasText, locate, setFiles, setValue } from './interact';
 import { hideOverlay } from './overlay';
 import type { PageMessage, PageOp, PageRequests, PageResponse, PageResults } from './messages';
 import { startRecording, stopRecording } from './recorder';
@@ -18,6 +19,10 @@ const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] 
   record_start: () => startRecording(),
   record_stop: () => stopRecording(),
   overlay_hide: () => hideOverlay(),
+  frame_announce: ({ token }) => announceFrame(token),
+  frame_children: () => frameChildren(),
+  frame_rect: ({ token, scroll }) => frameRect(token, scroll),
+  set_files: ({ ref, point, files }) => setFiles({ ref, point }, files),
 };
 
 export function handlePageMessage(message: PageMessage): PageResponse<unknown> {

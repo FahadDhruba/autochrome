@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dialogs fixture</title>
+  </head>
+  <body>
+    <h1>Dialogs</h1>
+    <button id="delete" type="button">Delete item</button>
+    <button id="ask" type="button">Ask name</button>
+    <p id="status">idle</p>
+    <script>
+      const status = document.getElementById('status');
+      document.getElementById('delete').addEventListener('click', () => {
+        status.textContent = confirm('Delete this item?') ? 'deleted' : 'kept';
+      });
+      document.getElementById('ask').addEventListener('click', () => {
+        status.textContent = `name: ${prompt('Your name?', 'Guest')}`;
+      });
+    </script>
+  </body>
+</html>

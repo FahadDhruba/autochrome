@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** 1.3.0: redesigned side panel, Gemini Live merged into Gemini. Next: real-task benchmark, ask-the-user tool, iframes and dialogs, Claude and OpenAI real runs, Chrome Web Store
+**Current:** 1.4.0: ask the user, take over, iframes, dialogs, hover, drag and file upload. Next: 1.5.0 everyday features (right-click menu, shortcut, attach context, extract to table, saved prompts, cost and budget), real-task benchmark, Claude and OpenAI real runs, Chrome Web Store
 
 ## Planning
 
@@ -126,6 +126,17 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 - [x] On-page highlight and working frame (hidden from reads and screenshots)
 - [x] Real-run screenshots (light and dark) and README GIF
 
+## 1.4.0 — Reliable agent
+
+- [x] `ask_user` tool with question card, choices and hand-off; no-invention rules in the system prompt
+- [x] Take over / hand back (agent pauses before its next step; re-checks the page)
+- [x] Iframes: read, find, text and act inside same-origin and cross-origin frames (`f12e5` refs)
+- [x] Dialogs: detection, early return, blocking, `dialog` tool with risk check
+- [x] `hover` and `drag` (pointer drags and native HTML drag and drop)
+- [x] File upload: attachments in the panel, `upload_file` (attachments, URL, text) into inputs and drop zones
+- [x] Verify-before-done and use-only-needed-tools rules
+- [x] Real runs with Gemini for each feature
+
 ## Session log
 
 | Date       | Session work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -153,3 +164,4 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 | 2026-10-30 | README shows a real recorded Gemini run (Wikipedia GIF) and Gemini Live screenshots from real tests                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | 2026-10-30 | Token use: stale `read_page`/`get_text` results and long earlier-task results replaced by stubs before each model call, `read_page` cap 50k → 20k; measured on real runs with `gemini-3.5-flash-lite` and `gemini-3.1-flash-live-preview` (history sent −0 to −31%); version 1.2.1                                                                                                                                                                                                                                                                                                                                                                                   |
 | \n         | 2026-11-02                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | 1.3.0: Gemini Live merged into Gemini; side panel redesign (menu, step timeline, status line, approval sentence, safety chip, setup screen, tab-aware suggestions, copy, Settings links, on-page highlight); verified with a real Gemini run in light and dark; README GIF and screens updated |
+| 2026-11-06 | 1.4.0 (all work on Opus): `ask_user` with hand-off, take over / hand back, iframes (cross-origin, `f12e5` refs), dialogs with a `dialog` tool, `hover`, `drag`, file attachments and `upload_file`; real Gemini runs: asked for missing details, answered a confirm, worked in a cross-origin frame, uploaded an attachment (13 → 4 steps after describing file inputs)                                                                                                                                                                                                                                                                                              |

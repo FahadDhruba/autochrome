@@ -1,10 +1,9 @@
-# Workflow: plan with Opus, execute with Sonnet
+# Workflow: Opus does everything
 
-- Model is `opusplan`: plan mode runs on Opus, everything else runs on Sonnet.
-- For non-trivial work, start in plan mode (Shift+Tab) so Opus produces the plan; approving it switches to Sonnet for execution.
+- All work runs on Opus: planning, building, reviewing and testing. Do not hand work to Sonnet or to the `executor` subagent.
+- For non-trivial work, write a short plan and get the user's approval before building.
 - Small, obvious edits: skip planning and just do them.
-- Subagents default to Sonnet (`CLAUDE_CODE_SUBAGENT_MODEL`).
-- Loop per task: Opus plans → `executor` (Sonnet) builds → `reviewer` (Opus) checks plan fit, standards and that it works → fix until PASS → commit.
+- Before committing: lint, typecheck, unit tests, build and e2e must pass, and user-facing changes are checked in a real run with screenshots.
 
 # Commits
 

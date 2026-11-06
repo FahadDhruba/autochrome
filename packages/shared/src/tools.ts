@@ -86,6 +86,35 @@ export const toolDefinitions = {
         message: 'Provide ref, or both x and y.',
       }),
   ),
+  hover: defineTool(
+    'hover',
+    'Move the mouse over an element by ref, or over a viewport point by x and y, without clicking. Use it to open menus and tooltips that appear on hover.',
+    z
+      .object({ ref: ref.optional(), ...point, tabId })
+      .refine((v) => v.ref !== undefined || (v.x !== undefined && v.y !== undefined), {
+        message: 'Provide ref, or both x and y.',
+      }),
+  ),
+  drag: defineTool(
+    'drag',
+    'Drag from one element or point to another and drop it there, e.g. to reorder a list, move a slider or drop a card on a board. Give the start as fromRef or fromX/fromY and the end as toRef or toX/toY.',
+    z
+      .object({
+        fromRef: ref.optional(),
+        fromX: z.number().optional(),
+        fromY: z.number().optional(),
+        toRef: ref.optional(),
+        toX: z.number().optional(),
+        toY: z.number().optional(),
+        tabId,
+      })
+      .refine((v) => v.fromRef !== undefined || (v.fromX !== undefined && v.fromY !== undefined), {
+        message: 'Provide fromRef, or both fromX and fromY.',
+      })
+      .refine((v) => v.toRef !== undefined || (v.toX !== undefined && v.toY !== undefined), {
+        message: 'Provide toRef, or both toX and toY.',
+      }),
+  ),
   type: defineTool(
     'type',
     'Type text into the focused element, or into the element given by ref (focused first). Does not press Enter; use key for that.',
@@ -111,6 +140,39 @@ export const toolDefinitions = {
     'form_input',
     'Set the value of an input, textarea, select, checkbox or radio by ref and fire input and change events. Use a boolean for checkboxes and radios, and an option value or label for selects.',
     z.object({ ref, value: z.union([z.string(), z.boolean()]), tabId }),
+  ),
+  upload_file: defineTool(
+    'upload_file',
+    'Put files into a file input or a drop zone, given by ref (or x and y for a drop zone without a ref). Files come from what the user attached to the chat (attachmentIds, listed in their message), from a URL, or from text you write (fileName + text). The user is asked to approve every upload.',
+    z
+      .object({
+        ref: ref.optional(),
+        ...point,
+        attachmentIds: z.array(z.string()).optional().describe('Ids of files the user attached.'),
+        url: z.string().optional().describe('Download this file and upload it.'),
+        fileName: z
+          .string()
+          .optional()
+          .describe('Name for a file made from text, e.g. "notes.txt".'),
+        text: z.string().optional().describe('Contents of a file made from text.'),
+        tabId,
+      })
+      .refine(
+        (v) => Boolean(v.attachmentIds?.length) || v.url !== undefined || v.text !== undefined,
+        { message: 'Provide attachmentIds, url, or text.' },
+      )
+      .refine((v) => v.ref !== undefined || (v.x !== undefined && v.y !== undefined), {
+        message: 'Provide ref, or both x and y.',
+      }),
+  ),
+  dialog: defineTool(
+    'dialog',
+    'Answer the alert, confirm, prompt or "leave this page?" dialog that is open on a tab. accept: true clicks OK (or Leave), false clicks Cancel. For a prompt, promptText is what to type.',
+    z.object({
+      accept: z.boolean(),
+      promptText: z.string().optional(),
+      tabId,
+    }),
   ),
   wait: defineTool(
     'wait',
@@ -187,6 +249,19 @@ export const toolDefinitions = {
         message: 'Provide id or name.',
       }),
   ),
+  ask_user: defineTool(
+    'ask_user',
+    'Ask the user a question and wait for the answer. Use it whenever you need information you do not have (names, emails, addresses, choices, which item they mean) instead of guessing or inventing it. With handoff: true, ask the user to do something themselves in the page (log in, enter a password or payment details, solve a captcha) and wait until they say it is done; never ask for passwords or card numbers in chat.',
+    z.object({
+      question: z.string().min(1),
+      choices: z
+        .array(z.string())
+        .max(6)
+        .optional()
+        .describe('Short answers the user can pick with one click.'),
+      handoff: z.boolean().default(false),
+    }),
+  ),
   js_eval: defineTool(
     'js_eval',
     'Run JavaScript in the page and return the JSON result (or the exception). For debugging and inspecting page state, not for ordinary browsing. The user is always asked to approve the code first.',
@@ -198,3 +273,6 @@ export type ToolName = keyof typeof toolDefinitions;
 export type ToolInput<N extends ToolName> = z.output<(typeof toolDefinitions)[N]['input']>;
 
 export const toolNames = Object.keys(toolDefinitions) as ToolName[];
+
+/** Tools that need a person in the side panel; never offered to the bridge or scheduled runs. */
+export const PANEL_TOOLS: ReadonlySet<ToolName> = new Set<ToolName>(['ask_user']);

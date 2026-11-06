@@ -11,7 +11,7 @@ function toPageNode(raw: RawNode, depth = raw.depth): PageNode {
 }
 
 function withIframeNote(text: string, iframes: number): string {
-  return iframes ? `${text}\n(${iframes} iframe(s) on this page are not read)` : text;
+  return iframes ? `${text}\n(${iframes} iframe(s) on this page could not be read)` : text;
 }
 
 export function readPage(filter: 'all' | 'interactive'): string {
@@ -19,7 +19,7 @@ export function readPage(filter: 'all' | 'interactive'): string {
   const { nodes, iframes } = collectNodes();
   const pageNodes =
     filter === 'interactive'
-      ? nodes.filter((n) => n.actionable).map((n) => toPageNode(n, 0))
+      ? nodes.filter((n) => n.actionable || n.frame).map((n) => toPageNode(n, 0))
       : nodes.map((n) => toPageNode(n));
   return withIframeNote(formatNodes(pageNodes) || '(no elements found)', iframes);
 }

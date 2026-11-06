@@ -2,6 +2,7 @@ import { debugHandlers } from './debug';
 import { inputHandlers } from './input';
 import { pageHandlers } from './page';
 import { tabHandlers } from './tabs';
+import { uploadHandlers } from './upload';
 import { workflowHandlers } from './workflows';
 import type { ToolHandlers } from './types';
 
@@ -11,4 +12,5 @@ export const toolHandlers: ToolHandlers = {
   ...inputHandlers,
   ...debugHandlers,
   ...workflowHandlers,
+  ...uploadHandlers,
 };

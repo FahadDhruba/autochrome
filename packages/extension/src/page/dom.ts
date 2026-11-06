@@ -1,4 +1,5 @@
 import type { PageNode } from './format';
+import { frameTokenOf } from './frames';
 
 export type RawNode = Omit<PageNode, 'ref'> & { el: Element; actionable: boolean };
 
@@ -179,6 +180,11 @@ export function nameOf(el: Element, role: string): string {
 }
 
 function valueOf(el: Element): string | undefined {
+  if (el instanceof HTMLInputElement && el.type === 'file') {
+    // Shown as a button, like Chrome does; the value says what it is and what it holds.
+    const names = Array.from(el.files ?? [], (f) => f.name).join(', ');
+    return truncate(names ? `file input: ${names}` : 'file input, no file chosen');
+  }
   if (el instanceof HTMLInputElement) {
     // Never echo passwords back to the model.
     if (el.type === 'password' || NO_VALUE_INPUTS.has(el.type)) return undefined;
@@ -229,6 +235,14 @@ function childrenOf(el: Element): Element[] {
   return Array.from((el.shadowRoot ?? el).children);
 }
 
+function hostOf(src: string): string {
+  try {
+    return new URL(src, location.href).host;
+  } catch {
+    return '';
+  }
+}
+
 export type Collected = { nodes: RawNode[]; iframes: number };
 
 /** Walk the document (including open shadow roots) and describe every element that has a role. */
@@ -238,7 +252,18 @@ export function collectNodes(): Collected {
 
   const walk = (el: Element, depth: number) => {
     if (isSubtreeHidden(el)) return;
-    if (el.localName === 'iframe' || el.localName === 'frame') iframes++;
+    if (el.localName === 'iframe' || el.localName === 'frame') {
+      const frame = frameTokenOf(el);
+      // A frame with a token is read by its own content script and spliced in here.
+      if (frame && isVisible(el)) {
+        const src = el.getAttribute('src') ?? '';
+        const name = el.getAttribute('title') || el.getAttribute('name') || hostOf(src);
+        nodes.push({ el, depth, role: 'iframe', name, frame, checked: false, actionable: false });
+      } else if (isVisible(el)) {
+        iframes++;
+      }
+      return;
+    }
 
     const role = roleOf(el);
     const listed = role !== undefined && isVisible(el);

@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { truncate } from './capture/limits';
 import { captureOf, startCapture, stopCapture, type TabCapture } from './capture/buffers';
+import { forgetDialog, handleDialogEvent } from './dialogs';
 
 const PROTOCOL_VERSION = '1.3';
 const MAX_INSPECTED_CHARS = 500;
@@ -31,11 +32,33 @@ async function inspectObject(tabId: number, objectId: string): Promise<string | 
 const beginCapture = (tabId: number) =>
   startCapture(tabId, (objectId) => inspectObject(tabId, objectId));
 
-const CAPTURE_DOMAINS = ['Runtime', 'Log', 'Network'];
+// Page reports JavaScript dialogs, which freeze the page until answered.
+const CAPTURE_DOMAINS = ['Runtime', 'Log', 'Network', 'Page'];
+
+type EventListener = (tabId: number, method: string, params: unknown) => void;
+const eventListeners = new Set<EventListener>();
+
+/** Wait for one debugger event on a tab; resolves undefined after `ms`. */
+export function nextEvent<T>(tabId: number, method: string, ms: number): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    const listener: EventListener = (id, name, params) => {
+      if (id !== tabId || name !== method) return;
+      done(params as T);
+    };
+    const timer = setTimeout(() => done(undefined), ms);
+    const done = (value: T | undefined) => {
+      clearTimeout(timer);
+      eventListeners.delete(listener);
+      resolve(value);
+    };
+    eventListeners.add(listener);
+  });
+}
 
 function forget(tabId: number): void {
   attached.delete(tabId);
   stopCapture(tabId);
+  forgetDialog(tabId);
 }
 
 /**
@@ -48,11 +71,15 @@ export function watchDebugger(): void {
   });
   browser.tabs.onRemoved.addListener(forget);
   browser.debugger.onEvent.addListener(({ tabId }, method, params) => {
-    if (tabId !== undefined) captureOf(tabId)?.handleEvent(method, params);
+    if (tabId === undefined) return;
+    captureOf(tabId)?.handleEvent(method, params);
+    handleDialogEvent(tabId, method, params);
+    for (const listener of eventListeners) listener(tabId, method, params);
   });
 }
 
-async function ensureAttached(tabId: number): Promise<void> {
+/** Attach the debugger to the tab (once), so its dialogs and console are seen from now on. */
+export async function ensureAttached(tabId: number): Promise<void> {
   if (attached.has(tabId)) return;
   try {
     await browser.debugger.attach({ tabId }, PROTOCOL_VERSION);

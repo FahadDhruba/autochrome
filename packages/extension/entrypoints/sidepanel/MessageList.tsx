@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, ChevronRight, CircleAlert, Copy, LoaderCircle } from 'lucide-react';
+import { Check, ChevronRight, CircleAlert, Copy, LoaderCircle, Paperclip } from 'lucide-react';
+import { splitAttachmentNote } from '@/src/attachments';
 import type { ChatMessage, Part, Usage } from '@/src/providers/types';
 import { describeStep } from '@/src/stepLabel';
 import Markdown from './Markdown';
@@ -182,9 +183,20 @@ export default function MessageList({
     <div className="messages" role="log" aria-live="polite">
       {turns.map((turn, index) => {
         if (turn.kind === 'user') {
+          const { text, files } = splitAttachmentNote(turn.text);
           return (
             <div key={turn.key} className="bubble bubble-user" data-testid="user-text">
-              {turn.text}
+              {text}
+              {files.length > 0 && (
+                <ul className="file-chips bubble-files" aria-label="Attached files">
+                  {files.map((name) => (
+                    <li key={name} className="file-chip">
+                      <Paperclip size={12} aria-hidden="true" />
+                      <span>{name}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           );
         }

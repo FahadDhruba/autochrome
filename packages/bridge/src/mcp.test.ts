@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { toolNames } from '@autochrome/shared';
+import { PANEL_TOOLS, toolNames } from '@autochrome/shared';
 import type { Hub } from './hub';
 import {
   TEST_TOKEN,
@@ -55,7 +55,7 @@ afterAll(async () => {
 describe('MCP server', () => {
   it('lists every tool with a JSON Schema', async () => {
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toEqual(toolNames);
+    expect(tools.map((t) => t.name)).toEqual(toolNames.filter((n) => !PANEL_TOOLS.has(n)));
     expect(tools.every((t) => t.inputSchema.type === 'object')).toBe(true);
   });
 
