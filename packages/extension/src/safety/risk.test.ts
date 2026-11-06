@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ElementDescription } from '../page/messages';
-import { assessRisk, isPaymentField, riskKindOfName, RISK_WORDS } from './risk';
+import { assessRisk, isPaymentField, riskKindOfName, riskOfDialog, RISK_WORDS } from './risk';
 
 const el = (patch: Partial<ElementDescription> = {}): ElementDescription => ({
   tag: 'button',
@@ -216,5 +216,16 @@ describe('assessRisk key', () => {
 describe('assessRisk other tools', () => {
   it.each(['scroll', 'navigate', 'read_page', 'tab_open'])('ignores %s', (name) => {
     expect(assessRisk({ name, input: {} }, el({ name: 'Delete' }))).toBeUndefined();
+  });
+});
+
+describe('riskOfDialog', () => {
+  it('flags confirming purchases, sends and deletes, and leaving a page', () => {
+    expect(riskOfDialog({ type: 'confirm', message: 'Delete this item?' }, true)).toContain(
+      'deleting',
+    );
+    expect(riskOfDialog({ type: 'beforeunload', message: '' }, true)).toContain('Leaves the page');
+    expect(riskOfDialog({ type: 'confirm', message: 'Delete this item?' }, false)).toBeUndefined();
+    expect(riskOfDialog({ type: 'alert', message: 'Saved.' }, true)).toBeUndefined();
   });
 });

@@ -1,7 +1,7 @@
 import type { ToolCall, ToolResult } from '@autochrome/shared';
 import { describe, expect, it, vi } from 'vitest';
 import type { ChatMessage, Provider, ProviderEvent, StreamRequest } from '../providers/types';
-import { runAgent, type AgentRun } from './loop';
+import { runAgent, TAKEOVER_NOTE, type AgentRun } from './loop';
 import type { AgentEvent } from './protocol';
 
 const toolTurn = (...ids: string[]): ProviderEvent[] => [
@@ -211,5 +211,27 @@ describe('runAgent', () => {
     const { run } = setup([toolTurn('c1'), finalTurn], { onMessage });
     await runAgent(run);
     expect(onMessage).toHaveBeenCalledTimes(3);
+  });
+
+  it('skips the rest of a step while the user has taken over, then tells the model on hand-back', async () => {
+    let paused = false;
+    const { run, execute, requests } = setup([toolTurn('c1', 'c2'), finalTurn], {
+      isPaused: () => paused,
+      waitIfPaused: async () => (paused ? ((paused = false), 'I logged in') : undefined),
+    });
+    execute.mockImplementationOnce(async (call) => {
+      paused = true;
+      return { id: call.id, ok: true, content: [{ type: 'text', text: 'ran' }] };
+    });
+    await runAgent(run);
+
+    expect(execute.mock.calls.map(([call]) => call.id)).toEqual(['c1']);
+    const last = requests[1]!.messages.at(-1)!;
+    const results = last.parts.filter((p) => p.type === 'tool_result');
+    expect(results[1]).toMatchObject({ callId: 'c2', isError: true });
+    expect(last.parts.at(-1)).toEqual({
+      type: 'text',
+      text: `${TAKEOVER_NOTE} Their note: I logged in`,
+    });
   });
 });

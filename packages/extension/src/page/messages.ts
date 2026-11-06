@@ -24,6 +24,9 @@ export type ElementDescription = {
 /** A ref, a viewport point, or neither (the focused element). */
 export type DescribeTarget = { ref?: string; point?: Point };
 
+/** A file passed to the page, as base64. */
+export type FileData = { name: string; type: string; base64: string };
+
 export type PageRequests = {
   read: { filter: 'all' | 'interactive' };
   find: { query: string };
@@ -36,6 +39,10 @@ export type PageRequests = {
   record_start: Record<string, never>;
   record_stop: Record<string, never>;
   overlay_hide: Record<string, never>;
+  frame_announce: { token: string };
+  frame_children: Record<string, never>;
+  frame_rect: { token: string; scroll: boolean };
+  set_files: { ref?: string; point?: Point; files: FileData[] };
 };
 
 export type PageResults = {
@@ -50,6 +57,10 @@ export type PageResults = {
   record_start: true;
   record_stop: true;
   overlay_hide: true;
+  frame_announce: true;
+  frame_children: string[];
+  frame_rect: Point;
+  set_files: string;
 };
 
 export type PageOp = keyof PageRequests;

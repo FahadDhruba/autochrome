@@ -8,7 +8,12 @@ export const MAX_STEPS = 50;
 export type PanelMessage =
   | { type: 'send'; chatId: string; text: string; providerId: ProviderId; model: string }
   | { type: 'run_workflow'; workflowId: string; variables: Record<string, string> }
-  | { type: 'stop' };
+  | { type: 'stop' }
+  /** The answer to an ask_user question. */
+  | { type: 'answer'; id: string; text: string }
+  /** The user takes over the browser; the agent waits before its next step. */
+  | { type: 'pause' }
+  | { type: 'resume'; note?: string };
 
 /** Background to side panel. */
 export type AgentEvent =
@@ -16,4 +21,8 @@ export type AgentEvent =
   | { type: 'tool_start'; id: string; name: string; input: unknown }
   | { type: 'tool_end'; id: string; result: ToolResult }
   | { type: 'done'; usage: Usage }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'question'; id: string; question: string; choices?: string[]; handoff: boolean }
+  | { type: 'question_done'; id: string }
+  | { type: 'paused' }
+  | { type: 'resumed' };

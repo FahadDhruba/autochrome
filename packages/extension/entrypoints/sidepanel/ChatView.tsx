@@ -1,4 +1,11 @@
 import { useRef, useState } from 'react';
+import {
+  attachmentNote,
+  MAX_ATTACHMENT_BYTES,
+  saveAttachment,
+  toBase64,
+  type Attachment,
+} from '@/src/attachments';
 import { titleFor } from '@/src/history';
 import { Workflow } from 'lucide-react';
 import ApprovalCard from '@/src/ui/ApprovalCard';
@@ -11,6 +18,8 @@ import type { useChat } from './useChat';
 import Composer from './Composer';
 import MessageList from './MessageList';
 import ModelChip from './ModelChip';
+import QuestionCard from './QuestionCard';
+import TakeoverBar from './TakeoverBar';
 import SafetyChip from './SafetyChip';
 import SetupCard from './SetupCard';
 import { suggestionsFor, useActiveTab } from './useActiveTab';
@@ -34,11 +43,41 @@ export default function ChatView({
 }: Props) {
   const { target } = chat;
   const activeTab = useActiveTab();
+  const [files, setFiles] = useState<Attachment[]>([]);
+  const [fileError, setFileError] = useState<string>();
+
+  const attach = async (list: FileList) => {
+    setFileError(undefined);
+    for (const file of Array.from(list)) {
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        setFileError(`${file.name} is larger than 10 MB.`);
+        continue;
+      }
+      const base64 = toBase64(new Uint8Array(await file.arrayBuffer()));
+      const saved = await saveAttachment({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        base64,
+      });
+      setFiles((current) => [...current, saved]);
+    }
+  };
+
+  const send = (text: string) => {
+    chat.send(files.length ? `${text}\n\n${attachmentNote(files)}` : text);
+    setFiles([]);
+  };
   const [draft, setDraft] = useState('');
   const input = useRef<HTMLTextAreaElement>(null);
-  const approval = chat.approval && (
-    <ApprovalCard request={chat.approval} onAnswer={chat.answerApproval} />
+  const approval = (
+    <>
+      {chat.approval && <ApprovalCard request={chat.approval} onAnswer={chat.answerApproval} />}
+      {chat.question && <QuestionCard question={chat.question} onAnswer={chat.answer} />}
+      {chat.paused && <TakeoverBar onHandBack={chat.handBack} />}
+    </>
   );
+  const waiting = Boolean(chat.approval || chat.question || chat.paused);
   if (providers.ready.length === 0 && chat.messages.length === 0) {
     return <SetupCard onOpenSettings={onOpenSettings}>{approval}</SetupCard>;
   }
@@ -90,7 +129,7 @@ export default function ChatView({
           usage={chat.usage}
           awaitingApproval={chat.approval !== undefined}
         >
-          {approval}
+          {waiting ? approval : undefined}
         </MessageList>
       )}
       {canSave && (
@@ -101,13 +140,23 @@ export default function ChatView({
           </button>
         </div>
       )}
+      {fileError && (
+        <div className="error-banner composer-error" role="alert">
+          {fileError}
+        </div>
+      )}
       <Composer
         text={draft}
         onTextChange={setDraft}
         inputRef={input}
         running={chat.running}
-        onSend={chat.send}
+        onSend={send}
         onStop={chat.stop}
+        onTakeOver={chat.takeOver}
+        paused={chat.paused}
+        files={files}
+        onAttach={(list) => void attach(list)}
+        onRemoveFile={(id) => setFiles((current) => current.filter((f) => f.id !== id))}
         tools={
           target && (
             <>

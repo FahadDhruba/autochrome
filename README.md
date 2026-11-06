@@ -70,6 +70,14 @@ While the agent works, Chrome shows a bar saying autochrome "started debugging t
 
 # Using autochrome
 
+## When the agent needs you
+
+- **It asks instead of guessing.** When it needs something it doesn't know (your email, which item you mean, a choice), a question card appears in the chat. Type an answer or click one of the suggested choices.
+- **You do the private parts.** For logins, passwords, payment details, two-factor codes and captchas, it asks you to do that step in the page yourself and click **Done**. Nothing you type in the page is sent to the AI.
+- **Take over at any time.** While it works, **Take over** pauses it before its next step. Do what you need in the page, then **Hand back** (optionally with a note). It looks at the page again before going on.
+- **Attach files.** The paperclip under the message box attaches files (up to 10 MB each) to your message, so the agent can upload them, for example "Upload my CV to this job form". Files stay on this computer until it uploads them, and every upload asks you first (except in Auto mode).
+- **Pop-ups.** If a page shows an alert, a confirm ("Delete this item?") or a "leave this page?" box, the agent answers it. Confirming a purchase, a send, a delete or leaving a page asks you first.
+
 ## Chats and models
 
 - **New chat** starts over. **Chats** lists your earlier chats; they are saved in this browser only.
@@ -97,7 +105,7 @@ Always on, in every mode:
 - `chrome://` pages, extension pages and the Chrome Web Store are off limits.
 - A prompt left unanswered for 2 minutes counts as Deny.
 
-**Be careful.** Models can make things up: in testing, a model asked to "place the order" typed an invented email, password and card number before clicking. The approval prompts caught each one, which is why Per-site mode is the default. A malicious web page can also try to trick the AI, and keyword-based risk detection will miss some actions. Read each approval before you click Allow, use Auto mode only for tasks you trust, and avoid running the agent on untrusted pages while signed in to sensitive accounts. See [SECURITY.md](SECURITY.md).
+**Be careful.** Models can make things up. In testing before 1.4.0, a model asked to "place the order" typed an invented email, password and card number; the approval prompts caught each one. Since 1.4.0 the agent is told to ask instead of inventing details and to hand logins and payments to you, and in testing it asked for the name and email instead of making them up, but no instruction is a guarantee, which is why Per-site mode is the default. A malicious web page can also try to trick the AI, and keyword-based risk detection will miss some actions. Read each approval before you click Allow, use Auto mode only for tasks you trust, and avoid running the agent on untrusted pages while signed in to sensitive accounts. See [SECURITY.md](SECURITY.md).
 
 ## Workflows
 
@@ -168,7 +176,7 @@ Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues
 
 ## Status
 
-Version 1.3.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, and repairing a workflow step. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
+Version 1.4.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, repairing a workflow step, and (1.4.0) asking for missing details, answering a confirm dialog, working inside a cross-origin iframe and uploading an attached file. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
 
 Screens from real runs with Gemini (`gemini-3.5-flash-lite`):
 
@@ -258,16 +266,21 @@ The side panel agent and bridge clients use the same tools. This table is genera
 | `get_text`         | Get the page title, URL and readable text (up to 20,000 characters).                                                                                 |
 | `screenshot`       | Take a JPEG screenshot of the visible viewport.                                                                                                      |
 | `click`            | Click an element by ref, or a viewport point by x and y.                                                                                             |
+| `hover`            | Move the mouse over an element by ref, or over a viewport point by x and y, without clicking.                                                        |
+| `drag`             | Drag from one element or point to another and drop it there.                                                                                         |
 | `type`             | Type text into the focused element, or into the element given by ref (focused first).                                                                |
 | `key`              | Press a key or key combination.                                                                                                                      |
 | `scroll`           | Scroll the page, or the element under the given ref or x/y point.                                                                                    |
 | `form_input`       | Set the value of an input, textarea, select, checkbox or radio by ref and fire input and change events.                                              |
+| `upload_file`      | Put files into a file input or a drop zone, given by ref (or x and y for a drop zone without a ref).                                                 |
+| `dialog`           | Answer the alert, confirm, prompt or "leave this page?" dialog that is open on a tab. accept: true clicks OK (or Leave), false clicks Cancel.        |
 | `wait`             | Wait for a fixed time, for text to appear in the page, or both.                                                                                      |
 | `console_logs`     | Read the browser console of a tab: console.* calls, uncaught exceptions and browser warnings, newest last.                                           |
 | `network_requests` | List the network requests a tab made, one per line as "[requestId] METHOD status url (type, size, ms)".                                              |
 | `network_response` | Get the response headers and body of a request listed by network_requests.                                                                           |
 | `workflows_list`   | List the saved workflows (recorded in the browser or saved from a chat) with their ids, names and variables.                                         |
 | `workflow_run`     | Replay a saved workflow by id or name in its own tab and return the run log: each step with its status (ok, repaired by AI, or failed) and duration. |
+| `ask_user`         | Ask the user a question and wait for the answer.                                                                                                     |
 | `js_eval`          | Run JavaScript in the page and return the JSON result (or the exception).                                                                            |
 
 <!-- tools:end -->

@@ -10,6 +10,8 @@ import type { ProviderState } from './useProviderSettings';
 
 const newChatId = (): string => crypto.randomUUID();
 
+export type Question = Extract<AgentEvent, { type: 'question' }>;
+
 function defaultTarget({ all, defaultProvider, ready }: ProviderState): ChatTarget {
   const providerId = ready.includes(defaultProvider)
     ? defaultProvider
@@ -28,6 +30,8 @@ export function useChat(providers: ProviderState | undefined) {
   // Set when the user picks a provider/model or opens a saved chat; otherwise the defaults apply.
   const [chosen, setChosen] = useState<ChatTarget>();
   const [approval, setApproval] = useState<ApprovalRequest>();
+  const [question, setQuestion] = useState<Question>();
+  const [paused, setPaused] = useState(false);
   const port = useRef<Browser.runtime.Port>(undefined);
   const runningRef = useRef(false);
   const workflowListener = useRef<(event: WorkflowEvent) => void>(undefined);
@@ -45,13 +49,23 @@ export function useChat(providers: ProviderState | undefined) {
       } else if (isApprovalEvent(event)) {
         if (event.type === 'approval_request') setApproval(event.request);
         else setApproval((current) => (current?.id === event.id ? undefined : current));
+      } else if (event.type === 'question') {
+        setQuestion(event);
+      } else if (event.type === 'question_done') {
+        setQuestion((current) => (current?.id === event.id ? undefined : current));
+      } else if (event.type === 'paused' || event.type === 'resumed') {
+        setPaused(event.type === 'paused');
       } else if (event.type === 'done') {
         setUsage(event.usage);
         setRunningNow(false);
+        setPaused(false);
+        setQuestion(undefined);
         setRevision((n) => n + 1);
       } else if (event.type === 'error') {
         setError(event.message);
         setRunningNow(false);
+        setPaused(false);
+        setQuestion(undefined);
         setRevision((n) => n + 1);
       } else {
         setMessages((current) => applyEvent(current, event));
@@ -93,6 +107,15 @@ export function useChat(providers: ProviderState | undefined) {
   };
 
   const stop = () => post({ type: 'stop' });
+
+  const answer = (text: string) => {
+    if (!question) return;
+    post({ type: 'answer', id: question.id, text });
+    setQuestion(undefined);
+  };
+
+  const takeOver = () => post({ type: 'pause' });
+  const handBack = (note?: string) => post({ type: 'resume', note });
 
   // Workflow runs share the chat's connection, so they use the same approval prompts.
   const runWorkflow = (workflowId: string, variables: Record<string, string>) =>
@@ -147,6 +170,11 @@ export function useChat(providers: ProviderState | undefined) {
     target,
     approval,
     answerApproval,
+    question,
+    answer,
+    paused,
+    takeOver,
+    handBack,
     changeTarget,
     send,
     stop,

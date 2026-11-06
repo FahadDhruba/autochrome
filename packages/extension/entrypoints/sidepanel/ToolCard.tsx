@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Eye,
   LoaderCircle,
+  MessageCircleQuestion,
   MousePointerClick,
   Workflow,
   type LucideProps,
@@ -22,6 +23,7 @@ const GROUP_ICON: Record<ToolGroup, ComponentType<LucideProps>> = {
   input: MousePointerClick,
   debug: Bug,
   workflow: Workflow,
+  ask: MessageCircleQuestion,
 };
 
 type Props = {

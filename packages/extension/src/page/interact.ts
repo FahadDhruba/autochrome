@@ -1,4 +1,4 @@
-import type { Point } from './messages';
+import type { FileData, Point } from './messages';
 import { highlight } from './overlay';
 import { elementForRef } from './refs';
 
@@ -63,4 +63,55 @@ export function setValue(ref: string, value: string | boolean): string {
 /** Case-insensitive: the model cannot know how a page capitalises the text it waits for. */
 export function hasText(text: string): boolean {
   return document.body.innerText.toLowerCase().includes(text.toLowerCase());
+}
+
+/**
+ * The file input an element stands for: itself, one inside it, its label's control, or the only
+ * one in its immediate container (a styled button next to a hidden input).
+ */
+function fileInputFor(el: Element): HTMLInputElement | undefined {
+  const isFile = (node: Element | null | undefined): node is HTMLInputElement =>
+    node instanceof HTMLInputElement && node.type === 'file';
+  if (isFile(el)) return el;
+  const inside = el.querySelector('input[type="file"]');
+  if (isFile(inside)) return inside;
+  const control = el.closest('label')?.control;
+  if (isFile(control)) return control;
+  const parent = el.parentElement;
+  if (parent && parent !== document.body && parent !== document.documentElement) {
+    const siblings = parent.querySelectorAll('input[type="file"]');
+    if (siblings.length === 1 && isFile(siblings[0])) return siblings[0];
+  }
+  return undefined;
+}
+
+function toFile({ name, type, base64 }: FileData): File {
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  return new File([bytes], name, { type });
+}
+
+/** Put files into the file input behind the element, or drop them on it when it is a drop zone. */
+export function setFiles(target: { ref?: string; point?: Point }, files: FileData[]): string {
+  const el = target.ref
+    ? elementForRef(target.ref)
+    : document.elementFromPoint(target.point?.x ?? -1, target.point?.y ?? -1);
+  if (!el) throw new Error('There is no element at that point.');
+  const ref = target.ref ?? `(${target.point!.x}, ${target.point!.y})`;
+  highlight(el);
+  const transfer = new DataTransfer();
+  for (const file of files) transfer.items.add(toFile(file));
+  const names = files.map((f) => f.name).join(', ');
+  const input = fileInputFor(el);
+  if (input) {
+    if (!input.multiple && files.length > 1) throw new Error('This input takes one file.');
+    input.files = transfer.files;
+    fireInputAndChange(input);
+    return `Attached ${names} to ${ref}.`;
+  }
+  for (const type of ['dragenter', 'dragover', 'drop']) {
+    el.dispatchEvent(
+      new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: transfer }),
+    );
+  }
+  return `Dropped ${names} on ${ref}.`;
 }

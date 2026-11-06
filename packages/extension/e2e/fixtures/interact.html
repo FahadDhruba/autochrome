@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Interaction fixture</title>
+    <style>
+      #menu {
+        display: none;
+      }
+      #nav:hover #menu {
+        display: block;
+      }
+      #track {
+        position: relative;
+        width: 300px;
+        height: 20px;
+        background: #ddd;
+        margin: 20px 0;
+      }
+      #thumb {
+        position: absolute;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        background: #333;
+      }
+      .card,
+      .zone {
+        padding: 10px;
+        margin: 6px;
+        border: 1px solid #888;
+        width: 200px;
+      }
+      #dropzone {
+        height: 60px;
+        border: 2px dashed #888;
+        width: 300px;
+      }
+      #picker {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav id="nav" aria-label="Main">
+      <span>Products</span>
+      <ul id="menu">
+        <li><a href="#pricing">Pricing</a></li>
+      </ul>
+    </nav>
+    <div id="track" role="slider" aria-label="Volume" aria-valuenow="0"><div id="thumb"></div></div>
+    <p id="volume">volume 0</p>
+    <div class="card" id="card" draggable="true">Card A</div>
+    <div class="zone" id="done" role="region" aria-label="Done column">Done</div>
+    <p id="moved">not moved</p>
+    <input type="file" id="visible" aria-label="Resume" />
+    <label id="choose" role="button">Choose photo <input type="file" id="picker" multiple /></label>
+    <div id="dropzone" role="region" aria-label="Drop files here">Drop files here</div>
+    <p id="files">no files</p>
+    <script>
+      // A slider driven by pointer events, like most UI libraries.
+      const track = document.getElementById('track');
+      const thumb = document.getElementById('thumb');
+      let dragging = false;
+      thumb.addEventListener('pointerdown', () => (dragging = true));
+      addEventListener('pointerup', () => (dragging = false));
+      addEventListener('pointermove', (event) => {
+        if (!dragging) return;
+        const rect = track.getBoundingClientRect();
+        const value = Math.round(
+          Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1) * 100,
+        );
+        thumb.style.left = `${value * 2.8}px`;
+        track.setAttribute('aria-valuenow', value);
+        document.getElementById('volume').textContent = `volume ${value}`;
+      });
+      // Native HTML drag and drop.
+      const card = document.getElementById('card');
+      const done = document.getElementById('done');
+      card.addEventListener('dragstart', (event) =>
+        event.dataTransfer.setData('text/plain', 'card-a'),
+      );
+      done.addEventListener('dragover', (event) => event.preventDefault());
+      done.addEventListener('drop', (event) => {
+        event.preventDefault();
+        document.getElementById('moved').textContent =
+          `moved ${event.dataTransfer.getData('text/plain')}`;
+      });
+      // Files.
+      const show = async (where, list) => {
+        const parts = await Promise.all(
+          [...list].map(async (f) => `${f.name}=${(await f.text()).slice(0, 20)}`),
+        );
+        document.getElementById('files').textContent = `${where}: ${parts.join(', ')}`;
+      };
+      document
+        .getElementById('visible')
+        .addEventListener('change', (e) => show('visible', e.target.files));
+      document
+        .getElementById('picker')
+        .addEventListener('change', (e) => show('picker', e.target.files));
+      const zone = document.getElementById('dropzone');
+      zone.addEventListener('dragover', (event) => event.preventDefault());
+      zone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        show('dropped', event.dataTransfer.files);
+      });
+    </script>
+  </body>
+</html>

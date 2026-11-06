@@ -2,6 +2,34 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.0] - 2026-11-06
+
+### Added
+
+- **The agent asks instead of guessing.** A new `ask_user` tool shows a question card in the side
+  panel (with one-click choices). With `handoff`, it asks you to do a step in the page yourself, for
+  logins, passwords, payments, two-factor codes and captchas. The system prompt now says never to
+  invent personal details, credentials or choices.
+- **Take over / hand back.** While a task runs, Take over pauses the agent before its next step;
+  Hand back (with an optional note) lets it continue, and it re-checks the page first.
+- **Iframes.** `read_page`, `find` and `get_text` read same-origin and cross-origin iframes. Their
+  elements have refs like `f12e5` that work with every tool.
+- **Dialogs.** Alerts, confirms, prompts and "leave this page?" boxes are detected. The action that
+  opened one returns at once, other page tools wait for an answer, and the new `dialog` tool answers
+  it. Confirming a purchase, send, delete or leaving a page asks you first.
+- **`hover`** (menus that open on hover) and **`drag`** (sliders, sortable lists and native HTML drag
+  and drop).
+- **File upload.** Attach files to a message with the paperclip; `upload_file` puts them, a
+  downloaded URL, or text the agent writes into a file input (including hidden ones behind a styled
+  button) or a drop zone. Every upload asks first, except in Auto mode.
+
+### Changed
+
+- The agent checks that the page shows a task worked before saying it is done, and skips tools a
+  task does not need.
+- `read_page` describes file inputs as such, and a page frozen by a dialog the debugger had not seen
+  yet is detected instead of hanging.
+
 ## [1.3.0] - 2026-11-02
 
 ### Changed
@@ -152,6 +180,7 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.4.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.4.0
 [1.3.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.3.0
 [1.2.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.1
 [1.2.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.0

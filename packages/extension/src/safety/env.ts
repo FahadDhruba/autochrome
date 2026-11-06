@@ -1,5 +1,7 @@
+import { openDialog } from '../dialogs';
 import { browser } from 'wxt/browser';
 import { callPage } from '../content';
+import { callRef } from '../frames';
 import { isAgentGroup } from '../tabGroup';
 import { formatTabContext } from '../tabContext';
 import { resolveTabId } from '../target';
@@ -21,7 +23,11 @@ async function tabInfo(tabId: number | undefined): Promise<TabInfo> {
 export const gateEnv: GateEnv = {
   loadSafety,
   tab: tabInfo,
-  describe: (tabId, target) => callPage(tabId, 'describe', target),
+  describe: (tabId, target) =>
+    target.ref === undefined
+      ? callPage(tabId, 'describe', target)
+      : callRef(tabId, 'describe', { ...target, ref: target.ref }),
+  dialog: openDialog,
 };
 
 /** The site of the tab a page-reading tool just read, for the `<page_content>` wrapper. */

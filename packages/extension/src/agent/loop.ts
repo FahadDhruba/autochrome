@@ -10,6 +10,11 @@ import type {
 import { MAX_STEPS, type AgentEvent } from './protocol';
 import { pruneScreenshots, pruneStaleResults } from './prune';
 
+/** Added to the conversation when the user hands the browser back after taking over. */
+export const TAKEOVER_NOTE =
+  'The user took over the browser for a while and has now handed it back. The page may have changed: check it again before acting.';
+const SKIPPED_TEXT = 'Skipped: the user took over the browser before this step ran.';
+
 export type AgentRun = {
   provider: Provider;
   settings: ProviderSettings;
@@ -26,6 +31,10 @@ export type AgentRun = {
   onMessage?: () => void | Promise<void>;
   signal: AbortSignal;
   maxSteps?: number;
+  /** True while the user has taken over; the remaining tool calls of a step are then skipped. */
+  isPaused?: () => boolean;
+  /** Waits while the user has taken over. Resolves to their note ('' for none) after a pause. */
+  waitIfPaused?: () => Promise<string | undefined>;
 };
 
 /**
@@ -74,6 +83,14 @@ export async function runAgent(run: AgentRun): Promise<void> {
 
   for (let step = 0; step < (run.maxSteps ?? MAX_STEPS); step++) {
     if (signal.aborted) return finishWithNote(STOPPED_TEXT);
+    const handedBack = await run.waitIfPaused?.();
+    if (signal.aborted) return finishWithNote(STOPPED_TEXT);
+    const last = messages.at(-1);
+    if (handedBack !== undefined && last?.role === 'user') {
+      const note = handedBack ? `${TAKEOVER_NOTE} Their note: ${handedBack}` : TAKEOVER_NOTE;
+      last.parts.push({ type: 'text', text: note });
+      await run.onMessage?.();
+    }
 
     const note = await run.stateNote?.().catch(() => undefined);
     const parts: Part[] = [];
@@ -124,11 +141,13 @@ export async function runAgent(run: AgentRun): Promise<void> {
       emit({ type: 'tool_start', id: call.id, name: call.name, input: call.input });
       const result: ToolResult = signal.aborted
         ? { id: call.id, ok: false, content: [{ type: 'text', text: 'Stopped by the user.' }] }
-        : await run.execute({
-            id: call.id,
-            name: call.name as ToolCall['name'],
-            input: call.input,
-          });
+        : run.isPaused?.()
+          ? { id: call.id, ok: false, content: [{ type: 'text', text: SKIPPED_TEXT }] }
+          : await run.execute({
+              id: call.id,
+              name: call.name as ToolCall['name'],
+              input: call.input,
+            });
       emit({ type: 'tool_end', id: call.id, result });
       results.push({
         type: 'tool_result',

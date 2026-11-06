@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Inner frame</title>
+  </head>
+  <body>
+    <label>Card holder <input id="holder" /></label>
+    <button id="pay" type="button">Inner button</button>
+    <p id="status">waiting</p>
+    <script>
+      const name = new URLSearchParams(location.search).get('name');
+      document.getElementById('pay').textContent = `Inner button ${name}`;
+      document.getElementById('pay').addEventListener('click', () => {
+        document.getElementById('status').textContent = `clicked ${name}`;
+        parent.postMessage({ clicked: name }, '*');
+      });
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { PROTOCOL_VERSION } from './version';
-import { toolDefinitions, toolNames, type ToolName } from './tools';
+import { PANEL_TOOLS, toolDefinitions, toolNames, type ToolName } from './tools';
 
 export const DEFAULT_BRIDGE_PORT = 47800;
 
@@ -73,12 +73,15 @@ export function isToolName(name: string): name is ToolName {
 }
 
 /** The tool list with JSON Schema inputs, as served over HTTP and MCP. */
-export function describeTools(): ToolInfo[] {
-  return toolNames.map((name) => ({
-    name,
-    description: toolDefinitions[name].description,
-    inputSchema: z.toJSONSchema(toolDefinitions[name].input, { io: 'input' }),
-  }));
+/** Tool descriptions for a model or a client. `panel` adds the tools that need a person there. */
+export function describeTools({ panel = false }: { panel?: boolean } = {}): ToolInfo[] {
+  return toolNames
+    .filter((name) => panel || !PANEL_TOOLS.has(name))
+    .map((name) => ({
+      name,
+      description: toolDefinitions[name].description,
+      inputSchema: z.toJSONSchema(toolDefinitions[name].input, { io: 'input' }),
+    }));
 }
 
 /** Parse a JSON wire message; undefined when it is not valid JSON or does not match. */

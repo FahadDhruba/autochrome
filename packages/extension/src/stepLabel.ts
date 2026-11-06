@@ -100,6 +100,24 @@ function phrase(call: ToolCall, result: ToolResult | undefined): Phrase {
             'Waiting',
             `Waited ${Math.round(Number(input.ms ?? 0) / 100) / 10} s`.replace('.0 s', ' s'),
           ];
+    case 'hover':
+      return element
+        ? [`Pointing at ${element}`, `Pointed at ${element}`]
+        : ['Moving the mouse', 'Moved the mouse'];
+    case 'drag':
+      return ['Dragging', 'Dragged and dropped'];
+    case 'upload_file': {
+      const what = input.fileName ? quote(input.fileName) : 'files';
+      return [`Uploading ${what}`, `Uploaded ${what}`];
+    }
+    case 'dialog':
+      return input.accept
+        ? ['Answering OK to a dialog', 'Answered OK to a dialog']
+        : ['Cancelling a dialog', 'Cancelled a dialog'];
+    case 'ask_user':
+      return input.handoff
+        ? ['Waiting for you in the page', 'You took a step in the page']
+        : [`Asking you: ${quote(input.question)}`, `Asked you: ${quote(input.question)}`];
     case 'console_logs':
       return ['Reading the console', 'Read the console'];
     case 'network_requests':

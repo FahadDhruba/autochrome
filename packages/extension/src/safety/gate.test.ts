@@ -54,6 +54,11 @@ const INPUTS: Record<ToolName, object> = {
   wait: { ms: 10 },
   read_page: {},
   find: { query: 'x' },
+  hover: { ref: 'e1' },
+  drag: { fromRef: 'e1', toRef: 'e2' },
+  upload_file: { ref: 'e1', text: 'x' },
+  dialog: { accept: false },
+  ask_user: { question: 'q' },
   get_text: {},
   screenshot: {},
   click: { ref: 'e1' },
@@ -150,6 +155,10 @@ describe('checkPermission', () => {
       ['key', 'ask', 'ask', 'allow'],
       ['scroll', 'ask', 'ask', 'allow'],
       ['form_input', 'ask', 'ask', 'allow'],
+      ['hover', 'ask', 'ask', 'allow'],
+      ['drag', 'ask', 'ask', 'allow'],
+      ['dialog', 'ask', 'ask', 'allow'],
+      ['ask_user', 'allow', 'allow', 'allow'],
       ['navigate', 'ask', 'ask', 'allow'],
       ['go_back', 'ask', 'ask', 'allow'],
       ['go_forward', 'ask', 'ask', 'allow'],
@@ -172,9 +181,43 @@ describe('checkPermission', () => {
       expect(await verdict(name, 'ask')).toBe(whenUnapproved);
     });
 
-    it('covers every tool except js_eval and workflow_run, which have their own tests', () => {
+    it('covers every tool except those with their own tests', () => {
+      const own = ['js_eval', 'workflow_run', 'upload_file'];
       expect(TABLE.map(([name]) => name).sort()).toEqual(
-        toolNames.filter((name) => name !== 'js_eval' && name !== 'workflow_run').sort(),
+        toolNames.filter((name) => !own.includes(name)).sort(),
+      );
+    });
+  });
+
+  describe('upload_file', () => {
+    // Sending the user's files to a site is risky everywhere but Auto.
+    it('asks even on an approved site, except in auto mode', async () => {
+      expect(await verdict('upload_file', 'per-site', { sites: [SITE] })).toBe('ask');
+      expect(await verdict('upload_file', 'ask', { sites: [SITE] })).toBe('ask');
+      expect(await verdict('upload_file', 'auto')).toBe('allow');
+    });
+  });
+
+  describe('dialog', () => {
+    const withDialog = (message: string, type = 'confirm'): GateEnv => ({
+      ...env('per-site', { sites: [SITE] }),
+      dialog: () => ({ type, message }),
+    });
+
+    it('asks before confirming a purchase or leaving a page, but not before Cancel', async () => {
+      const accept = { id: '1', name: 'dialog' as const, input: { accept: true } };
+      const cancel = { ...accept, input: { accept: false } };
+      const asked = await checkPermission(accept, 'agent', withDialog('Buy this item for $40?'));
+      expect(asked.decision).toBe('ask');
+      expect(asked.decision === 'ask' && asked.request.detail).toBe('Buy this item for $40?');
+      expect((await checkPermission(cancel, 'agent', withDialog('Buy this item?'))).decision).toBe(
+        'allow',
+      );
+      expect(
+        (await checkPermission(accept, 'agent', withDialog('', 'beforeunload'))).decision,
+      ).toBe('ask');
+      expect((await checkPermission(accept, 'agent', withDialog('Saved!', 'alert'))).decision).toBe(
+        'allow',
       );
     });
   });

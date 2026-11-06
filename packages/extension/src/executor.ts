@@ -8,6 +8,7 @@ import {
 } from '@autochrome/shared';
 import { z } from 'zod';
 import type { DescribeTarget, ElementDescription } from './page/messages';
+import { describeDialog, openDialog, whenDialogOpens } from './dialogs';
 import { authorize } from './safety/authorize';
 import { gateEnv, pageSite, tabContext } from './safety/env';
 import { describeTargetOf, type Input } from './safety/gate';
@@ -31,6 +32,49 @@ const PAGE_CONTENT_TOOLS = new Set<ToolName>([
 
 /** Actions on an element; the result says which element, so a chat can become a workflow. */
 const TARGET_TOOLS = new Set<ToolName>(['click', 'type', 'form_input']);
+
+/** Tools that do not act inside a page, so an open dialog does not block them. */
+const DIALOG_FREE_TOOLS = new Set<ToolName>([
+  'tabs_list',
+  'tab_open',
+  'tab_switch',
+  'tab_close',
+  'workflows_list',
+  'workflow_run',
+  'ask_user',
+  'dialog',
+]);
+
+/** The tab a page tool works on, or undefined when there is none yet. */
+async function pageTabOf(call: ToolCall): Promise<number | undefined> {
+  if (DIALOG_FREE_TOOLS.has(call.name)) return undefined;
+  return resolveTabId((call.input as Input | undefined)?.tabId).catch(() => undefined);
+}
+
+/**
+ * Runs the handler, but returns as soon as a dialog opens on the tab: the action that opened it
+ * cannot finish until the dialog is answered, so the model has to answer it first.
+ */
+async function untilDialog(
+  tabId: number | undefined,
+  name: ToolName,
+  run: () => Promise<ToolContent[]>,
+): Promise<ToolContent[]> {
+  if (tabId === undefined) return run();
+  const watch = whenDialogOpens(tabId);
+  const work = run();
+  try {
+    return await Promise.race([
+      work,
+      watch.opened.then((dialog): ToolContent[] => {
+        work.catch(() => undefined);
+        return [{ type: 'text', text: `${name} started, then: ${describeDialog(dialog)}` }];
+      }),
+    ]);
+  } finally {
+    watch.cancel();
+  }
+}
 
 export type ExecuteOptions = {
   source: ToolSource;
@@ -103,6 +147,10 @@ export async function executeTool(call: ToolCall, options: ExecuteOptions): Prom
 
     // The gate sees the parsed input, so defaults are filled in.
     const checked: ToolCall = { ...call, input: parsed.data };
+    // A frozen page would hang the gate's own look at the element, so this comes first.
+    const pageTab = await pageTabOf(checked);
+    const dialog = pageTab === undefined ? undefined : openDialog(pageTab);
+    if (dialog) return failure(call.id, describeDialog(dialog));
     const denial = await (
       options.authorize ?? ((c, s, sig) => authorize(c, s, sig, { env: gateEnv }))
     )(checked, source, signal);
@@ -115,7 +163,9 @@ export async function executeTool(call: ToolCall, options: ExecuteOptions): Prom
       input: unknown,
       context: HandlerContext,
     ) => ReturnType<ToolHandlers['tabs_list']>;
-    let content = await handler(parsed.data, { source, signal });
+    let content = await untilDialog(pageTab, call.name, () =>
+      handler(parsed.data, { source, signal }),
+    );
     const tabId = (parsed.data as { tabId?: number }).tabId;
     if (PAGE_CONTENT_TOOLS.has(call.name)) {
       content = await wrapContent(content, tabId, options.pageSite ?? pageSite);

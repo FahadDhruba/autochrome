@@ -56,7 +56,8 @@ export function highlight(el: Element): void {
       height: `${rect.height + 6}px`,
     });
     box.classList.remove('hidden');
-    frame.classList.remove('hidden');
+    // Inside an iframe only the element is outlined; the page frame belongs to the whole tab.
+    if (window === window.top) frame.classList.remove('hidden');
     clearTimeout(boxTimer);
     clearTimeout(frameTimer);
     boxTimer = setTimeout(() => box.classList.add('hidden'), BOX_MS);

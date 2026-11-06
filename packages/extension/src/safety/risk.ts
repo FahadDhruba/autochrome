@@ -170,7 +170,23 @@ export function assessRisk(
     case 'type':
     case 'form_input':
       return riskOfTyping(el);
+    case 'upload_file':
+      return 'Uploads files to the page';
     default:
       return undefined;
   }
+}
+
+/** Why answering a dialog is risky: confirming a purchase, a send or a delete, or leaving a page. */
+export function riskOfDialog(
+  dialog: { type: string; message: string },
+  accept: boolean,
+): string | undefined {
+  if (!accept) return undefined;
+  if (dialog.type === 'beforeunload') return 'Leaves the page; unsaved changes are lost';
+  for (const kind of Object.keys(WORD_PATTERNS) as RiskKind[]) {
+    if (WORD_PATTERNS[kind].test(dialog.message))
+      return `Confirms ${quote(dialog.message)} (${kind})`;
+  }
+  return undefined;
 }

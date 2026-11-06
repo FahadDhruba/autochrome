@@ -9,7 +9,7 @@ export function summarizeInput(input: unknown): string {
   return summary.length > MAX_LENGTH ? `${summary.slice(0, MAX_LENGTH - 1)}…` : summary;
 }
 
-export type ToolGroup = 'tabs' | 'read' | 'input' | 'debug' | 'workflow';
+export type ToolGroup = 'tabs' | 'read' | 'input' | 'debug' | 'workflow' | 'ask';
 
 const GROUPS: Record<string, ToolGroup> = {
   tabs_list: 'tabs',
@@ -35,6 +35,11 @@ const GROUPS: Record<string, ToolGroup> = {
   js_eval: 'debug',
   workflows_list: 'workflow',
   workflow_run: 'workflow',
+  hover: 'input',
+  drag: 'input',
+  upload_file: 'input',
+  dialog: 'input',
+  ask_user: 'ask',
 };
 
 /** Which family a tool belongs to, for its icon. Unknown tools count as `input`. */
