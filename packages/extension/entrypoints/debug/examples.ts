@@ -10,6 +10,7 @@ export const examples: Record<ToolName, object> = {
   go_forward: {},
   read_page: { filter: 'interactive' },
   find: { query: 'search' },
+  extract_table: {},
   hover: { ref: 'e1' },
   drag: { fromRef: 'e1', toRef: 'e2' },
   upload_file: { ref: 'e1', fileName: 'notes.txt', text: 'Hello' },

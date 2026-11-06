@@ -31,6 +31,8 @@ export type AgentRun = {
   onMessage?: () => void | Promise<void>;
   signal: AbortSignal;
   maxSteps?: number;
+  /** Stop before running more tools once input + output tokens reach this. Unset: no limit. */
+  maxTokens?: number;
   /** True while the user has taken over; the remaining tool calls of a step are then skipped. */
   isPaused?: () => boolean;
   /** Waits while the user has taken over. Resolves to their note ('' for none) after a pause. */
@@ -88,7 +90,7 @@ export async function runAgent(run: AgentRun): Promise<void> {
     const last = messages.at(-1);
     if (handedBack !== undefined && last?.role === 'user') {
       const note = handedBack ? `${TAKEOVER_NOTE} Their note: ${handedBack}` : TAKEOVER_NOTE;
-      last.parts.push({ type: 'text', text: note });
+      last.parts.push({ type: 'text', text: note, context: 'You took over' });
       await run.onMessage?.();
     }
 
@@ -121,12 +123,23 @@ export async function runAgent(run: AgentRun): Promise<void> {
       }
     }
 
+    const spent = usage.inputTokens + usage.outputTokens;
+    const overBudget =
+      run.maxTokens !== undefined &&
+      spent >= run.maxTokens &&
+      parts.some((part) => part.type === 'tool_call');
     // Tool calls that will never run must not stay in the history without results.
-    const interrupted = signal.aborted || failure !== undefined;
+    const interrupted = signal.aborted || failure !== undefined || overBudget;
     const kept = interrupted ? parts.filter((part) => part.type !== 'tool_call') : parts;
     if (kept.length > 0) await append({ role: 'assistant', parts: kept });
     if (signal.aborted) return finishWithNote(STOPPED_TEXT);
     if (failure) return emit({ type: 'error', message: failure });
+    if (overBudget) {
+      const limit = run.maxTokens!.toLocaleString('en-US');
+      return finishWithNote(
+        `Stopped: this task used ${spent.toLocaleString('en-US')} tokens, over the limit of ${limit} set in Settings.`,
+      );
+    }
 
     const calls = parts.filter((part) => part.type === 'tool_call');
     if (stopReason !== 'tool_use' || calls.length === 0) {

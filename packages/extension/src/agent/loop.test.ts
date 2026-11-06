@@ -232,6 +232,19 @@ describe('runAgent', () => {
     expect(last.parts.at(-1)).toEqual({
       type: 'text',
       text: `${TAKEOVER_NOTE} Their note: I logged in`,
+      context: 'You took over',
     });
+  });
+
+  it('stops before running more tools once the token limit is reached', async () => {
+    const { run, execute, events, messages } = setup([toolTurn('c1'), toolTurn('c2'), finalTurn], {
+      maxTokens: 25,
+    });
+    await runAgent(run);
+    // 15 tokens after the first step, 30 after the second: its tool never runs.
+    expect(execute.mock.calls.map(([call]) => call.id)).toEqual(['c1']);
+    expect(messages.at(-1)?.parts.some((p) => p.type === 'tool_call')).toBe(false);
+    expect(JSON.stringify(messages.at(-1))).toContain('over the limit of 25');
+    expect(events.at(-1)?.type).toBe('done');
   });
 });

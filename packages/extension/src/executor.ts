@@ -24,6 +24,7 @@ const PAGE_CONTENT_TOOLS = new Set<ToolName>([
   'read_page',
   'find',
   'get_text',
+  'extract_table',
   'console_logs',
   'network_requests',
   'network_response',

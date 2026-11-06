@@ -1,5 +1,7 @@
-import { Fragment, type ReactNode } from 'react';
-import { parseMarkdown, type Block, type Inline } from './markdown';
+import { Fragment, useState, type ReactNode } from 'react';
+import { Check, Copy, Download } from 'lucide-react';
+import { parseInline, parseMarkdown, type Block, type Inline } from './markdown';
+import { download, toCsv, toJson } from './tableExport';
 
 // Everything is built as React elements (text is escaped by React); no HTML strings are ever used.
 
@@ -49,8 +51,73 @@ function renderBlocks(blocks: Block[]): ReactNode {
         const items = block.items.map((item, i) => <li key={i}>{renderBlocks(item)}</li>);
         return block.ordered ? <ol key={index}>{items}</ol> : <ul key={index}>{items}</ul>;
       }
+      case 'table':
+        return <DataTable key={index} header={block.header} rows={block.rows} />;
     }
   });
+}
+
+/** A table with its data one click away: copy as CSV, or download CSV or JSON. */
+function DataTable({ header, rows }: { header: string[]; rows: string[][] }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="md-table">
+      <div className="md-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              {header.map((cell, i) => (
+                <th key={i}>{renderInline(parseInline(cell))}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, r) => (
+              <tr key={r}>
+                {header.map((_, c) => (
+                  <td key={c}>{renderInline(parseInline(row[c] ?? ''))}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="md-table-actions">
+        <span className="muted">
+          {rows.length} row{rows.length === 1 ? '' : 's'}
+        </span>
+        <button
+          type="button"
+          className="link with-icon"
+          onClick={() =>
+            void navigator.clipboard?.writeText(toCsv(header, rows)).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            })
+          }
+        >
+          {copied ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+        <button
+          type="button"
+          className="link with-icon"
+          onClick={() => download('table.csv', 'text/csv', toCsv(header, rows))}
+        >
+          <Download size={13} aria-hidden="true" />
+          CSV
+        </button>
+        <button
+          type="button"
+          className="link with-icon"
+          onClick={() => download('table.json', 'application/json', toJson(header, rows))}
+        >
+          <Download size={13} aria-hidden="true" />
+          JSON
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Markdown({ text }: { text: string }) {

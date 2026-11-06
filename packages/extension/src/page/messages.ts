@@ -39,6 +39,7 @@ export type PageRequests = {
   record_start: Record<string, never>;
   record_stop: Record<string, never>;
   overlay_hide: Record<string, never>;
+  tables: { maxRows: number };
   frame_announce: { token: string };
   frame_children: Record<string, never>;
   frame_rect: { token: string; scroll: boolean };
@@ -57,6 +58,7 @@ export type PageResults = {
   record_start: true;
   record_stop: true;
   overlay_hide: true;
+  tables: string;
   frame_announce: true;
   frame_children: string[];
   frame_rect: Point;

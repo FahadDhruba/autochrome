@@ -8,6 +8,7 @@ export const TAB_CONTEXT_TOOLS = new Set<ToolName>([
   'read_page',
   'find',
   'get_text',
+  'extract_table',
   'screenshot',
   'click',
   'type',

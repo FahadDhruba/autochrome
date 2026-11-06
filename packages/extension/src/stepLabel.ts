@@ -61,6 +61,8 @@ function phrase(call: ToolCall, result: ToolResult | undefined): Phrase {
       return ['Reading the page', 'Read the page'];
     case 'get_text':
       return ['Reading the page text', 'Read the page text'];
+    case 'extract_table':
+      return ['Reading the tables', 'Read the tables'];
     case 'find':
       return [`Looking for ${quote(input.query)}`, `Looked for ${quote(input.query)}`];
     case 'screenshot':

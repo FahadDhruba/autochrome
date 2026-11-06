@@ -5,7 +5,7 @@ import { hideOverlay } from './overlay';
 import type { PageMessage, PageOp, PageRequests, PageResponse, PageResults } from './messages';
 import { startRecording, stopRecording } from './recorder';
 import { resolveTarget } from './resolve';
-import { findElements, pageText, readPage } from './snapshot';
+import { findElements, pageTables, pageText, readPage } from './snapshot';
 
 const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] } = {
   read: ({ filter }) => readPage(filter),
@@ -19,6 +19,7 @@ const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] 
   record_start: () => startRecording(),
   record_stop: () => stopRecording(),
   overlay_hide: () => hideOverlay(),
+  tables: ({ maxRows }) => pageTables(maxRows),
   frame_announce: ({ token }) => announceFrame(token),
   frame_children: () => frameChildren(),
   frame_rect: ({ token, scroll }) => frameRect(token, scroll),

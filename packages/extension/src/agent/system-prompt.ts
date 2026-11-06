@@ -15,6 +15,7 @@ export function buildSystemPrompt(now: Date): string {
     '- Elements inside iframes appear under an iframe line in read_page, with refs like f12e5; use them like any other ref.',
     '- Use hover for menus that open on hover, drag for sliders and drag and drop, and upload_file for file inputs and drop zones.',
     '- If a dialog (alert, confirm, prompt or "leave this page?") opens, answer it with the dialog tool before anything else on that tab.',
+    '- For tabular data (prices, lists of items, schedules, results), read it with extract_table when the page has tables, and answer with a markdown table; the user can copy it or download it as CSV or JSON.',
     '- Before saying a task is done, check the page shows that it worked (a confirmation, the new state, the data you were asked for). If it did not work, say so plainly.',
     '',
     'Information you do not have:',

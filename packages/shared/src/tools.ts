@@ -66,6 +66,14 @@ export const toolDefinitions = {
     'Get the page title, URL and readable text (up to 20,000 characters). Use it to read articles or other long text.',
     z.object({ tabId }),
   ),
+  extract_table: defineTool(
+    'extract_table',
+    'Read the data tables on the page (HTML tables and grids) as markdown tables, row by row. More reliable than get_text for tabular data such as prices, schedules or results.',
+    z.object({
+      maxRows: z.number().int().min(1).max(500).default(100).describe('Rows per table at most.'),
+      tabId,
+    }),
+  ),
   screenshot: defineTool(
     'screenshot',
     'Take a JPEG screenshot of the visible viewport. Its pixel size equals the viewport size in CSS px, so x/y read from it can be passed to click. Use it when the accessibility tree is not enough.',

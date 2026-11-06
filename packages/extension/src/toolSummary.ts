@@ -22,6 +22,7 @@ const GROUPS: Record<string, ToolGroup> = {
   read_page: 'read',
   find: 'read',
   get_text: 'read',
+  extract_table: 'read',
   screenshot: 'read',
   click: 'input',
   type: 'input',

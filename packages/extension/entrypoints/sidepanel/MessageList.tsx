@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Check, ChevronRight, CircleAlert, Copy, LoaderCircle, Paperclip } from 'lucide-react';
+import {
+  Check,
+  ChevronRight,
+  CircleAlert,
+  Copy,
+  Layers,
+  LoaderCircle,
+  Paperclip,
+} from 'lucide-react';
 import { splitAttachmentNote } from '@/src/attachments';
 import type { ChatMessage, Part, Usage } from '@/src/providers/types';
 import { describeStep } from '@/src/stepLabel';
@@ -14,7 +22,7 @@ type Item =
 
 /** One user prompt, or everything the agent did in reply: steps (with notes) and its answer. */
 type Turn =
-  | { kind: 'user'; text: string; key: string }
+  | { kind: 'user'; text: string; context: string[]; key: string }
   | { kind: 'agent'; activity: Item[]; answer: Item[]; key: string };
 
 function resultsById(messages: ChatMessage[]): Map<string, ToolResult> {
@@ -40,19 +48,31 @@ function toTurns(messages: ChatMessage[]): Turn[] {
     });
     items = [];
   };
-  messages.forEach((message, index) =>
+  messages.forEach((message, index) => {
+    // A prompt is the user's text plus what they attached; tool results are not prompts.
+    const typed = message.parts.filter(
+      (part) => part.type === 'text' && part.text && !part.volatile && !part.context,
+    );
+    const attached = message.parts.flatMap((part) =>
+      (part.type === 'text' || part.type === 'image') && part.context ? [part.context] : [],
+    );
+    const isPrompt =
+      message.role === 'user' && !message.parts.some((part) => part.type === 'tool_result');
+    if (isPrompt && (typed.length > 0 || attached.length > 0)) {
+      flush();
+      const text = typed.map((part) => (part.type === 'text' ? part.text : '')).join('\n\n');
+      turns.push({ kind: 'user', text, context: attached, key: `${index}` });
+      return;
+    }
     message.parts.forEach((part, partIndex) => {
       const key = `${index}-${partIndex}`;
-      if (message.role === 'user' && part.type === 'text' && part.text && !part.volatile) {
-        flush();
-        turns.push({ kind: 'user', text: part.text, key });
-      } else if (message.role === 'assistant' && part.type === 'text' && part.text) {
+      if (message.role === 'assistant' && part.type === 'text' && part.text) {
         items.push({ kind: 'text', text: part.text, key });
       } else if (part.type === 'tool_call') {
         items.push({ kind: 'step', call: part, key });
       }
-    }),
-  );
+    });
+  });
   flush();
   return turns;
 }
@@ -153,6 +173,8 @@ type Props = {
   awaitingApproval?: boolean;
   /** Shown after the last message, e.g. an approval prompt. */
   children?: ReactNode;
+  /** The estimated cost of the chat's usage, when the model has a price. */
+  cost?: string;
 };
 
 export default function MessageList({
@@ -162,6 +184,7 @@ export default function MessageList({
   usage,
   awaitingApproval,
   children,
+  cost,
 }: Props) {
   const results = resultsById(messages);
   const calls = messages
@@ -184,14 +207,18 @@ export default function MessageList({
       {turns.map((turn, index) => {
         if (turn.kind === 'user') {
           const { text, files } = splitAttachmentNote(turn.text);
+          const chips = [
+            ...turn.context.map((name) => ({ name, Icon: Layers })),
+            ...files.map((name) => ({ name, Icon: Paperclip })),
+          ];
           return (
             <div key={turn.key} className="bubble bubble-user" data-testid="user-text">
               {text}
-              {files.length > 0 && (
-                <ul className="file-chips bubble-files" aria-label="Attached files">
-                  {files.map((name) => (
+              {chips.length > 0 && (
+                <ul className="file-chips bubble-files" aria-label="Attached">
+                  {chips.map(({ name, Icon }) => (
                     <li key={name} className="file-chip">
-                      <Paperclip size={12} aria-hidden="true" />
+                      <Icon size={12} aria-hidden="true" />
                       <span>{name}</span>
                     </li>
                   ))}
@@ -228,7 +255,11 @@ export default function MessageList({
             {answer && !(running && index === lastAgent) && (
               <div className="answer-meta">
                 <CopyButton text={answer} />
-                {stepCount(turn) > 0 && <span>{stepCount(turn)} steps</span>}
+                {stepCount(turn) > 0 && (
+                  <span>
+                    {stepCount(turn)} step{stepCount(turn) === 1 ? '' : 's'}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -249,6 +280,7 @@ export default function MessageList({
       {usage && !running && (
         <div className="usage" data-testid="usage">
           {formatUsage(usage)}
+          {cost && ` · ≈ ${cost}`}
         </div>
       )}
       <div ref={end} />

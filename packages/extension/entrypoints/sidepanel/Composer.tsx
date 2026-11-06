@@ -1,5 +1,6 @@
-import { useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { Hand, Paperclip, Send, Square, X } from 'lucide-react';
+import { useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { matchPrompts, type SavedPrompt } from '@/src/prompts';
+import { Hand, Layers, Paperclip, Send, Square, X } from 'lucide-react';
 import IconButton from '@/src/ui/IconButton';
 
 type Props = {
@@ -14,10 +15,14 @@ type Props = {
   /** Pauses the agent so the user can use the page; shown while a task runs. */
   onTakeOver?: () => void;
   paused?: boolean;
-  /** Files attached to the next message. */
-  files?: { id: string; name: string }[];
+  /** Files and context attached to the next message, shown as chips. */
+  files?: { id: string; name: string; kind?: 'file' | 'context' }[];
   onAttach?: (files: FileList) => void;
   onRemoveFile?: (id: string) => void;
+  /** More buttons next to the paperclip, e.g. Add context. */
+  addons?: ReactNode;
+  /** Saved prompts, offered when the text starts with "/". */
+  prompts?: SavedPrompt[];
 };
 
 export default function Composer({
@@ -33,9 +38,22 @@ export default function Composer({
   files = [],
   onAttach,
   onRemoveFile,
+  addons,
+  prompts = [],
 }: Props) {
   const empty = !text.trim();
   const picker = useRef<HTMLInputElement>(null);
+  const [highlighted, setHighlighted] = useState(0);
+  const [dismissed, setDismissed] = useState<string>();
+  const matches = dismissed === text ? undefined : matchPrompts(text, prompts);
+  const showMatches = matches !== undefined && matches.length > 0;
+  const active = Math.min(highlighted, (matches?.length ?? 1) - 1);
+
+  const insertPrompt = (prompt: SavedPrompt) => {
+    onTextChange(prompt.text);
+    setHighlighted(0);
+    inputRef.current?.focus();
+  };
 
   const submit = () => {
     if (running) return;
@@ -46,6 +64,24 @@ export default function Composer({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showMatches) {
+      const move = { ArrowDown: 1, ArrowUp: -1 }[event.key];
+      if (move) {
+        event.preventDefault();
+        setHighlighted((active + move + matches.length) % matches.length);
+        return;
+      }
+      if ((event.key === 'Enter' || event.key === 'Tab') && !event.shiftKey) {
+        event.preventDefault();
+        insertPrompt(matches[active]!);
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDismissed(text);
+        return;
+      }
+    }
     if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       submit();
@@ -61,10 +97,14 @@ export default function Composer({
       }}
     >
       {files.length > 0 && (
-        <ul className="file-chips" aria-label="Attached files">
+        <ul className="file-chips" aria-label="Attached files and context">
           {files.map((file) => (
             <li key={file.id} className="file-chip">
-              <Paperclip size={12} aria-hidden="true" />
+              {file.kind === 'context' ? (
+                <Layers size={12} aria-hidden="true" />
+              ) : (
+                <Paperclip size={12} aria-hidden="true" />
+              )}
               <span>{file.name}</span>
               <button
                 type="button"
@@ -78,17 +118,39 @@ export default function Composer({
           ))}
         </ul>
       )}
+      {showMatches && (
+        <ul className="slash-menu" role="listbox" aria-label="Saved prompts">
+          {matches.map((prompt, index) => (
+            <li
+              key={prompt.id}
+              role="option"
+              aria-selected={index === active}
+              className={index === active ? 'is-active' : undefined}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                insertPrompt(prompt);
+              }}
+            >
+              <span className="slash-name">/{prompt.name}</span>
+              <span className="slash-text">{prompt.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
       <textarea
         ref={inputRef}
         value={text}
         rows={2}
-        placeholder="Ask autochrome to do something in your browser"
+        // The keyboard shortcut opens the panel; typing should work right away.
+        autoFocus
+        placeholder="Ask autochrome to do something, or type / for saved prompts"
         aria-label="Message"
         onChange={(event) => onTextChange(event.target.value)}
         onKeyDown={onKeyDown}
       />
       <div className="composer-row">
         <div className="composer-tools">{tools}</div>
+        {!running && addons}
         {onAttach && !running && (
           <>
             <IconButton
