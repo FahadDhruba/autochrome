@@ -1474,3 +1474,155 @@ select:focus-visible {
   padding-right: 8px;
   background: var(--bg);
 }
+
+/* Menus that open upwards from the composer */
+.menu-up {
+  top: auto;
+  bottom: calc(100% + 6px);
+  min-width: 220px;
+}
+
+/* Tables in answers */
+.md-table {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.md-table-scroll {
+  overflow-x: auto;
+}
+
+.md-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.md-table th,
+.md-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.md-table th {
+  background: var(--surface-hover);
+  font-weight: 600;
+}
+
+.md-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.md-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+}
+
+.md-table-actions .muted {
+  flex: 1;
+}
+
+/* Saved prompts, opened by typing "/" */
+.slash-menu {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.slash-menu li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.slash-menu li.is-active,
+.slash-menu li:hover {
+  background: var(--surface);
+}
+
+.slash-name {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.slash-text {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Saved prompts in Settings */
+.prompt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.prompt-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prompt-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prompt-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  font-family: ui-monospace, monospace;
+}
+
+.prompt-name input {
+  flex: 1;
+  font-family: inherit;
+}
+
+/* Model price in Settings */
+.price-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.price-row legend {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.price-row label {
+  flex: 1;
+  min-width: 120px;
+}

@@ -1,6 +1,7 @@
 import { cdp, nextEvent, viewportSize } from '../debugger';
 import { openDialog } from '../dialogs';
-import { callRef, locateRef } from '../frames';
+import { callPage } from '../content';
+import { callRef, locateRef, splitRef } from '../frames';
 import { parseKeys } from '../keys';
 import type { Point } from '../page/messages';
 import { resolveTabId } from '../target';
@@ -26,7 +27,9 @@ export const inputHandlers: Pick<
 > = {
   async click(input) {
     const tabId = await resolveTabId(input.tabId);
+    const frame = input.ref === undefined ? 0 : splitRef(input.ref).frameId;
     const { x, y } = (await pointFor(tabId, input))!;
+    if (frame !== 0) await callRef(tabId, 'watch_click', { ref: input.ref! });
     const { button, clickCount } = input;
     const mouse = { x, y, button, buttons: BUTTON_MASK[button], clickCount };
 
@@ -37,6 +40,10 @@ export const inputHandlers: Pick<
       ...mouse,
       buttons: 0,
     });
+    if (frame !== 0) {
+      const { reached } = await callPage(tabId, 'confirm_click', {}, frame);
+      if (!reached) return text(`Clicked ${input.ref} from inside its frame.`);
+    }
     return text(`Clicked ${input.ref ?? 'point'} at (${x}, ${y}).`);
   },
 

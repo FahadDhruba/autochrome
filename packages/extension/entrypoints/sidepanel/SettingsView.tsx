@@ -12,6 +12,10 @@ import {
   type AllProviderSettings,
 } from '@/src/settings';
 import BridgeSettings from './BridgeSettings';
+import LimitsSettings from './LimitsSettings';
+import PromptsSettings from './PromptsSettings';
+import { useLimits } from './useLimits';
+import { priceOf, savePrice } from '@/src/limits';
 import SafetySettings from './SafetySettings';
 import { useModelOptions } from './useModelOptions';
 
@@ -22,7 +26,7 @@ const KEY_PLACEHOLDERS: Record<ProviderId, string> = {
   compatible: 'Optional',
 };
 
-const SECTIONS = ['Models', 'Safety', 'Bridge', 'Appearance'];
+const SECTIONS = ['Models', 'Safety', 'Limits', 'Prompts', 'Bridge', 'Appearance'];
 
 const THEME_LABEL: Record<Theme, string> = { system: 'System', light: 'Light', dark: 'Dark' };
 
@@ -51,6 +55,8 @@ export default function SettingsView() {
   const draft = drafts?.[selected];
   // Suggestions follow what is saved, not every keystroke.
   const models = useModelOptions(selected, saved?.[selected] ?? emptySettings);
+  const { prices } = useLimits();
+  const [priceEdit, setPriceEdit] = useState<{ key: string; input: string; output: string }>();
   if (!drafts || !draft) return null;
 
   const change = (patch: Partial<ProviderSettings>) => {
@@ -58,8 +64,28 @@ export default function SettingsView() {
     setJustSaved(false);
   };
 
+  const priceKey = `${selected}/${draft.model}`;
+  const savedPrice = priceOf(prices, selected, draft.model);
+  const price =
+    priceEdit?.key === priceKey
+      ? priceEdit
+      : {
+          key: priceKey,
+          input: savedPrice ? String(savedPrice.input) : '',
+          output: savedPrice ? String(savedPrice.output) : '',
+        };
+  const changePrice = (patch: Partial<{ input: string; output: string }>) => {
+    setPriceEdit({ ...price, ...patch });
+    setJustSaved(false);
+  };
+
   const save = async () => {
     await saveProviderSettings(selected, draft);
+    if (draft.model) {
+      const input = Number(price.input) || 0;
+      const output = Number(price.output) || 0;
+      await savePrice(selected, draft.model, { input, output });
+    }
     setSaved({ ...saved!, [selected]: draft });
     setJustSaved(true);
   };
@@ -182,6 +208,33 @@ export default function SettingsView() {
             ))}
           </datalist>
         </label>
+        <fieldset className="price-row">
+          <legend>Price of this model, USD per 1M tokens (optional, for cost estimates)</legend>
+          <label>
+            Input
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              inputMode="decimal"
+              value={price.input}
+              placeholder="0.10"
+              onChange={(e) => changePrice({ input: e.target.value })}
+            />
+          </label>
+          <label>
+            Output
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              inputMode="decimal"
+              value={price.output}
+              placeholder="0.40"
+              onChange={(e) => changePrice({ output: e.target.value })}
+            />
+          </label>
+        </fieldset>
         {!compatible && (
           <details>
             <summary>Advanced</summary>
@@ -202,6 +255,8 @@ export default function SettingsView() {
         </div>
       </section>
       <SafetySettings />
+      <LimitsSettings />
+      <PromptsSettings />
       <BridgeSettings />
       <section aria-label="Appearance settings" id="settings-sec-appearance">
         <h2>Appearance</h2>

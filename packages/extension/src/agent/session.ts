@@ -3,10 +3,27 @@ import { executeTool } from '../executor';
 import { loadChat, saveChat, titleFor, type Chat } from '../history';
 import { providers } from '../providers';
 import type { ProviderId } from '../providers/types';
+import { loadLimits } from '../limits';
 import { isProviderId, loadProviderSettings } from '../settings';
 import { registerPanel } from '../safety/approvalUi';
 import { runAgent } from './loop';
-import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from './protocol';
+import { CHAT_PORT_NAME, type AgentEvent, type ContextPart, type PanelMessage } from './protocol';
+
+/** Only well-formed context parts from the panel reach the history. */
+function validContext(parts: unknown): ContextPart[] {
+  if (!Array.isArray(parts)) return [];
+  return parts.flatMap((part): ContextPart[] => {
+    const p = part as Partial<ContextPart> & { text?: unknown; data?: unknown; mimeType?: unknown };
+    if (typeof p.context !== 'string') return [];
+    if (p.type === 'text' && typeof p.text === 'string') {
+      return [{ type: 'text', text: p.text, context: p.context }];
+    }
+    if (p.type === 'image' && typeof p.data === 'string' && typeof p.mimeType === 'string') {
+      return [{ type: 'image', data: p.data, mimeType: p.mimeType, context: p.context }];
+    }
+    return [];
+  });
+}
 import { runFromPanel, type WorkflowEvent } from '../workflows/session';
 import { loadTabState } from './tab-state';
 import { buildSystemPrompt } from './system-prompt';
@@ -78,19 +95,28 @@ function handlePort(port: Browser.runtime.Port): void {
     return { id: call.id, ok: true, content: [{ type: 'text', text: said }] };
   };
 
-  const start = async (chatId: string, text: string, providerId: ProviderId, model: string) => {
+  const start = async (
+    chatId: string,
+    text: string,
+    providerId: ProviderId,
+    model: string,
+    context: ContextPart[] = [],
+  ) => {
     const { provider } = providers[providerId];
     const settings = await loadProviderSettings(providerId);
     const existing = await loadChat(chatId);
     const chat: Chat = existing ?? { id: chatId, title: '', updatedAt: 0, messages: [] };
     chat.providerId = providerId;
     chat.model = model;
-    chat.messages.push({ role: 'user', parts: [{ type: 'text', text }] });
+    chat.messages.push({ role: 'user', parts: [{ type: 'text', text }, ...validContext(context)] });
     chat.title ||= titleFor(chat.messages);
     const persist = () => saveChat({ ...chat, updatedAt: Date.now() });
     await persist();
 
+    const limits = await loadLimits();
     await runAgent({
+      maxSteps: limits.maxSteps,
+      ...(limits.maxTokens > 0 && { maxTokens: limits.maxTokens }),
       provider,
       settings,
       model,
@@ -153,7 +179,7 @@ function handlePort(port: Browser.runtime.Port): void {
     const task =
       message.type === 'run_workflow'
         ? runFromPanel(message.workflowId, message.variables, emit, controller.signal)
-        : start(message.chatId, message.text, message.providerId, message.model);
+        : start(message.chatId, message.text, message.providerId, message.model, message.context);
     task
       .catch((error: unknown) => fail(error instanceof Error ? error.message : String(error)))
       .finally(() => {

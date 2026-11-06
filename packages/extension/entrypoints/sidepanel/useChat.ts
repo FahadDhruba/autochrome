@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { applyEvent } from '@/src/agent/apply-event';
-import { CHAT_PORT_NAME, type AgentEvent, type PanelMessage } from '@/src/agent/protocol';
+import {
+  CHAT_PORT_NAME,
+  type AgentEvent,
+  type ContextPart,
+  type PanelMessage,
+} from '@/src/agent/protocol';
 import { loadChat, saveChatTarget, type ChatTarget } from '@/src/history';
 import { isWorkflowEvent, type WorkflowEvent } from '@/src/workflows/session';
 import type { ChatMessage, Usage } from '@/src/providers/types';
@@ -97,13 +102,16 @@ export function useChat(providers: ProviderState | undefined) {
     void saveChatTarget(chatId, next);
   };
 
-  const send = (text: string) => {
+  const send = (text: string, context: ContextPart[] = []) => {
     if (!target) return;
     setError(undefined);
     setUsage(undefined);
-    setMessages((current) => [...current, { role: 'user', parts: [{ type: 'text', text }] }]);
+    setMessages((current) => [
+      ...current,
+      { role: 'user', parts: [{ type: 'text', text }, ...context] },
+    ]);
     setRunningNow(true);
-    post({ type: 'send', chatId, text, ...target });
+    post({ type: 'send', chatId, text, ...target, ...(context.length && { context }) });
   };
 
   const stop = () => post({ type: 'stop' });

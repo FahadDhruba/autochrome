@@ -1,12 +1,22 @@
 import type { ToolResult } from '@autochrome/shared';
-import type { ProviderId, Usage } from '../providers/types';
+import type { Part, ProviderId, Usage } from '../providers/types';
+
+export type ContextPart = Extract<Part, { type: 'text' | 'image' }> & { context: string };
 
 export const CHAT_PORT_NAME = 'autochrome:chat';
 export const MAX_STEPS = 50;
 
 /** Side panel to background. */
 export type PanelMessage =
-  | { type: 'send'; chatId: string; text: string; providerId: ProviderId; model: string }
+  | {
+      type: 'send';
+      chatId: string;
+      text: string;
+      providerId: ProviderId;
+      model: string;
+      /** Context the user attached: page text, their tabs, a screenshot. */
+      context?: ContextPart[];
+    }
   | { type: 'run_workflow'; workflowId: string; variables: Record<string, string> }
   | { type: 'stop' }
   /** The answer to an ask_user question. */

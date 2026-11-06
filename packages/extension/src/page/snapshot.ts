@@ -1,4 +1,4 @@
-import { collectNodes, type RawNode } from './dom';
+import { collectNodes, isVisible, type RawNode } from './dom';
 import { formatNodes, type PageNode } from './format';
 import { refFor, resetRefs } from './refs';
 
@@ -44,4 +44,50 @@ export function pageText(): { title: string; url: string; text: string } {
     url: location.href,
     text: text.length > MAX_TEXT_CHARS ? `${text.slice(0, MAX_TEXT_CHARS)}\n… truncated` : text,
   };
+}
+
+const cellText = (el: Element) =>
+  ((el as HTMLElement).innerText ?? el.textContent ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\|/g, '\\|');
+
+/** The page's visible data tables (HTML tables and ARIA grids) as markdown tables. */
+export function pageTables(maxRows: number): string {
+  const tables = Array.from(
+    document.querySelectorAll('table, [role="grid"], [role="table"], [role="treegrid"]'),
+  ).filter(
+    (el) => isVisible(el) && !el.parentElement?.closest('table, [role="grid"], [role="table"]'),
+  );
+  const parts = tables.flatMap((table, index) => {
+    const rows = Array.from(table.querySelectorAll('tr, [role="row"]')).filter(
+      (row) => row.closest('table, [role="grid"], [role="table"], [role="treegrid"]') === table,
+    );
+    const cells = rows
+      .map((row) =>
+        Array.from(
+          row.querySelectorAll(
+            ':scope > th, :scope > td, :scope > [role="cell"], :scope > [role="gridcell"], :scope > [role="columnheader"], :scope > [role="rowheader"]',
+          ),
+        ).map(cellText),
+      )
+      .filter((row) => row.some(Boolean));
+    if (cells.length < 2) return [];
+    const width = Math.max(...cells.map((row) => row.length));
+    const pad = (row: string[]) => [...row, ...Array(width - row.length).fill('')];
+    const [header, ...body] = cells.map(pad);
+    const shown = body.slice(0, maxRows);
+    const name =
+      table.getAttribute('aria-label') ||
+      table.querySelector('caption')?.textContent?.trim() ||
+      `Table ${index + 1}`;
+    const more = body.length > shown.length ? `, showing the first ${shown.length}` : '';
+    return [
+      `${name} (${body.length} rows${more}):`,
+      `| ${header!.join(' | ')} |`,
+      `|${' --- |'.repeat(width)}`,
+      ...shown.map((row) => `| ${row.join(' | ')} |`),
+    ].join('\n');
+  });
+  return parts.join('\n\n') || 'No data tables on this page.';
 }

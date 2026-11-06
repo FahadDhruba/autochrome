@@ -25,6 +25,7 @@ const VERB: Partial<Record<ApprovalRequest['tool'], string>> = {
   go_forward: 'go forward',
   read_page: 'read this page',
   get_text: 'read this page',
+  extract_table: 'read the tables on this page',
   find: 'search this page',
   screenshot: 'take a screenshot of this page',
   console_logs: 'read the console',

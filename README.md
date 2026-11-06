@@ -70,6 +70,19 @@ While the agent works, Chrome shows a bar saying autochrome "started debugging t
 
 # Using autochrome
 
+## Quicker ways in
+
+- **Keyboard shortcut:** **Alt+Shift+A** opens the side panel with the cursor in the message box. Change it at `chrome://extensions/shortcuts`.
+- **Right-click:** select text and choose **Ask autochrome about “…”**, right-click a link for **Ask autochrome about this link**, or anywhere on a page for **Summarize this page with autochrome**. The panel opens and sends the request.
+- **Add context (+):** attach **This page** (its text), **My open tabs** or a **Screenshot of this page** to your message, for questions like "what is this?" or "compare my tabs".
+- **Saved prompts:** type **/** in the message box to pick one (`/summarize`, `/table`, `/compare`, `/translate`). Add your own in **Settings → Prompts**.
+- **Tables:** ask for data ("the 5 largest cities as a table") and the answer comes as a table with **Copy**, **CSV** and **JSON** buttons. The agent reads tables on the page with `extract_table`.
+
+## Cost and limits
+
+- **Settings → Limits** caps the steps (default 50) and tokens (default no limit) one task may use. A task that reaches either stops and says so.
+- Under each model in **Settings → Models** you can enter its price per million input and output tokens; each answer then shows an estimated cost. autochrome has no built-in price list, because prices change; the estimate counts cached tokens at the full input price, so it errs high.
+
 ## When the agent needs you
 
 - **It asks instead of guessing.** When it needs something it doesn't know (your email, which item you mean, a choice), a question card appears in the chat. Type an answer or click one of the suggested choices.
@@ -176,7 +189,7 @@ Something else? [Open an issue](https://github.com/FahadDhruba/autochrome/issues
 
 ## Status
 
-Version 1.4.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, repairing a workflow step, and (1.4.0) asking for missing details, answering a confirm dialog, working inside a cross-origin iframe and uploading an attached file. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
+Version 1.5.0. **Tested with real AI providers:** Gemini (`gemini-3.5-flash-lite`) and Gemini Live (`gemini-3.8-live`), on real tasks: filling and submitting forms with approvals, reading Wikipedia and Hacker News, repairing a workflow step, and (1.4.0) asking for missing details, answering a confirm dialog, working inside a cross-origin iframe and uploading an attached file. **Not yet tested with real keys:** Claude, OpenAI, Ollama, LM Studio and OpenRouter. They were built from each provider's API documentation and pass the automated tests, but expect rough edges and please [report problems](https://github.com/FahadDhruba/autochrome/issues). Chrome is the target browser; Edge and Brave should work but are untested.
 
 Screens from real runs with Gemini (`gemini-3.5-flash-lite`):
 
@@ -264,6 +277,7 @@ The side panel agent and bridge clients use the same tools. This table is genera
 | `read_page`        | Read the page as a compact accessibility tree.                                                                                                       |
 | `find`             | Find elements whose role, name or value contains the query (case-insensitive).                                                                       |
 | `get_text`         | Get the page title, URL and readable text (up to 20,000 characters).                                                                                 |
+| `extract_table`    | Read the data tables on the page (HTML tables and grids) as markdown tables, row by row.                                                             |
 | `screenshot`       | Take a JPEG screenshot of the visible viewport.                                                                                                      |
 | `click`            | Click an element by ref, or a viewport point by x and y.                                                                                             |
 | `hover`            | Move the mouse over an element by ref, or over a viewport point by x and y, without clicking.                                                        |

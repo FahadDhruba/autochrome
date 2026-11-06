@@ -13,7 +13,8 @@ export type Block =
   | { type: 'heading'; level: number; children: Inline[] }
   | { type: 'code'; text: string }
   | { type: 'quote'; children: Block[] }
-  | { type: 'list'; ordered: boolean; items: Block[][] };
+  | { type: 'list'; ordered: boolean; items: Block[][] }
+  | { type: 'table'; header: string[]; rows: string[][] };
 
 const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 
@@ -105,6 +106,15 @@ function startsBlock(line: string): boolean {
   return FENCE.test(line) || HEADING.test(line) || QUOTE.test(line) || ITEM.test(line);
 }
 
+const TABLE_ROW = /^\s*\|.*\|\s*$/;
+const TABLE_RULE = /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?\s*$/;
+
+/** `| a | b \| c |` → ['a', 'b | c']. */
+export function tableCells(line: string): string[] {
+  const inner = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return inner.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
+}
+
 export function parseMarkdown(src: string): Block[] {
   return parseLines(src.replace(/\r\n?/g, '\n').split('\n'));
 }
@@ -119,6 +129,12 @@ function parseLines(lines: string[]): Block[] {
     const item = ITEM.exec(line);
     if (!line.trim()) {
       i += 1;
+    } else if (TABLE_ROW.test(line) && TABLE_RULE.test(at(i + 1))) {
+      const header = tableCells(line);
+      i += 2;
+      const rows: string[][] = [];
+      while (i < lines.length && TABLE_ROW.test(at(i))) rows.push(tableCells(at(i++)));
+      blocks.push({ type: 'table', header, rows });
     } else if (FENCE.test(line)) {
       const body: string[] = [];
       i += 1;

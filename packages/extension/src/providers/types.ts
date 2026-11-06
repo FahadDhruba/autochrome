@@ -7,8 +7,10 @@ export type Part =
       signature?: string;
       /** Per-step context (such as the tab state) that must not become part of a cached prefix. */
       volatile?: boolean;
+      /** Context the user attached (a page, their tabs); shown as a chip labelled with this. */
+      context?: string;
     }
-  | { type: 'image'; data: string; mimeType: string }
+  | { type: 'image'; data: string; mimeType: string; context?: string }
   | { type: 'tool_call'; id: string; name: string; input: unknown; signature?: string }
   | {
       type: 'tool_result';

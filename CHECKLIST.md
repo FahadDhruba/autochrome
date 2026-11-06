@@ -2,7 +2,7 @@
 
 Tick items as they land. Update this file in the same PR as the work. See [PLAN.md](PLAN.md).
 
-**Current:** 1.4.0: ask the user, take over, iframes, dialogs, hover, drag and file upload. Next: 1.5.0 everyday features (right-click menu, shortcut, attach context, extract to table, saved prompts, cost and budget), real-task benchmark, Claude and OpenAI real runs, Chrome Web Store
+**Current:** 1.5.0: shortcut, right-click menu, context, tables, saved prompts, limits and cost. Next: real-task benchmark, Claude and OpenAI real runs, Chrome Web Store, trust and polish tier (activity log, site blocklist, translations)
 
 ## Planning
 
@@ -137,6 +137,16 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 - [x] Verify-before-done and use-only-needed-tools rules
 - [x] Real runs with Gemini for each feature
 
+## 1.5.0 — Everyday
+
+- [x] Keyboard shortcut (Alt+Shift+A)
+- [x] Right-click menu: selection, link, summarize page
+- [x] Add context: page text, open tabs, screenshot
+- [x] Tables with Copy / CSV / JSON, `extract_table` tool
+- [x] Saved prompts with "/" menu and Settings section
+- [x] Limits (steps, tokens) and user-entered model prices with cost estimate
+- [x] Real runs with Gemini on Wikipedia
+
 ## Session log
 
 | Date       | Session work                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -165,3 +175,4 @@ See [docs/plans/gemini-live.md](docs/plans/gemini-live.md).
 | 2026-10-30 | Token use: stale `read_page`/`get_text` results and long earlier-task results replaced by stubs before each model call, `read_page` cap 50k → 20k; measured on real runs with `gemini-3.5-flash-lite` and `gemini-3.1-flash-live-preview` (history sent −0 to −31%); version 1.2.1                                                                                                                                                                                                                                                                                                                                                                                   |
 | \n         | 2026-11-02                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | 1.3.0: Gemini Live merged into Gemini; side panel redesign (menu, step timeline, status line, approval sentence, safety chip, setup screen, tab-aware suggestions, copy, Settings links, on-page highlight); verified with a real Gemini run in light and dark; README GIF and screens updated |
 | 2026-11-06 | 1.4.0 (all work on Opus): `ask_user` with hand-off, take over / hand back, iframes (cross-origin, `f12e5` refs), dialogs with a `dialog` tool, `hover`, `drag`, file attachments and `upload_file`; real Gemini runs: asked for missing details, answered a confirm, worked in a cross-origin frame, uploaded an attachment (13 → 4 steps after describing file inputs)                                                                                                                                                                                                                                                                                              |
+| 2026-11-06 | 1.5.0 (Opus): Alt+Shift+A shortcut, right-click menu, add context (page, tabs, screenshot), markdown tables with CSV/JSON and `extract_table`, saved prompts, limits and cost; real Gemini runs: Wikipedia table in 1 step, screenshot described, `/summarize`                                                                                                                                                                                                                                                                                                                                                                                                       |

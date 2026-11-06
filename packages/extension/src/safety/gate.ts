@@ -21,6 +21,7 @@ export const TOOL_GROUPS: Record<ToolName, ToolGroup> = {
   read_page: 'read',
   find: 'read',
   get_text: 'read',
+  extract_table: 'read',
   screenshot: 'read',
   click: 'action',
   type: 'action',

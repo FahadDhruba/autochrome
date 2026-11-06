@@ -20,7 +20,7 @@ async function waitForText(tabId: number, needle: string, timeoutMs: number): Pr
 
 export const pageHandlers: Pick<
   ToolHandlers,
-  'read_page' | 'find' | 'get_text' | 'screenshot' | 'wait'
+  'read_page' | 'find' | 'get_text' | 'screenshot' | 'wait' | 'extract_table'
 > = {
   async read_page({ filter, tabId }) {
     const id = await resolveTabId(tabId);
@@ -47,6 +47,16 @@ export const pageHandlers: Pick<
     );
     const lines = results.filter(Boolean).join('\n').split('\n').filter(Boolean);
     return text(lines.slice(0, MAX_FIND_RESULTS).join('\n') || `No elements match "${query}".`);
+  },
+
+  async extract_table({ maxRows, tabId }) {
+    const id = await resolveTabId(tabId);
+    const children = await mapFrames(id);
+    const tables = await Promise.all(
+      [0, ...children].map((f) => callPage(id, 'tables', { maxRows }, f).catch(() => '')),
+    );
+    const found = tables.filter((t) => t && !t.startsWith('No data tables'));
+    return text(found.join('\n\n') || 'No data tables on this page.');
   },
 
   async get_text({ tabId }) {

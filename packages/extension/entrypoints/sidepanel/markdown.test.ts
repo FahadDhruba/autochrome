@@ -83,3 +83,25 @@ describe('parseMarkdown', () => {
     }
   });
 });
+
+describe('tables', () => {
+  it('parses a header, a rule and rows, with escaped pipes', () => {
+    expect(
+      parseMarkdown('| Name | Born |\n|---|:---:|\n| Ada | 1815 |\n| A \\| B | x |\n\nAfter'),
+    ).toEqual([
+      {
+        type: 'table',
+        header: ['Name', 'Born'],
+        rows: [
+          ['Ada', '1815'],
+          ['A | B', 'x'],
+        ],
+      },
+      { type: 'paragraph', children: [{ type: 'text', text: 'After' }] },
+    ]);
+  });
+
+  it('leaves pipes without a rule line as text', () => {
+    expect(parseMarkdown('| not a table |')[0]?.type).toBe('paragraph');
+  });
+});

@@ -2,6 +2,27 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.5.0] - 2026-11-06
+
+### Added
+
+- **Keyboard shortcut** Alt+Shift+A opens the side panel, ready to type.
+- **Right-click menu:** ask about selected text, ask about a link, or summarize the page. The
+  panel opens and sends the request; selected text is passed as untrusted page content.
+- **Add context:** attach the current page's text, your open tabs or a screenshot to a message;
+  they show as chips on the message.
+- **Tables:** answers with markdown tables render as tables with Copy, CSV and JSON download. A
+  new `extract_table` tool reads HTML tables and grids on the page (including iframes).
+- **Saved prompts:** type "/" in the message box to pick one; manage them in Settings → Prompts.
+- **Limits and cost:** Settings → Limits caps steps and tokens per task. An optional price per
+  model (entered by you; no built-in price list) shows an estimated cost under each answer.
+
+### Fixed
+
+- Clicks on elements inside cross-origin iframes. Chrome does not always route a debugger click
+  into another site's frame; the click is now watched from inside the frame, and if it never
+  arrives the element is activated there instead.
+
 ## [1.4.0] - 2026-11-06
 
 ### Added
@@ -180,6 +201,7 @@ provider APIs have not been exercised yet.
 - Chrome only; Edge and Brave should work but are untested.
 - Prompt injection cannot be fully prevented; see [SECURITY.md](SECURITY.md).
 
+[1.5.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.5.0
 [1.4.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.4.0
 [1.3.0]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.3.0
 [1.2.1]: https://github.com/FahadDhruba/autochrome/releases/tag/v1.2.1
