@@ -115,3 +115,38 @@ export function setFiles(target: { ref?: string; point?: Point }, files: FileDat
   }
   return `Dropped ${names} on ${ref}.`;
 }
+
+let clickWatch: { el: Element; seen: boolean; stop: () => void } | undefined;
+
+/** Start noticing whether a real click reaches the element behind `ref`. */
+export function watchClick(ref: string): true {
+  clickWatch?.stop();
+  const el = elementForRef(ref);
+  const watch = { el, seen: false, stop: () => removeEventListener('click', onClick, true) };
+  const onClick = (event: Event) => {
+    if (event.composedPath().includes(el)) watch.seen = true;
+  };
+  addEventListener('click', onClick, true);
+  clickWatch = watch;
+  return true;
+}
+
+/**
+ * After a debugger click: true if it reached the element. If it did not (the browser can fail to
+ * route a click into a cross-origin frame), the element is activated from inside the page.
+ */
+export function confirmClick(): { reached: boolean } {
+  const watch = clickWatch;
+  clickWatch = undefined;
+  if (!watch) return { reached: false };
+  watch.stop();
+  if (watch.seen) return { reached: true };
+  const el = watch.el as HTMLElement;
+  el.focus?.();
+  for (const type of ['pointerdown', 'mousedown', 'pointerup', 'mouseup']) {
+    const Event = type.startsWith('pointer') ? PointerEvent : MouseEvent;
+    el.dispatchEvent(new Event(type, { bubbles: true, cancelable: true, composed: true }));
+  }
+  el.click?.();
+  return { reached: false };
+}

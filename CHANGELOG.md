@@ -17,6 +17,12 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - **Limits and cost:** Settings → Limits caps steps and tokens per task. An optional price per
   model (entered by you; no built-in price list) shows an estimated cost under each answer.
 
+### Fixed
+
+- Clicks on elements inside cross-origin iframes. Chrome does not always route a debugger click
+  into another site's frame; the click is now watched from inside the frame, and if it never
+  arrives the element is activated there instead.
+
 ## [1.4.0] - 2026-11-06
 
 ### Added

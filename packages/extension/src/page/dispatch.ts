@@ -1,6 +1,6 @@
 import { describe } from './describe';
 import { announceFrame, frameChildren, frameRect } from './frames';
-import { hasText, locate, setFiles, setValue } from './interact';
+import { confirmClick, hasText, locate, setFiles, setValue, watchClick } from './interact';
 import { hideOverlay } from './overlay';
 import type { PageMessage, PageOp, PageRequests, PageResponse, PageResults } from './messages';
 import { startRecording, stopRecording } from './recorder';
@@ -20,6 +20,8 @@ const operations: { [Op in PageOp]: (args: PageRequests[Op]) => PageResults[Op] 
   record_stop: () => stopRecording(),
   overlay_hide: () => hideOverlay(),
   tables: ({ maxRows }) => pageTables(maxRows),
+  watch_click: ({ ref }) => watchClick(ref),
+  confirm_click: () => confirmClick(),
   frame_announce: ({ token }) => announceFrame(token),
   frame_children: () => frameChildren(),
   frame_rect: ({ token, scroll }) => frameRect(token, scroll),
